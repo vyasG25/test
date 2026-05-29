@@ -5619,9 +5619,6 @@ function renderAIAnalysis() {
   lowSellThru.slice(0,3).forEach(s => problems.push({type:'Low Sell-Through', icon:'🐌', severity:'low', title:s.name, desc:`Only ${(s.sellThru*100).toFixed(1)}% sell-through rate indicates slow movement relative to inventory.`, metrics:[{l:'Sell-Thru',v:(s.sellThru*100).toFixed(1)+'%'},{l:'Stock',v:fmt(s.totalStk)},{l:'Sales',v:fmt(s.qty)}], color:'var(--gold)'}));
 
   if (problems.length > 0) {
-    // Group problems by type
-    const probByType = {};
-    problems.forEach(p => { if (!probByType[p.type]) probByType[p.type] = {icon:p.icon, color:p.color, severity:p.severity, items:[]}; probByType[p.type].items.push(p); });
     html += `
     <div class="ai-section">
       <div class="ai-sec-head">
@@ -5629,39 +5626,22 @@ function renderAIAnalysis() {
         <div class="ai-sec-title">Problem Areas Detected</div>
         <span class="ai-sec-badge" style="background:var(--red-light);color:var(--red);">${problems.length} Issues</span>
       </div>
-      <div class="ai-prob-table">
-        ${Object.entries(probByType).map(([type, grp]) => {
-          const sevBg = grp.severity==='critical'||grp.severity==='high' ? 'var(--red)' : grp.severity==='medium' ? 'var(--warm)' : 'var(--gold)';
-          return `
-          <div class="ai-prob-group">
-            <div class="ai-prob-group-head">
-              <div class="ai-prob-group-stripe" style="background:${grp.color};"></div>
-              <span class="ai-prob-group-icon">${grp.icon}</span>
-              <span class="ai-prob-group-type">${type}</span>
-              <span class="ai-prob-group-count" style="background:${sevBg};">${grp.items.length}</span>
-              <span class="ai-prob-group-sev" style="color:${sevBg};">${grp.severity}</span>
-            </div>
-            <div class="ai-prob-group-body">
-              <table class="ai-prob-rows">
-                <thead><tr>
-                  <th style="text-align:left;width:40%;">SKU / Item</th>
-                  ${grp.items[0].metrics.map(m => `<th>${m.l}</th>`).join('')}
-                </tr></thead>
-                <tbody>
-                  ${grp.items.map(p => `<tr>
-                    <td class="ai-prob-name">${p.title}</td>
-                    ${p.metrics.map(m => `<td><b>${m.v}</b></td>`).join('')}
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>`;
-        }).join('')}
+      <div class="ai-cards-scroll">
+        ${problems.map(p => `
+          <div class="ai-card">
+            <div class="ai-card-stripe" style="background:${p.color};"></div>
+            <div class="ai-card-severity" style="background:${p.severity==='critical' ? 'var(--red-light);color:var(--red)' : p.severity==='high' ? 'var(--red-light);color:var(--red)' : p.severity==='medium' ? 'var(--warm-light);color:var(--warm)' : 'var(--gold-light);color:var(--gold)'};">${p.severity}</div>
+            <div class="ai-card-icon">${p.icon}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px;">${p.type}</div>
+            <div class="ai-card-title">${p.title}</div>
+            <div class="ai-card-desc">${p.desc}</div>
+            <div class="ai-card-metrics">${p.metrics.map(m=>`<div class="ai-card-metric"><b>${m.l}:</b> ${m.v}</div>`).join('')}</div>
+          </div>`).join('')}
       </div>
     </div>`;
   }
 
-  // ═══ E. OPPORTUNITY AREAS ═══
+// ═══ E. OPPORTUNITY AREAS ═══
   const opps = [];
   growing.slice(0,4).forEach(s => opps.push({type:'Fast Growing', icon:'🚀', title:s.name, desc:`Momentum up ${(s.skuMomentum*100).toFixed(0)}% — strong acceleration signal. Consider increasing distribution.`, metrics:[{l:'Momentum',v:'+'+((s.skuMomentum*100).toFixed(0))+'%'},{l:'Recent Qty',v:fmt(s.recentQty)},{l:'Stores',v:fmt(s.stores)}], color:'var(--green)'}));
   skuList.filter(s => s.salesPerStore > 0.5 && s.stores < 200 && s.qty > 0).sort((a,b) => b.salesPerStore - a.salesPerStore).slice(0,3).forEach(s => opps.push({type:'Distribution Expansion', icon:'🏪', title:s.name, desc:`High productivity at ${fmtD(s.salesPerStore,2)}/store/wk but only in ${fmt(s.stores)} stores. Expansion could unlock significant growth.`, metrics:[{l:'Sales/Store/Wk',v:fmtD(s.salesPerStore,2)},{l:'Current Stores',v:fmt(s.stores)},{l:'Revenue',v:fmtV(s.val)}], color:'var(--accent)'}));
