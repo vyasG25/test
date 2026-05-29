@@ -673,185 +673,152 @@
   .no-data{padding:28px;text-align:center;color:var(--text3);font-size:14px;}
   @media(max-width:768px){.top-bar,.filter-bar{padding:10px 14px;}.main{padding:14px;}.tab-bar{padding:0 14px;overflow-x:auto;}.pop-grid{grid-template-columns:1fr;}.top6-grid{grid-template-columns:1fr;}}
 
-  /* ═══ AI ANALYSIS TAB ═══ */
-  .ai-section{margin-bottom:28px;}
-  .ai-sec-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-  .ai-sec-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-  .ai-sec-title{font-family:'Fraunces',serif;font-size:17px;color:var(--text);}
-  .ai-sec-badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+  /* ═══════════════════════════════════════════════════════
+     AI ANALYSIS TAB — Executive Intelligence
+  ═══════════════════════════════════════════════════════ */
+  #tab-aianalysis{background:var(--bg);}
 
-  /* Executive Summary Banner */
-  .ai-exec-banner{background:linear-gradient(135deg,#1a2e1f 0%,#2d4a35 40%,#1e3a45 100%);border-radius:16px;padding:28px 32px;color:#fff;position:relative;overflow:hidden;margin-bottom:24px;}
-  .ai-exec-banner::before{content:'';position:absolute;top:-50%;right:-20%;width:500px;height:500px;background:radial-gradient(circle,rgba(78,124,89,.15) 0%,transparent 70%);pointer-events:none;}
-  .ai-exec-banner::after{content:'';position:absolute;bottom:-30%;left:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(74,127,165,.1) 0%,transparent 70%);pointer-events:none;}
-  .ai-exec-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;position:relative;z-index:1;}
-  .ai-exec-left{flex:1;}
-  .ai-exec-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px;}
-  .ai-exec-headline{font-family:'Fraunces',serif;font-size:22px;line-height:1.35;margin-bottom:12px;color:#fff;}
-  .ai-exec-narrative{font-size:14px;line-height:1.65;color:rgba(255,255,255,.75);max-width:700px;}
-  .ai-health-ring{width:110px;height:110px;position:relative;flex-shrink:0;}
-  .ai-health-ring svg{transform:rotate(-90deg);}
-  .ai-health-score{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
-  .ai-health-num{font-size:28px;font-weight:700;color:#fff;}
-  .ai-health-label{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.5);}
-  .ai-takeaway-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;position:relative;z-index:1;}
-  @media(max-width:900px){.ai-takeaway-grid{grid-template-columns:repeat(2,1fr);}}
-  .ai-takeaway{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px 16px;backdrop-filter:blur(8px);}
-  .ai-takeaway-icon{font-size:18px;margin-bottom:6px;}
-  .ai-takeaway-title{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px;}
-  .ai-takeaway-val{font-size:18px;font-weight:600;color:#fff;}
-  .ai-takeaway-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
+  .ai-page{max-width:1480px;margin:0 auto;}
 
-  /* KPI Cockpit */
-  .ai-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-  @media(max-width:1100px){.ai-kpi-grid{grid-template-columns:repeat(2,1fr);}}
-  .ai-kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:all .25s;}
-  .ai-kpi:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
-  .ai-kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-  .ai-kpi-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
-  .ai-kpi-badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;}
-  .ai-kpi-badge.up{background:var(--green-light);color:var(--green);}
-  .ai-kpi-badge.dn{background:var(--red-light);color:var(--red);}
-  .ai-kpi-badge.na{background:var(--bg);color:var(--text3);}
-  .ai-kpi-val{font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px;}
-  .ai-kpi-spark{height:32px;margin-top:8px;}
-  .ai-kpi-spark svg{width:100%;height:100%;}
-  .ai-kpi-insight{font-size:11px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.45;}
-  .ai-kpi-bar{position:absolute;bottom:0;left:0;right:0;height:3px;}
+  /* Context ribbon */
+  .ai-context-ribbon{
+    background:linear-gradient(135deg,#1a2f23 0%,#2a4838 50%,#1e3a2c 100%);
+    border-radius:var(--r);padding:22px 28px;margin-bottom:18px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+    position:relative;overflow:hidden;
+  }
+  .ai-context-ribbon::before{
+    content:'';position:absolute;top:-50%;right:-10%;width:300px;height:300px;
+    background:radial-gradient(circle,rgba(78,124,89,.25) 0%,transparent 70%);pointer-events:none;
+  }
+  .ai-ctx-left{display:flex;align-items:center;gap:14px;z-index:1;}
+  .ai-ctx-icon{width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+    border:1px solid rgba(255,255,255,.15);}
+  .ai-ctx-title{font-family:'Fraunces',serif;font-size:20px;color:#fff;letter-spacing:-.3px;}
+  .ai-ctx-sub{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px;line-height:1.4;}
+  .ai-ctx-right{display:flex;align-items:center;gap:16px;z-index:1;}
+  .ai-ctx-chip{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;
+    background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.18);
+    letter-spacing:.3px;}
+
+  /* Health score */
+  .ai-health-wrap{display:flex;align-items:center;gap:10px;padding:8px 18px;
+    border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);}
+  .ai-health-score{font-size:28px;font-weight:700;font-family:'Fraunces',serif;line-height:1;}
+  .ai-health-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.5);}
+  .ai-health-word{font-size:13px;font-weight:600;}
+  .health-strong{color:#6ee7a0;} .health-moderate{color:#fbbf24;} .health-weak{color:#f87171;} .health-critical{color:#ef4444;}
+
+  /* Section structure */
+  .ai-section{margin-bottom:20px;}
+  .ai-sec-head{display:flex;align-items:center;gap:10px;margin-bottom:13px;}
+  .ai-sec-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .ai-sec-title{font-family:'Fraunces',serif;font-size:16px;color:var(--text);}
+  .ai-sec-badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+
+  /* Executive summary cards */
+  .ai-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
+  .ai-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+    padding:18px 20px;position:relative;overflow:hidden;transition:box-shadow .2s;}
+  .ai-summary-card:hover{box-shadow:var(--shadow);}
+  .ai-summary-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .ai-sc-green::before{background:var(--green);} .ai-sc-red::before{background:var(--red);}
+  .ai-sc-amber::before{background:var(--gold);} .ai-sc-blue::before{background:var(--blue);}
+  .ai-sc-purple::before{background:var(--accent2);}
+  .ai-sc-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .ai-sc-emoji{font-size:18px;}
+  .ai-sc-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+  .ai-sc-value{font-size:22px;font-weight:700;color:var(--text);line-height:1.1;}
+  .ai-sc-insight{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5;}
+
+  /* What this means */
+  .ai-meaning-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+    padding:18px 22px;margin-bottom:20px;border-left:4px solid var(--accent);}
+  .ai-meaning-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:6px;}
+  .ai-meaning-text{font-size:13px;color:var(--text);line-height:1.65;}
 
   /* Drivers */
-  .ai-drivers-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .ai-drivers-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   @media(max-width:900px){.ai-drivers-grid{grid-template-columns:1fr;}}
-  .ai-driver-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;}
-  .ai-driver-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-  .ai-driver-dot{width:8px;height:8px;border-radius:50%;}
-  .ai-driver-title{font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.3px;}
-  .ai-driver-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .ai-driver-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+  .ai-driver-header{padding:14px 18px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+  .ai-driver-header.positive{background:var(--green-light);color:var(--green);}
+  .ai-driver-header.negative{background:var(--red-light);color:var(--red);}
+  .ai-driver-item{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
   .ai-driver-item:last-child{border-bottom:none;}
-  .ai-driver-rank{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
-  .ai-driver-info{flex:1;min-width:0;}
-  .ai-driver-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .ai-driver-meta{font-size:11px;color:var(--text3);}
-  .ai-driver-val{font-size:14px;font-weight:700;text-align:right;flex-shrink:0;}
-  .ai-driver-bar-wrap{height:4px;background:var(--bg);border-radius:2px;margin-top:4px;}
-  .ai-driver-bar{height:100%;border-radius:2px;transition:width .4s;}
+  .ai-driver-rank{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+  .ai-driver-rank.pos{background:var(--green-light);color:var(--green);}
+  .ai-driver-rank.neg{background:var(--red-light);color:var(--red);}
+  .ai-driver-info{flex:1;}
+  .ai-driver-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+  .ai-driver-detail{font-size:12px;color:var(--text2);line-height:1.5;}
 
-  /* Problem / Opportunity Cards */
-  .ai-cards-scroll{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
-  .ai-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;transition:all .2s;overflow:hidden;}
-  .ai-card:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
-  .ai-card-stripe{position:absolute;top:0;left:0;right:0;height:3px;}
-  .ai-card-icon{font-size:20px;margin-bottom:8px;}
-  .ai-card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
-  .ai-card-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
-  .ai-card-metrics{display:flex;gap:12px;flex-wrap:wrap;}
-  .ai-card-metric{font-size:11px;color:var(--text3);}
-  .ai-card-metric b{color:var(--text);font-weight:600;}
-  .ai-card-severity{position:absolute;top:12px;right:12px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+  /* Problem / Opportunity items */
+  .ai-items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+  .ai-item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+    padding:16px 18px;position:relative;transition:box-shadow .2s;}
+  .ai-item-card:hover{box-shadow:var(--shadow);}
+  .ai-item-card.severity-high{border-left:3px solid var(--red);}
+  .ai-item-card.severity-medium{border-left:3px solid var(--gold);}
+  .ai-item-card.severity-low{border-left:3px solid var(--blue);}
+  .ai-item-card.opp-high{border-left:3px solid var(--green);}
+  .ai-item-card.opp-medium{border-left:3px solid var(--accent);}
+  .ai-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .ai-item-title{font-size:13px;font-weight:600;color:var(--text);}
+  .ai-item-pill{padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+  .pill-high{background:var(--red-light);color:var(--red);}
+  .pill-medium{background:var(--gold-light);color:var(--gold);}
+  .pill-low{background:var(--blue-light);color:var(--blue);}
+  .pill-opp{background:var(--green-light);color:var(--green);}
+  .ai-item-body{font-size:12px;color:var(--text2);line-height:1.55;}
+  .ai-item-metric{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;
+    background:var(--bg);font-size:11px;font-weight:600;color:var(--text);margin-top:8px;}
 
-  /* Problem Areas — grouped table style */
-  .ai-prob-table{display:flex;flex-direction:column;gap:12px;}
-  .ai-prob-group{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  .ai-prob-group-head{display:flex;align-items:center;gap:10px;padding:14px 18px;position:relative;}
-  .ai-prob-group-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;}
-  .ai-prob-group-icon{font-size:18px;}
-  .ai-prob-group-type{font-size:13px;font-weight:700;color:var(--text);flex:1;}
-  .ai-prob-group-count{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;}
-  .ai-prob-group-sev{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
-  .ai-prob-group-body{padding:0 18px 14px;}
-  .ai-prob-rows{width:100%;border-collapse:collapse;font-size:12px;}
-  .ai-prob-rows th{text-align:right;padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:1px solid var(--border);}
-  .ai-prob-rows td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;color:var(--text2);}
-  .ai-prob-rows tr:last-child td{border-bottom:none;}
-  .ai-prob-name{text-align:left!important;font-weight:500;color:var(--text)!important;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
-  /* Opportunity Areas — lane style */
-  .ai-opp-lane{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
-  .ai-opp-lane-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);}
-  .ai-opp-lane-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-  .ai-opp-lane-type{font-size:13px;font-weight:700;color:var(--text);flex:1;}
-  .ai-opp-lane-count{font-size:11px;color:var(--text3);font-weight:500;}
-  .ai-opp-lane-rows{padding:4px 0;}
-  .ai-opp-row{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
-  .ai-opp-row:last-child{border-bottom:none;}
-  .ai-opp-row-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-  .ai-opp-row-name{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .ai-opp-row-metrics{display:flex;gap:14px;flex-shrink:0;}
-  .ai-opp-row-metric{font-size:11px;color:var(--text3);white-space:nowrap;}
-  .ai-opp-row-metric b{color:var(--text);font-weight:600;}
-  .ai-opp-row-action{font-size:11px;color:var(--text2);width:100%;padding-left:18px;line-height:1.4;}
-
-  /* Recommendations — always expanded */
-  .ai-rec-static{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:12px;}
-  .ai-rec-static:hover{box-shadow:var(--shadow);}
-  .ai-rec-head{display:flex;align-items:flex-start;gap:12px;}
-  .ai-rec-prio{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;}
-  .ai-rec-main{flex:1;}
-  .ai-rec-issue{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
-  .ai-rec-why{font-size:12px;color:var(--text2);line-height:1.5;}
-  .ai-rec-body-static{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
-  .ai-rec-detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  @media(max-width:600px){.ai-rec-detail{grid-template-columns:1fr;}}
-  .ai-rec-detail-item{padding:10px 12px;background:var(--bg);border-radius:8px;}
-  .ai-rec-detail-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px;}
-  .ai-rec-detail-val{font-size:12px;color:var(--text);line-height:1.5;}
+  /* Recommendations */
+  .ai-recs-list{display:flex;flex-direction:column;gap:10px;}
+  .ai-rec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+    padding:16px 20px;display:grid;grid-template-columns:auto 1fr;gap:14px;transition:box-shadow .2s;}
+  .ai-rec-card:hover{box-shadow:var(--shadow);}
+  .ai-rec-num{width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+  .ai-rec-content{}
+  .ai-rec-issue{font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .ai-rec-why{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5;}
+  .ai-rec-action{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px;line-height:1.4;}
+  .ai-rec-benefit{font-size:11px;color:var(--green);font-weight:500;display:flex;align-items:center;gap:4px;}
 
   /* Alerts */
   .ai-alerts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
-  .ai-alert{background:var(--surface);border-radius:12px;padding:16px 18px;display:flex;align-items:flex-start;gap:12px;transition:all .2s;}
-  .ai-alert:hover{box-shadow:var(--shadow);}
-  .ai-alert-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-  .ai-alert-content{flex:1;}
-  .ai-alert-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
-  .ai-alert-desc{font-size:12px;color:var(--text2);line-height:1.45;}
-  .ai-alert-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;margin-top:6px;text-transform:uppercase;letter-spacing:.3px;}
-  /* Alert drill-down */
-  .ai-alert-drill{cursor:pointer;flex-direction:column;}
-  .ai-alert-drill-chevron{font-size:16px;color:var(--text3);transition:transform .2s;flex-shrink:0;margin-top:2px;}
-  .ai-alert-drill-chevron.open{transform:rotate(180deg);}
-  .ai-alert-drill-body{width:100%;margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,.08);}
-  .ai-alert-drill-table{width:100%;border-collapse:collapse;font-size:12px;}
-  .ai-alert-drill-table th{text-align:right;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);border-bottom:1px solid rgba(0,0,0,.08);}
-  .ai-alert-drill-table td{padding:6px 8px;text-align:right;color:var(--text2);border-bottom:1px solid rgba(0,0,0,.05);}
-  .ai-alert-drill-table tr:last-child td{border-bottom:none;}
+  .ai-alert-card{border-radius:var(--r);padding:16px 18px;display:flex;gap:12px;align-items:flex-start;
+    transition:box-shadow .2s;}
+  .ai-alert-card:hover{box-shadow:var(--shadow);}
+  .ai-alert-card.alert-red{background:var(--red-light);border:1px solid var(--red);}
+  .ai-alert-card.alert-amber{background:var(--gold-light);border:1px solid var(--gold);}
+  .ai-alert-card.alert-blue{background:var(--blue-light);border:1px solid var(--blue);}
+  .ai-alert-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:18px;flex-shrink:0;}
+  .alert-red .ai-alert-icon{background:rgba(192,68,74,.15);}
+  .alert-amber .ai-alert-icon{background:rgba(196,151,58,.15);}
+  .alert-blue .ai-alert-icon{background:rgba(74,127,165,.15);}
+  .ai-alert-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+  .ai-alert-body{font-size:12px;color:var(--text2);line-height:1.5;}
 
-  /* Trend Section */
-  .ai-trend-container{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
-  .ai-trend-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-  .ai-trend-title{font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.3px;}
-  .ai-trend-chart{height:220px;position:relative;}
-  .ai-trend-insight{font-size:12px;color:var(--text2);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);line-height:1.5;}
+  /* Trend direction */
+  .ai-trend-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media(max-width:900px){.ai-trend-grid{grid-template-columns:1fr;}}
+  .ai-trend-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;text-align:center;}
+  .ai-trend-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+  .ai-trend-arrow{font-size:36px;line-height:1;margin-bottom:6px;}
+  .ai-trend-word{font-size:15px;font-weight:700;margin-bottom:4px;}
+  .ai-trend-detail{font-size:12px;color:var(--text2);line-height:1.5;}
+  .trend-up{color:var(--green);} .trend-down{color:var(--red);} .trend-flat{color:var(--gold);}
 
-  /* Quadrant Matrix */
-  .ai-quad-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;}
-  .ai-quad-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;min-height:300px;background:var(--border);border-radius:8px;overflow:hidden;}
-  .ai-quad-cell{background:var(--surface);padding:14px;position:relative;display:flex;flex-direction:column;}
-  .ai-quad-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
-  .ai-quad-count{font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:500;}
-  .ai-quad-items-scroll{display:flex;flex-direction:column;gap:0;max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
-  .ai-quad-items-scroll::-webkit-scrollbar{width:4px;}
-  .ai-quad-items-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-  .ai-quad-item-row{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid var(--border);font-size:11px;}
-  .ai-quad-item-row:last-child{border-bottom:none;}
-  .ai-quad-item-name{flex:1;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-  .ai-quad-item-stat{font-size:10px;color:var(--text3);white-space:nowrap;flex-shrink:0;}
-  .ai-quad-item-stat b{color:var(--text2);font-weight:600;}
-  .ai-quad-axis-x{text-align:center;font-size:10px;color:var(--text3);margin-top:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
-
-  /* Root Cause Tree */
-  .ai-rc-tree{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;}
-  .ai-rc-node{padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;}
-  .ai-rc-node-head{font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
-  .ai-rc-node-desc{font-size:12px;color:var(--text2);line-height:1.45;}
-  .ai-rc-children{margin-left:20px;padding-left:16px;border-left:2px solid var(--border);}
-
-  /* Pareto bar */
-  .ai-pareto-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .ai-pareto-label{width:120px;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;text-align:right;}
-  .ai-pareto-track{flex:1;height:18px;background:var(--bg);border-radius:4px;overflow:hidden;position:relative;}
-  .ai-pareto-fill{height:100%;border-radius:4px;transition:width .5s;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;font-weight:600;color:#fff;min-width:30px;}
-  .ai-pareto-val{font-size:12px;color:var(--text2);width:50px;text-align:right;flex-shrink:0;}
-  .ai-pareto-cum{font-size:12px;color:var(--text3);width:40px;flex-shrink:0;text-align:right;}
+  /* Mini bar chart inside AI tab */
+  .ai-minibar-wrap{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:10px;}
+  .ai-minibar{flex:1;border-radius:2px 2px 0 0;min-width:4px;transition:height .3s;}
 </style>
 </head>
 <body>
@@ -1009,7 +976,7 @@
   <button class="tab-btn" data-tab="inventory">📦 Inventory</button>
   <button class="tab-btn" data-tab="replenish">🔄 Replenishment</button>
   <button class="tab-btn" data-tab="forecast">🔮 Forecast</button>
-  <button class="tab-btn" data-tab="aianalysis" style="background:linear-gradient(135deg,rgba(78,124,89,.08),rgba(123,94,167,.08));font-weight:600;">🧠 AI Analysis</button>
+  <button class="tab-btn" data-tab="aianalysis">🧠 AI Analysis</button>
 </div>
 
 <!-- MAIN -->
@@ -5290,763 +5257,768 @@ function getISOWeek(d) {
   return 1+Math.round(((date-week1)/86400000-3+(week1.getDay()+6)%7)/7);
 }
 
-// ═══════════════════════════════════════════════════════════
-// AI ANALYSIS TAB — Executive Intelligence Command Center
-// ═══════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════════════════════
+// AI ANALYSIS TAB — Executive Intelligence Engine
+// ═══════════════════════════════════════════════════════════════════════
 function renderAIAnalysis() {
   const root = document.getElementById('aiAnalysisRoot');
-  if (!filtered.length) { root.innerHTML = '<div class="no-data" style="padding:60px 0;text-align:center;font-size:15px;color:var(--text3);">No data available for current filters. Adjust filters to generate AI insights.</div>'; return; }
-
-  // ──── CORE ANALYTICS ENGINE ────
-  const data = filtered;
-  const totalQty = data.reduce((s,r) => s + r.sale_qty, 0);
-  const totalVal = data.reduce((s,r) => s + r.sale_value, 0);
-  const totalCostVal = data.reduce((s,r) => s + r.cost_value, 0);
-  const grossMargin = totalVal > 0 ? (totalVal - totalCostVal) / totalVal : 0;
-  const {soh, dc, rushOrder} = latestStockTotals(data);
-  const totalStock = soh + dc + rushOrder;
-  const weeks = uniqueWks(data);
-  const avgWeeklySales = weeks > 0 ? totalQty / weeks : 0;
-  const woc = avgWeeklySales > 0 ? totalStock / avgWeeklySales : 0;
-
-  // ── Monthly aggregation ──
-  const byMonth = {};
-  data.forEach(r => {
-    const m = r.month || r.date.substring(0,7);
-    if (!byMonth[m]) byMonth[m] = {qty:0, val:0, cost:0};
-    byMonth[m].qty += r.sale_qty;
-    byMonth[m].val += r.sale_value;
-    byMonth[m].cost += r.cost_value;
-  });
-  const monthKeys = Object.keys(byMonth).sort();
-  const monthVals = monthKeys.map(k => byMonth[k].qty);
-
-  // ── Momentum (last 4 vs prior 4 weeks) ──
-  const byWeeksAgo = {};
-  data.forEach(r => { if (!byWeeksAgo[r.weeks_ago]) byWeeksAgo[r.weeks_ago] = {qty:0,val:0}; byWeeksAgo[r.weeks_ago].qty += r.sale_qty; byWeeksAgo[r.weeks_ago].val += r.sale_value; });
-  const weekNums = Object.keys(byWeeksAgo).map(Number).sort((a,b) => a - b);
-  const recent4 = weekNums.filter(w => w <= 4);
-  const prior4 = weekNums.filter(w => w > 4 && w <= 8);
-  const recentQty = recent4.reduce((s,w) => s + byWeeksAgo[w].qty, 0);
-  const priorQty = prior4.reduce((s,w) => s + byWeeksAgo[w].qty, 0);
-  const momentum = priorQty > 0 ? (recentQty - priorQty) / priorQty : 0;
-  const recentVal = recent4.reduce((s,w) => s + byWeeksAgo[w].val, 0);
-  const priorVal = prior4.reduce((s,w) => s + byWeeksAgo[w].val, 0);
-  const valMomentum = priorVal > 0 ? (recentVal - priorVal) / priorVal : 0;
-
-  // ── SKU performance ──
-  const bySKU = {};
-  data.forEach(r => {
-    if (!bySKU[r.sku_code]) bySKU[r.sku_code] = {code:r.sku_code, name:r.sku_name, qty:0, val:0, costVal:0, soh:0, dc:0, rush:0, stores:0, weeks: new Set(), latestDate:'', latestSOH:0, latestDC:0, weeklyData:{}};
-    const s = bySKU[r.sku_code];
-    s.qty += r.sale_qty; s.val += r.sale_value; s.costVal += r.cost_value;
-    s.weeks.add(r.year+'W'+r.week);
-    if (r.date >= s.latestDate) { s.latestDate = r.date; s.latestSOH = r.soh_qty; s.latestDC = r.stock_dc; s.stores = r.store_count; }
-    const wa = r.weeks_ago;
-    if (!s.weeklyData[wa]) s.weeklyData[wa] = 0;
-    s.weeklyData[wa] += r.sale_qty;
-  });
-  const skuList = Object.values(bySKU).map(s => {
-    s.weekCount = s.weeks.size;
-    s.avgWeekly = s.weekCount > 0 ? s.qty / s.weekCount : 0;
-    s.totalStk = s.latestSOH + s.latestDC;
-    s.skuWOC = s.avgWeekly > 0 ? s.totalStk / s.avgWeekly : 9999;
-    s.sellThru = (s.qty + s.totalStk) > 0 ? s.qty / (s.qty + s.totalStk) : 0;
-    // SKU momentum
-    const rWeeks = weekNums.filter(w => w <= 4);
-    const pWeeks = weekNums.filter(w => w > 4 && w <= 8);
-    s.recentQty = rWeeks.reduce((sum,w) => sum + (s.weeklyData[w]||0), 0);
-    s.priorQty = pWeeks.reduce((sum,w) => sum + (s.weeklyData[w]||0), 0);
-    s.skuMomentum = s.priorQty > 0 ? (s.recentQty - s.priorQty) / s.priorQty : (s.recentQty > 0 ? 1 : 0);
-    s.salesPerStore = s.stores > 0 && s.weekCount > 0 ? s.qty / s.stores / s.weekCount : 0;
-    return s;
-  });
-  const skusSorted = [...skuList].sort((a,b) => b.val - a.val);
-
-  // ── Client performance ──
-  const byClient = {};
-  data.forEach(r => {
-    if (!byClient[r.client]) byClient[r.client] = {name:r.client, qty:0, val:0, costVal:0, soh:0, dc:0, stores:0, skus:new Set(), weeks: new Set(), latestDate:'', weeklyData:{}};
-    const c = byClient[r.client];
-    c.qty += r.sale_qty; c.val += r.sale_value; c.costVal += r.cost_value;
-    c.skus.add(r.sku_code); c.weeks.add(r.year+'W'+r.week);
-    if (r.date >= c.latestDate) { c.latestDate = r.date; }
-    const wa = r.weeks_ago;
-    if (!c.weeklyData[wa]) c.weeklyData[wa] = 0;
-    c.weeklyData[wa] += r.sale_qty;
-  });
-  // Latest stock per client
-  Object.values(byClient).forEach(c => {
-    let cSOH = 0, cDC = 0;
-    data.forEach(r => { if (r.client === c.name && r.date === c.latestDate) { cSOH += r.soh_qty; cDC += r.stock_dc; c.stores = Math.max(c.stores, r.store_count); }});
-    c.soh = cSOH; c.dc = cDC; c.totalStk = cSOH + cDC;
-  });
-  const clientList = Object.values(byClient).map(c => {
-    c.weekCount = c.weeks.size;
-    c.skuCount = c.skus.size;
-    c.avgWeekly = c.weekCount > 0 ? c.qty / c.weekCount : 0;
-    c.clientWOC = c.avgWeekly > 0 ? c.totalStk / c.avgWeekly : 9999;
-    c.share = totalVal > 0 ? c.val / totalVal : 0;
-    const rW = weekNums.filter(w => w <= 4);
-    const pW = weekNums.filter(w => w > 4 && w <= 8);
-    c.recentQty = rW.reduce((sum,w) => sum + (c.weeklyData[w]||0), 0);
-    c.priorQty = pW.reduce((sum,w) => sum + (c.weeklyData[w]||0), 0);
-    c.clientMomentum = c.priorQty > 0 ? (c.recentQty - c.priorQty) / c.priorQty : (c.recentQty > 0 ? 1 : 0);
-    return c;
-  }).sort((a,b) => b.val - a.val);
-
-  // ── Derived intelligence ──
-  const activeSKUs = skuList.filter(s => s.qty > 0).length;
-  const deadSKUs = skuList.filter(s => s.qty === 0 && s.totalStk > 0);
-  const zeroSaleHighStock = skuList.filter(s => s.qty === 0 && s.totalStk > 50);
-  const overstocked = skuList.filter(s => s.skuWOC > 26 && s.totalStk > 100);
-  const stockoutRisk = skuList.filter(s => s.avgWeekly > 5 && s.skuWOC < 4 && s.skuWOC < 9999);
-  const declining = skuList.filter(s => s.skuMomentum < -0.3 && s.priorQty > 10);
-  const growing = skuList.filter(s => s.skuMomentum > 0.3 && s.recentQty > 10).sort((a,b) => b.skuMomentum - a.skuMomentum);
-  const lowSellThru = skuList.filter(s => s.sellThru < 0.15 && s.totalStk > 100);
-  const topClient = clientList[0];
-  const concentrationRisk = topClient && topClient.share > 0.5;
-  const uniqueStores = new Set();
-  data.forEach(r => { if(r.date === (byClient[r.client]||{}).latestDate) uniqueStores.add(r.client+'-'+r.store_count); });
-
-  // ── Health Score (0-100) ──
-  let healthScore = 50;
-  if (momentum > 0.05) healthScore += 12; else if (momentum < -0.1) healthScore -= 15;
-  if (grossMargin > 0.4) healthScore += 10; else if (grossMargin < 0.2) healthScore -= 10;
-  if (woc >= 6 && woc <= 20) healthScore += 10; else if (woc > 40) healthScore -= 10; else if (woc < 3) healthScore -= 12;
-  if (deadSKUs.length === 0) healthScore += 5; else healthScore -= Math.min(deadSKUs.length * 2, 10);
-  if (stockoutRisk.length === 0) healthScore += 5; else healthScore -= Math.min(stockoutRisk.length * 3, 12);
-  if (!concentrationRisk) healthScore += 5; else healthScore -= 8;
-  if (growing.length > declining.length) healthScore += 5; else if (declining.length > growing.length) healthScore -= 5;
-  healthScore = Math.max(10, Math.min(95, healthScore));
-  const healthColor = healthScore >= 70 ? '#3a8a5c' : healthScore >= 45 ? '#c4973a' : '#c0444a';
-  const healthLabel = healthScore >= 70 ? 'Healthy' : healthScore >= 45 ? 'Moderate' : 'At Risk';
-
-  // ── Sparkline generator ──
-  function sparkSVG(vals, color, w=120, h=28) {
-    if (!vals.length) return '';
-    const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx - mn || 1;
-    const pts = vals.map((v,i) => `${(i/(vals.length-1))*w},${h - ((v-mn)/rng)*h}`).join(' ');
-    return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  if (!filtered.length) {
+    root.innerHTML = '<div class="no-data" style="padding:60px 20px;"><div style="font-size:40px;margin-bottom:12px;">🧠</div><div style="font-family:Fraunces,serif;font-size:18px;margin-bottom:6px;">No Data for Selected Filters</div><div style="font-size:13px;color:var(--text3);">Adjust your date range, client, or product filters to generate executive intelligence.</div></div>';
+    return;
   }
 
-  // ── Generate Narrative ──
-  let narrative = '';
-  if (momentum > 0.1) narrative = `Sales are on an upward trajectory with ${(momentum*100).toFixed(0)}% growth in recent weeks. `;
-  else if (momentum < -0.1) narrative = `Sales have softened by ${Math.abs(momentum*100).toFixed(0)}% in recent weeks, indicating a deceleration that warrants attention. `;
-  else narrative = 'Sales velocity is holding steady with minimal movement in recent periods. ';
+  // ── Gather all analytics in one pass ────────────────────────────────
+  const an = computeAIAnalytics();
+  let html = '<div class="ai-page">';
 
-  if (woc > 30) narrative += `Inventory levels are elevated at ${woc.toFixed(0)} weeks of cover — well above optimal range. Consider stock rationalization. `;
-  else if (woc < 4) narrative += `Inventory is critically low at ${woc.toFixed(0)} weeks of cover. Urgent replenishment required to prevent stockouts. `;
-  else narrative += `Inventory cover is at ${woc.toFixed(0)} weeks — within manageable range. `;
+  // A. Context ribbon + health
+  html += renderAIContextRibbon(an);
+  // A. Executive summary cards
+  html += renderAISummarySection(an);
+  // A. What this means
+  html += renderAIMeaning(an);
+  // G. Trend & direction
+  html += renderAITrend(an);
+  // B. Key drivers
+  html += renderAIDrivers(an);
+  // F. Executive alerts
+  html += renderAIAlerts(an);
+  // C. Problem areas
+  html += renderAIProblems(an);
+  // D. Opportunity areas
+  html += renderAIOpportunities(an);
+  // E. AI Recommendations
+  html += renderAIRecommendations(an);
 
-  if (concentrationRisk) narrative += `Revenue concentration risk detected: ${topClient.name} represents ${(topClient.share*100).toFixed(0)}% of total value. Diversification recommended. `;
-  if (stockoutRisk.length > 0) narrative += `${stockoutRisk.length} SKU(s) face imminent stock-out risk. `;
-  if (deadSKUs.length > 0) narrative += `${deadSKUs.length} SKU(s) have zero sales with inventory on hand — dead stock cleanup recommended.`;
-
-  // ──── BUILD HTML ────
-  let html = '';
-
-  // ═══ A. EXECUTIVE SUMMARY BANNER ═══
-  const strokeDash = (healthScore / 100) * 282.7;
-  html += `
-  <div class="ai-exec-banner">
-    <div class="ai-exec-top">
-      <div class="ai-exec-left">
-        <div class="ai-exec-label">🧠 AI Executive Brief</div>
-        <div class="ai-exec-headline">Business Intelligence Summary</div>
-        <div class="ai-exec-narrative">${narrative}</div>
-      </div>
-      <div class="ai-health-ring" title="Business Health Score: ${healthScore}/100">
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle cx="55" cy="55" r="45" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="8"/>
-          <circle cx="55" cy="55" r="45" fill="none" stroke="${healthColor}" stroke-width="8" stroke-dasharray="${strokeDash} 282.7" stroke-linecap="round" style="filter:drop-shadow(0 0 6px ${healthColor}66);"/>
-        </svg>
-        <div class="ai-health-score">
-          <div class="ai-health-num">${healthScore}</div>
-          <div class="ai-health-label">${healthLabel}</div>
-        </div>
-      </div>
-    </div>
-    <div class="ai-takeaway-grid">
-      <div class="ai-takeaway">
-        <div class="ai-takeaway-icon">📈</div>
-        <div class="ai-takeaway-title">Revenue</div>
-        <div class="ai-takeaway-val">${fmtV(totalVal)}</div>
-        <div class="ai-takeaway-sub">${fmt(totalQty)} units across ${weeks} weeks</div>
-      </div>
-      <div class="ai-takeaway">
-        <div class="ai-takeaway-icon">${momentum >= 0 ? '🔥' : '⚠️'}</div>
-        <div class="ai-takeaway-title">Momentum</div>
-        <div class="ai-takeaway-val" style="color:${momentum >= 0 ? '#6ee7a0' : '#f87171'}">${momentum >= 0 ? '+' : ''}${(momentum*100).toFixed(1)}%</div>
-        <div class="ai-takeaway-sub">Last 4 wks vs prior 4 wks</div>
-      </div>
-      <div class="ai-takeaway">
-        <div class="ai-takeaway-icon">📦</div>
-        <div class="ai-takeaway-title">Inventory Cover</div>
-        <div class="ai-takeaway-val">${woc === 9999 ? '∞' : woc.toFixed(1)} wks</div>
-        <div class="ai-takeaway-sub">${fmt(totalStock)} total units in stock</div>
-      </div>
-      <div class="ai-takeaway">
-        <div class="ai-takeaway-icon">⚡</div>
-        <div class="ai-takeaway-title">Portfolio</div>
-        <div class="ai-takeaway-val">${activeSKUs} / ${skuList.length}</div>
-        <div class="ai-takeaway-sub">Active SKUs · ${clientList.length} clients</div>
-      </div>
-    </div>
-  </div>`;
-
-  // ═══ B. KPI INTELLIGENCE COCKPIT ═══
-  const kpis = [
-    {label:'Total Revenue', val:fmtV(totalVal), badge:valMomentum, spark:monthVals, color:'var(--accent)', insight:`Avg ${fmtV(totalVal/Math.max(weeks,1))}/week across ${clientList.length} retail partners.`, barColor:'var(--accent)'},
-    {label:'Units Sold', val:fmt(totalQty), badge:momentum, spark:monthVals, color:'var(--blue)', insight:`${fmtD(avgWeeklySales,0)} avg weekly velocity. ${activeSKUs} active SKUs contributing.`, barColor:'var(--blue)'},
-    {label:'Gross Margin', val:fmtP(grossMargin), badge:null, spark:monthKeys.map(k => byMonth[k].val > 0 ? (byMonth[k].val - byMonth[k].cost)/byMonth[k].val : 0), color:'var(--accent2)', insight:`${grossMargin > 0.35 ? 'Healthy margin profile.' : 'Margin pressure detected.'} Cost base at ${fmtV(totalCostVal)}.`, barColor:'var(--accent2)'},
-    {label:'Avg Sale/Store/Wk', val:fmtD(data.length > 0 ? totalQty / Math.max(weeks,1) / Math.max(clientList.reduce((s,c)=>Math.max(s,c.stores),1),1) : 0, 2), badge:null, spark:[], color:'var(--warm)', insight:`Store productivity metric across ${clientList.length} chains.`, barColor:'var(--warm)'},
-    {label:'Weeks of Cover', val:woc >= 9999 ? '∞' : fmtD(woc,1), badge:null, spark:[], color: woc > 26 ? 'var(--red)' : woc < 4 ? 'var(--red)' : 'var(--green)', insight:`${woc > 26 ? '⚠️ Overstocked. Review slow movers.' : woc < 4 ? '🔴 Critical — replenish urgently.' : '✅ Within healthy 4–26 week range.'}`, barColor: woc > 26 ? 'var(--warm)' : woc < 4 ? 'var(--red)' : 'var(--green)'},
-    {label:'Stock-Out Risk SKUs', val:stockoutRisk.length.toString(), badge:null, spark:[], color: stockoutRisk.length > 0 ? 'var(--red)' : 'var(--green)', insight:`${stockoutRisk.length > 0 ? stockoutRisk.slice(0,2).map(s=>s.name).join(', ') + ' at risk.' : 'No imminent stock-out risks.'}`, barColor: stockoutRisk.length > 0 ? 'var(--red)' : 'var(--green)'},
-    {label:'Dead Stock SKUs', val:deadSKUs.length.toString(), badge:null, spark:[], color: deadSKUs.length > 0 ? 'var(--warm)' : 'var(--green)', insight:`${deadSKUs.length > 0 ? fmt(deadSKUs.reduce((s,d)=>s+d.totalStk,0)) + ' units locked in zero-sale products.' : 'No dead stock detected.'}`, barColor: deadSKUs.length > 0 ? 'var(--warm)' : 'var(--green)'},
-    {label:'Client Concentration', val:topClient ? (topClient.share*100).toFixed(0)+'%' : '—', badge:null, spark:[], color: concentrationRisk ? 'var(--red)' : 'var(--green)', insight:`${concentrationRisk ? '⚠️ '+topClient.name+' dominates — high dependency risk.' : 'Revenue reasonably diversified across accounts.'}`, barColor: concentrationRisk ? 'var(--red)' : 'var(--green)'}
-  ];
-
-  html += `
-  <div class="ai-section">
-    <div class="ai-sec-head">
-      <div class="ai-sec-icon" style="background:var(--blue-light);color:var(--blue);">📊</div>
-      <div class="ai-sec-title">KPI Intelligence Cockpit</div>
-      <span class="ai-sec-badge" style="background:var(--blue-light);color:var(--blue);">Live Metrics</span>
-    </div>
-    <div class="ai-kpi-grid">
-      ${kpis.map(k => `
-        <div class="ai-kpi">
-          <div class="ai-kpi-top">
-            <div class="ai-kpi-label">${k.label}</div>
-            ${k.badge !== null ? `<div class="ai-kpi-badge ${k.badge >= 0 ? 'up' : 'dn'}">${k.badge >= 0 ? '▲' : '▼'} ${Math.abs(k.badge*100).toFixed(1)}%</div>` : ''}
-          </div>
-          <div class="ai-kpi-val">${k.val}</div>
-          ${k.spark.length > 2 ? `<div class="ai-kpi-spark">${sparkSVG(k.spark, k.color)}</div>` : ''}
-          <div class="ai-kpi-insight">${k.insight}</div>
-          <div class="ai-kpi-bar" style="background:${k.barColor};"></div>
-        </div>
-      `).join('')}
-    </div>
-  </div>`;
-
-  // ═══ C. KEY DRIVERS ═══
-  const topPositive = [...skusSorted].filter(s => s.qty > 0).slice(0, 6);
-  const topDeclining = [...skuList].filter(s => s.skuMomentum < 0 && s.priorQty > 5).sort((a,b) => a.skuMomentum - b.skuMomentum).slice(0, 6);
-  const maxDriverVal = topPositive.length > 0 ? topPositive[0].val : 1;
-
-  html += `
-  <div class="ai-section">
-    <div class="ai-sec-head">
-      <div class="ai-sec-icon" style="background:var(--green-light);color:var(--green);">🎯</div>
-      <div class="ai-sec-title">Key Business Drivers</div>
-      <span class="ai-sec-badge" style="background:var(--green-light);color:var(--green);">Impact Analysis</span>
-    </div>
-    <div class="ai-drivers-grid">
-      <div class="ai-driver-card">
-        <div class="ai-driver-head">
-          <div class="ai-driver-dot" style="background:var(--green);"></div>
-          <div class="ai-driver-title">Top Revenue Drivers</div>
-        </div>
-        ${topPositive.map((s,i) => `
-          <div class="ai-driver-item">
-            <div class="ai-driver-rank" style="background:${i < 3 ? 'var(--green)' : 'var(--text3)'};">${i+1}</div>
-            <div class="ai-driver-info">
-              <div class="ai-driver-name" title="${s.name}">${s.name}</div>
-              <div class="ai-driver-meta">${s.code} · ${fmt(s.qty)} units · ${s.weekCount}w</div>
-              <div class="ai-driver-bar-wrap"><div class="ai-driver-bar" style="width:${(s.val/maxDriverVal*100).toFixed(0)}%;background:var(--green);"></div></div>
-            </div>
-            <div class="ai-driver-val" style="color:var(--green);">${fmtV(s.val)}</div>
-          </div>
-        `).join('')}
-      </div>
-      <div class="ai-driver-card">
-        <div class="ai-driver-head">
-          <div class="ai-driver-dot" style="background:var(--red);"></div>
-          <div class="ai-driver-title">Declining / Losing Momentum</div>
-        </div>
-        ${topDeclining.length > 0 ? topDeclining.map((s,i) => `
-          <div class="ai-driver-item">
-            <div class="ai-driver-rank" style="background:var(--red);">${i+1}</div>
-            <div class="ai-driver-info">
-              <div class="ai-driver-name" title="${s.name}">${s.name}</div>
-              <div class="ai-driver-meta">${s.code} · Momentum: ${(s.skuMomentum*100).toFixed(0)}%</div>
-              <div class="ai-driver-bar-wrap"><div class="ai-driver-bar" style="width:${Math.min(Math.abs(s.skuMomentum)*100, 100).toFixed(0)}%;background:var(--red);"></div></div>
-            </div>
-            <div class="ai-driver-val" style="color:var(--red);">▼ ${Math.abs(s.skuMomentum*100).toFixed(0)}%</div>
-          </div>
-        `).join('') : '<div style="padding:20px;color:var(--text3);font-size:13px;">No significant declining products detected.</div>'}
-      </div>
-    </div>
-  </div>`;
-
-  // ═══ CLIENT CONCENTRATION PARETO ═══
-  let cumPct = 0;
-  const maxClientVal = clientList.length > 0 ? clientList[0].val : 1;
-  html += `
-  <div class="ai-section">
-    <div class="ai-sec-head">
-      <div class="ai-sec-icon" style="background:var(--accent2-light);color:var(--accent2);">🏢</div>
-      <div class="ai-sec-title">Client Revenue Concentration</div>
-      <span class="ai-sec-badge" style="background:var(--accent2-light);color:var(--accent2);">Pareto</span>
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
-      ${clientList.map(c => {
-        cumPct += c.share;
-        return `<div class="ai-pareto-bar">
-          <div class="ai-pareto-label" title="${c.name}">${c.name}</div>
-          <div class="ai-pareto-track">
-            <div class="ai-pareto-fill" style="width:${(c.val/maxClientVal*100).toFixed(0)}%;background:${c.share > 0.4 ? 'var(--red)' : c.share > 0.2 ? 'var(--warm)' : 'var(--accent)'};">${(c.share*100).toFixed(0)}%</div>
-          </div>
-          <div class="ai-pareto-val">${fmtV(c.val)}</div>
-          <div class="ai-pareto-cum">${(cumPct*100).toFixed(0)}%</div>
-        </div>`;
-      }).join('')}
-      <div style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.5;">
-        ${concentrationRisk ? `⚠️ <b style="color:var(--red);">High concentration risk:</b> ${topClient.name} accounts for ${(topClient.share*100).toFixed(0)}% of revenue. A single account disruption could severely impact the business.` : '✅ Revenue is reasonably diversified across retail accounts.'}
-      </div>
-    </div>
-  </div>`;
-
-  // ═══ D. PROBLEM AREAS ═══
-  const problems = [];
-  deadSKUs.forEach(s => problems.push({type:'Dead Stock', icon:'💀', severity:'high', title:s.name, desc:`Zero sales with ${fmt(s.totalStk)} units in stock. Capital is locked and inventory is aging.`, metrics:[{l:'Stock',v:fmt(s.totalStk)},{l:'Sales',v:'0'},{l:'WOC',v:'∞'}], color:'var(--red)'}));
-  stockoutRisk.forEach(s => problems.push({type:'Stock-Out Risk', icon:'🔴', severity:'critical', title:s.name, desc:`Only ${fmtD(s.skuWOC,1)} weeks of cover remaining with avg weekly sales of ${fmtD(s.avgWeekly,0)} units.`, metrics:[{l:'WOC',v:fmtD(s.skuWOC,1)},{l:'Avg/Wk',v:fmtD(s.avgWeekly,0)},{l:'Stock',v:fmt(s.totalStk)}], color:'var(--red)'}));
-  overstocked.slice(0,4).forEach(s => problems.push({type:'Excess Stock', icon:'📦', severity:'medium', title:s.name, desc:`${fmtD(s.skuWOC,0)} weeks of cover — significantly above optimal range. Consider markdown or redistribution.`, metrics:[{l:'WOC',v:fmtD(s.skuWOC,0)},{l:'Stock',v:fmt(s.totalStk)},{l:'Avg/Wk',v:fmtD(s.avgWeekly,1)}], color:'var(--warm)'}));
-  declining.slice(0,4).forEach(s => problems.push({type:'Sales Decline', icon:'📉', severity:'medium', title:s.name, desc:`Sales momentum dropped ${Math.abs(s.skuMomentum*100).toFixed(0)}% in recent weeks vs prior period.`, metrics:[{l:'Recent',v:fmt(s.recentQty)},{l:'Prior',v:fmt(s.priorQty)},{l:'Drop',v:(s.skuMomentum*100).toFixed(0)+'%'}], color:'var(--warm)'}));
-  lowSellThru.slice(0,3).forEach(s => problems.push({type:'Low Sell-Through', icon:'🐌', severity:'low', title:s.name, desc:`Only ${(s.sellThru*100).toFixed(1)}% sell-through rate indicates slow movement relative to inventory.`, metrics:[{l:'Sell-Thru',v:(s.sellThru*100).toFixed(1)+'%'},{l:'Stock',v:fmt(s.totalStk)},{l:'Sales',v:fmt(s.qty)}], color:'var(--gold)'}));
-
-  if (problems.length > 0) {
-    // Group problems by type
-    const probByType = {};
-    problems.forEach(p => { if (!probByType[p.type]) probByType[p.type] = {icon:p.icon, color:p.color, severity:p.severity, items:[]}; probByType[p.type].items.push(p); });
-    html += `
-    <div class="ai-section">
-      <div class="ai-sec-head">
-        <div class="ai-sec-icon" style="background:var(--red-light);color:var(--red);">⚠️</div>
-        <div class="ai-sec-title">Problem Areas Detected</div>
-        <span class="ai-sec-badge" style="background:var(--red-light);color:var(--red);">${problems.length} Issues</span>
-      </div>
-      <div class="ai-prob-table">
-        ${Object.entries(probByType).map(([type, grp]) => {
-          const sevBg = grp.severity==='critical'||grp.severity==='high' ? 'var(--red)' : grp.severity==='medium' ? 'var(--warm)' : 'var(--gold)';
-          return `
-          <div class="ai-prob-group">
-            <div class="ai-prob-group-head">
-              <div class="ai-prob-group-stripe" style="background:${grp.color};"></div>
-              <span class="ai-prob-group-icon">${grp.icon}</span>
-              <span class="ai-prob-group-type">${type}</span>
-              <span class="ai-prob-group-count" style="background:${sevBg};">${grp.items.length}</span>
-              <span class="ai-prob-group-sev" style="color:${sevBg};">${grp.severity}</span>
-            </div>
-            <div class="ai-prob-group-body">
-              <table class="ai-prob-rows">
-                <thead><tr>
-                  <th style="text-align:left;width:40%;">SKU / Item</th>
-                  ${grp.items[0].metrics.map(m => `<th>${m.l}</th>`).join('')}
-                </tr></thead>
-                <tbody>
-                  ${grp.items.map(p => `<tr>
-                    <td class="ai-prob-name">${p.title}</td>
-                    ${p.metrics.map(m => `<td><b>${m.v}</b></td>`).join('')}
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }
-
-  // ═══ E. OPPORTUNITY AREAS ═══
-  const opps = [];
-  growing.slice(0,4).forEach(s => opps.push({type:'Fast Growing', icon:'🚀', title:s.name, desc:`Momentum up ${(s.skuMomentum*100).toFixed(0)}% — strong acceleration signal. Consider increasing distribution.`, metrics:[{l:'Momentum',v:'+'+((s.skuMomentum*100).toFixed(0))+'%'},{l:'Recent Qty',v:fmt(s.recentQty)},{l:'Stores',v:fmt(s.stores)}], color:'var(--green)'}));
-  skuList.filter(s => s.salesPerStore > 0.5 && s.stores < 200 && s.qty > 0).sort((a,b) => b.salesPerStore - a.salesPerStore).slice(0,3).forEach(s => opps.push({type:'Distribution Expansion', icon:'🏪', title:s.name, desc:`High productivity at ${fmtD(s.salesPerStore,2)}/store/wk but only in ${fmt(s.stores)} stores. Expansion could unlock significant growth.`, metrics:[{l:'Sales/Store/Wk',v:fmtD(s.salesPerStore,2)},{l:'Current Stores',v:fmt(s.stores)},{l:'Revenue',v:fmtV(s.val)}], color:'var(--accent)'}));
-  skuList.filter(s => s.sellThru > 0.6 && s.qty > 50).sort((a,b) => b.sellThru - a.sellThru).slice(0,3).forEach(s => opps.push({type:'High Sell-Through Star', icon:'⭐', title:s.name, desc:`${(s.sellThru*100).toFixed(0)}% sell-through — demand clearly outpacing supply. Prioritize replenishment.`, metrics:[{l:'Sell-Thru',v:(s.sellThru*100).toFixed(0)+'%'},{l:'Sold',v:fmt(s.qty)},{l:'Stock',v:fmt(s.totalStk)}], color:'var(--blue)'}));
-
-  if (opps.length > 0) {
-    // Group opportunities by type
-    const oppByType = {};
-    opps.forEach(o => { if (!oppByType[o.type]) oppByType[o.type] = {icon:o.icon, color:o.color, items:[]}; oppByType[o.type].items.push(o); });
-    html += `
-    <div class="ai-section">
-      <div class="ai-sec-head">
-        <div class="ai-sec-icon" style="background:var(--green-light);color:var(--green);">💡</div>
-        <div class="ai-sec-title">Opportunity Areas</div>
-        <span class="ai-sec-badge" style="background:var(--green-light);color:var(--green);">${opps.length} Opportunities</span>
-      </div>
-      ${Object.entries(oppByType).map(([type, grp]) => `
-        <div class="ai-opp-lane">
-          <div class="ai-opp-lane-head">
-            <span class="ai-opp-lane-icon" style="background:${grp.color}20;color:${grp.color};">${grp.icon}</span>
-            <span class="ai-opp-lane-type">${type}</span>
-            <span class="ai-opp-lane-count">${grp.items.length} SKU${grp.items.length>1?'s':''}</span>
-          </div>
-          <div class="ai-opp-lane-rows">
-            ${grp.items.map(o => `
-              <div class="ai-opp-row">
-                <div class="ai-opp-row-dot" style="background:${grp.color};"></div>
-                <div class="ai-opp-row-name">${o.title}</div>
-                <div class="ai-opp-row-metrics">${o.metrics.map(m => `<span class="ai-opp-row-metric"><b>${m.v}</b> ${m.l}</span>`).join('')}</div>
-                <div class="ai-opp-row-action">${o.desc.split('.')[0]}.</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `).join('')}
-    </div>`;
-  }
-
-  // ═══ F. SKU QUADRANT ANALYSIS ═══
-  const highSalesHighStock = skuList.filter(s => s.qty > totalQty/skuList.length && s.totalStk > totalStock/skuList.length);
-  const highSalesLowStock = skuList.filter(s => s.qty > totalQty/skuList.length && s.totalStk <= totalStock/skuList.length);
-  const lowSalesHighStock = skuList.filter(s => s.qty <= totalQty/skuList.length && s.totalStk > totalStock/skuList.length);
-  const lowSalesLowStk = skuList.filter(s => s.qty <= totalQty/skuList.length && s.totalStk <= totalStock/skuList.length && s.qty > 0);
-
-  const quadItemHTML = (s) => `<div class="ai-quad-item-row">
-    <div class="ai-quad-item-name" title="${s.code}">${s.name}</div>
-    <div class="ai-quad-item-stat"><b>${fmt(s.qty)}</b> sold</div>
-    <div class="ai-quad-item-stat"><b>${fmt(s.totalStk)}</b> stk</div>
-    <div class="ai-quad-item-stat"><b>${fmtV(s.val)}</b></div>
-  </div>`;
-
-  html += `
-  <div class="ai-section">
-    <div class="ai-sec-head">
-      <div class="ai-sec-icon" style="background:var(--accent-light);color:var(--accent);">🔲</div>
-      <div class="ai-sec-title">SKU Performance Quadrant</div>
-      <span class="ai-sec-badge" style="background:var(--accent-light);color:var(--accent);">Matrix</span>
-    </div>
-    <div class="ai-quad-wrap" style="position:relative;padding-left:36px;">
-      <div style="position:absolute;left:4px;top:50%;transform:rotate(-90deg) translateX(-50%);transform-origin:0 0;font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">← Low Stock · High Stock →</div>
-      <div class="ai-quad-grid">
-        <div class="ai-quad-cell" style="background:var(--green-light);">
-          <div class="ai-quad-label" style="color:var(--green);">⭐ Stars — High Sales · High Stock</div>
-          <div class="ai-quad-count">${highSalesHighStock.length} SKUs</div>
-          <div class="ai-quad-items-scroll">${highSalesHighStock.map(quadItemHTML).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px;">—</div>'}</div>
-        </div>
-        <div class="ai-quad-cell" style="background:var(--warm-light);">
-          <div class="ai-quad-label" style="color:var(--warm);">⚠️ Stock-Out Risk — High Sales · Low Stock</div>
-          <div class="ai-quad-count">${highSalesLowStock.length} SKUs</div>
-          <div class="ai-quad-items-scroll">${highSalesLowStock.map(quadItemHTML).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px;">—</div>'}</div>
-        </div>
-        <div class="ai-quad-cell" style="background:var(--red-light);">
-          <div class="ai-quad-label" style="color:var(--red);">💀 Dead Weight — Low Sales · High Stock</div>
-          <div class="ai-quad-count">${lowSalesHighStock.length} SKUs</div>
-          <div class="ai-quad-items-scroll">${lowSalesHighStock.map(quadItemHTML).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px;">—</div>'}</div>
-        </div>
-        <div class="ai-quad-cell" style="background:var(--bg);">
-          <div class="ai-quad-label" style="color:var(--text3);">🔍 Review — Low Sales · Low Stock</div>
-          <div class="ai-quad-count">${lowSalesLowStk.length} SKUs</div>
-          <div class="ai-quad-items-scroll">${lowSalesLowStk.map(quadItemHTML).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px;">—</div>'}</div>
-        </div>
-      </div>
-      <div class="ai-quad-axis-x">← Low Sales · High Sales →</div>
-    </div>
-  </div>`;
-
-  // ═══ G. AI RECOMMENDATIONS ═══
-  const recs = [];
-  if (stockoutRisk.length > 0) recs.push({prio:1, col:'var(--red)', issue:`${stockoutRisk.length} SKU(s) at stock-out risk`, why:'Products with strong sales velocity are running critically low on inventory.', impact:`Potential lost revenue of ${fmtV(stockoutRisk.reduce((s,x)=>s+x.avgWeekly*x.val/Math.max(x.qty,1)*4, 0))} over next 4 weeks.`, action:'Issue emergency replenishment orders. Prioritize DC-to-store allocation for these SKUs.', improvement:'Prevent 100% of imminent stockouts and preserve sales velocity.'});
-  if (deadSKUs.length > 0) recs.push({prio:2, col:'var(--warm)', issue:`${deadSKUs.length} dead stock SKU(s) with ${fmt(deadSKUs.reduce((s,d)=>s+d.totalStk,0))} units`, why:'Capital is frozen in products with zero consumer demand. Aging increases write-off risk.', impact:`Estimated ${fmtV(deadSKUs.reduce((s,d)=>s+d.totalStk*d.costVal/Math.max(d.qty,1),0))} in trapped cost value.`, action:'Initiate clearance markdowns, bundle promotions, or return-to-vendor programs.', improvement:'Recover working capital and free up warehouse space.'});
-  if (overstocked.length > 0) recs.push({prio:3, col:'var(--warm)', issue:`${overstocked.length} overstocked SKU(s) above 26 weeks cover`, why:'Excess inventory ties up capital and increases carrying costs and markdown risk.', impact:`${fmt(overstocked.reduce((s,x)=>s+x.totalStk,0))} excess units above optimal levels.`, action:'Implement targeted promotions, redistribute to higher-velocity channels, or renegotiate returns.', improvement:'Reduce inventory carrying costs by 15-25% and improve cash flow.'});
-  if (concentrationRisk) recs.push({prio:2, col:'var(--red)', issue:`Revenue concentration: ${topClient.name} at ${(topClient.share*100).toFixed(0)}%`, why:'Over-reliance on a single account creates existential business risk.', impact:'Loss of this account could eliminate majority of revenue overnight.', action:'Aggressively develop secondary accounts. Expand product assortment with smaller retailers.', improvement:'Target reducing top-account dependency below 40% within 2 quarters.'});
-  if (declining.length > 3) recs.push({prio:3, col:'var(--warm)', issue:`${declining.length} SKUs showing sales deceleration`, why:'Multiple products losing momentum simultaneously may indicate category or competitive pressure.', impact:`Combined recent-period shortfall of ${fmt(declining.reduce((s,x)=>s+(x.priorQty-x.recentQty),0))} units vs prior period.`, action:'Review competitive landscape, assess pricing position, and consider promotional support for key declining items.', improvement:'Stabilize or reverse decline in 60% of affected SKUs.'});
-  if (growing.length > 0) recs.push({prio:4, col:'var(--green)', issue:`${growing.length} SKU(s) showing strong growth momentum`, why:'Fast-growing products represent the best near-term opportunity to accelerate revenue.', impact:`These products generated ${fmtV(growing.reduce((s,x)=>s+x.val,0))} in total revenue.`, action:'Increase distribution, ensure adequate stock, and consider featuring in promotional materials.', improvement:'Capitalize on momentum to drive 20-30% incremental growth.'});
-
-  if (recs.length > 0) {
-    html += `
-    <div class="ai-section">
-      <div class="ai-sec-head">
-        <div class="ai-sec-icon" style="background:var(--accent-light);color:var(--accent);">🤖</div>
-        <div class="ai-sec-title">AI Recommendations</div>
-        <span class="ai-sec-badge" style="background:var(--accent-light);color:var(--accent);">${recs.length} Actions</span>
-      </div>
-      ${recs.map((r,i) => `
-        <div class="ai-rec-static">
-          <div class="ai-rec-head">
-            <div class="ai-rec-prio" style="background:${r.col};">P${r.prio}</div>
-            <div class="ai-rec-main">
-              <div class="ai-rec-issue">${r.issue}</div>
-              <div class="ai-rec-why">${r.why}</div>
-            </div>
-          </div>
-          <div class="ai-rec-body-static">
-            <div class="ai-rec-detail">
-              <div class="ai-rec-detail-item"><div class="ai-rec-detail-label">Business Impact</div><div class="ai-rec-detail-val">${r.impact}</div></div>
-              <div class="ai-rec-detail-item"><div class="ai-rec-detail-label">Recommended Action</div><div class="ai-rec-detail-val">${r.action}</div></div>
-              <div class="ai-rec-detail-item" style="grid-column:span 2;"><div class="ai-rec-detail-label">Expected Improvement</div><div class="ai-rec-detail-val">${r.improvement}</div></div>
-            </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>`;
-  }
-
-  // ═══ H. EXECUTIVE ALERTS ═══
-  const alerts = [];
-  if (concentrationRisk) alerts.push({icon:'🏢', bg:'var(--red-light)', border:'var(--red)', title:'Concentrated Dependency Risk', desc:`${topClient.name} represents ${(topClient.share*100).toFixed(0)}% of total revenue — well above safe diversification threshold.`, tag:'Critical', tagBg:'var(--red-light)', tagCol:'var(--red)', drill:null});
-  if (stockoutRisk.length > 0) alerts.push({icon:'🔴', bg:'var(--red-light)', border:'var(--red)', title:`Stock-Out Imminent: ${stockoutRisk.length} SKU(s)`, desc:`${stockoutRisk.map(s=>s.name).slice(0,3).join(', ')} — less than 4 weeks of cover at current velocity.`, tag:'Urgent', tagBg:'var(--red-light)', tagCol:'var(--red)', drill: stockoutRisk.map(s => ({name:s.name, stats:[{l:'WOC',v:fmtD(s.woc,1)},{l:'Wkly Vel.',v:fmt(Math.round(s.avgWeekly))},{l:'Stock',v:fmt(s.totalStk)},{l:'Revenue',v:fmtV(s.val)}]}))});
-  if (overstocked.length > 0) alerts.push({icon:'📦', bg:'var(--warm-light)', border:'var(--warm)', title:`Excess Inventory: ${overstocked.length} SKU(s)`, desc:`${fmt(overstocked.reduce((s,x)=>s+x.totalStk,0))} units sitting above 26 weeks cover. Capital at risk.`, tag:'Warning', tagBg:'var(--warm-light)', tagCol:'var(--warm)', drill: overstocked.map(s => ({name:s.name, stats:[{l:'WOC',v:fmtD(s.woc,0)},{l:'Stock',v:fmt(s.totalStk)},{l:'Wkly Sales',v:fmt(Math.round(s.avgWeekly))},{l:'Value',v:fmtV(s.val)}]}))});
-  if (momentum < -0.15) alerts.push({icon:'📉', bg:'var(--warm-light)', border:'var(--warm)', title:'Sales Momentum Declining', desc:`Overall sales down ${Math.abs(momentum*100).toFixed(0)}% in recent 4 weeks vs prior period. Investigate drivers.`, tag:'Warning', tagBg:'var(--warm-light)', tagCol:'var(--warm)', drill:null});
-  if (deadSKUs.length > 2) alerts.push({icon:'💀', bg:'var(--warm-light)', border:'var(--warm)', title:`Dead Stock Alert: ${deadSKUs.length} SKUs`, desc:`${fmt(deadSKUs.reduce((s,d)=>s+d.totalStk,0))} units with zero sales velocity. Immediate cleanup required.`, tag:'Action Required', tagBg:'var(--warm-light)', tagCol:'var(--warm)', drill:null});
-  clientList.filter(c => c.clientMomentum < -0.3 && c.share > 0.1).forEach(c => alerts.push({icon:'⚡', bg:'var(--gold-light)', border:'var(--gold)', title:`Declining Key Account: ${c.name}`, desc:`${c.name} sales down ${Math.abs(c.clientMomentum*100).toFixed(0)}% while contributing ${(c.share*100).toFixed(0)}% of revenue.`, tag:'Monitor', tagBg:'var(--gold-light)', tagCol:'var(--gold)', drill:null}));
-  if (woc > 40) alerts.push({icon:'🏭', bg:'var(--warm-light)', border:'var(--warm)', title:'Inventory Stress: Overstocked', desc:`${fmtD(woc,0)} weeks of cover across portfolio — carrying cost and aging risk elevated.`, tag:'Warning', tagBg:'var(--warm-light)', tagCol:'var(--warm)', drill:null});
-  if (woc < 4 && woc > 0) alerts.push({icon:'🚨', bg:'var(--red-light)', border:'var(--red)', title:'Inventory Stress: Critically Low', desc:`Only ${fmtD(woc,1)} weeks of cover remaining. Widespread stockouts imminent.`, tag:'Critical', tagBg:'var(--red-light)', tagCol:'var(--red)', drill:null});
-  if (lowSellThru.length > 3) alerts.push({icon:'🐌', bg:'var(--gold-light)', border:'var(--gold)', title:`Weak Sell-Through: ${lowSellThru.length} SKUs`, desc:'Multiple products below 15% sell-through — inventory not converting to sales efficiently.', tag:'Review', tagBg:'var(--gold-light)', tagCol:'var(--gold)', drill: lowSellThru.map(s => ({name:s.name, stats:[{l:'Sell-Thru',v:(s.sellThru*100).toFixed(1)+'%'},{l:'Sold',v:fmt(s.qty)},{l:'Stock',v:fmt(s.totalStk)},{l:'Revenue',v:fmtV(s.val)}]}))});
-
-  if (alerts.length > 0) {
-    html += `
-    <div class="ai-section">
-      <div class="ai-sec-head">
-        <div class="ai-sec-icon" style="background:var(--red-light);color:var(--red);">🔔</div>
-        <div class="ai-sec-title">Executive Alerts</div>
-        <span class="ai-sec-badge" style="background:var(--red-light);color:var(--red);">${alerts.length} Active</span>
-      </div>
-      <div class="ai-alerts-grid">
-        ${alerts.map((a,ai) => {
-          if (a.drill && a.drill.length > 0) {
-            // Drill-down card
-            return `
-            <div class="ai-alert ai-alert-drill" style="border:1px solid ${a.border};background:${a.bg};flex-direction:column;" onclick="var b=this.querySelector('.ai-alert-drill-body');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.ai-alert-drill-chevron').classList.toggle('open');">
-              <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
-                <div class="ai-alert-icon" style="background:${a.border}22;">${a.icon}</div>
-                <div class="ai-alert-content" style="flex:1;">
-                  <div class="ai-alert-title">${a.title}</div>
-                  <div class="ai-alert-desc">${a.desc}</div>
-                  <div class="ai-alert-tag" style="background:${a.tagBg};color:${a.tagCol};">${a.tag}</div>
-                </div>
-                <div class="ai-alert-drill-chevron">▾</div>
-              </div>
-              <div class="ai-alert-drill-body" style="display:none;" onclick="event.stopPropagation();">
-                <table class="ai-alert-drill-table">
-                  <thead><tr><th style="text-align:left;">SKU</th>${a.drill[0].stats.map(s => `<th>${s.l}</th>`).join('')}</tr></thead>
-                  <tbody>${a.drill.map(d => `<tr><td class="ai-prob-name">${d.name}</td>${d.stats.map(s => `<td><b>${s.v}</b></td>`).join('')}</tr>`).join('')}</tbody>
-                </table>
-              </div>
-            </div>`;
-          } else {
-            // Standard card (unchanged)
-            return `
-            <div class="ai-alert" style="border:1px solid ${a.border};background:${a.bg};">
-              <div class="ai-alert-icon" style="background:${a.border}22;">${a.icon}</div>
-              <div class="ai-alert-content">
-                <div class="ai-alert-title">${a.title}</div>
-                <div class="ai-alert-desc">${a.desc}</div>
-                <div class="ai-alert-tag" style="background:${a.tagBg};color:${a.tagCol};">${a.tag}</div>
-              </div>
-            </div>`;
-          }
-        }).join('')}
-      </div>
-    </div>`;
-  }
-
-  // ═══ I. TREND & DIRECTION ═══
-  html += `
-  <div class="ai-section">
-    <div class="ai-sec-head">
-      <div class="ai-sec-icon" style="background:var(--blue-light);color:var(--blue);">📈</div>
-      <div class="ai-sec-title">Trend & Direction</div>
-      <span class="ai-sec-badge" style="background:var(--blue-light);color:var(--blue);">Trajectory</span>
-    </div>
-    <div class="ai-trend-container">
-      <div class="ai-trend-header">
-        <div class="ai-trend-title">Monthly Sales Trajectory</div>
-        <div style="font-size:11px;color:var(--text3);">${monthKeys.length} periods</div>
-      </div>
-      <div class="ai-trend-chart" id="aiTrendChart"></div>
-      <div class="ai-trend-insight">
-        ${monthKeys.length >= 3 ? (() => {
-          const last3 = monthVals.slice(-3);
-          const first3 = monthVals.slice(0,3);
-          const l3avg = last3.reduce((a,b)=>a+b,0)/last3.length;
-          const f3avg = first3.reduce((a,b)=>a+b,0)/first3.length;
-          const trend = f3avg > 0 ? ((l3avg - f3avg)/f3avg*100).toFixed(0) : 0;
-          return `📊 <b>Trajectory:</b> Sales have ${trend > 0 ? 'grown' : 'declined'} ${Math.abs(trend)}% comparing the most recent 3 months (avg ${fmt(Math.round(l3avg))}/mo) to the earliest 3 months (avg ${fmt(Math.round(f3avg))}/mo) in the selected period.`;
-        })() : 'Insufficient data for trajectory analysis.'}
-      </div>
-    </div>
-    <div class="ai-drivers-grid">
-      <div class="ai-trend-container">
-        <div class="ai-trend-title">Client Performance Momentum</div>
-        <div style="margin-top:12px;">
-          ${clientList.map(c => {
-            const momColor = c.clientMomentum > 0.05 ? 'var(--green)' : c.clientMomentum < -0.05 ? 'var(--red)' : 'var(--text3)';
-            const momIcon = c.clientMomentum > 0.05 ? '▲' : c.clientMomentum < -0.05 ? '▼' : '–';
-            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-              <div style="flex:1;font-size:13px;font-weight:500;">${c.name}</div>
-              <div style="font-size:12px;color:var(--text3);">${fmtV(c.val)}</div>
-              <div style="font-size:12px;font-weight:700;color:${momColor};min-width:60px;text-align:right;">${momIcon} ${(Math.abs(c.clientMomentum)*100).toFixed(0)}%</div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="ai-trend-container">
-        <div class="ai-trend-title">Portfolio Health Distribution</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px;">SKUs classified by sales momentum (last 4 wks vs prior 4 wks)</div>
-        <div style="margin-top:12px;">
-          ${(() => {
-            const stars = skuList.filter(s => s.qty > 0 && s.skuMomentum > 0.1).length;
-            const steady = skuList.filter(s => s.qty > 0 && Math.abs(s.skuMomentum) <= 0.1).length;
-            const declining2 = skuList.filter(s => s.qty > 0 && s.skuMomentum < -0.1).length;
-            const dead = deadSKUs.length;
-            const total = skuList.length;
-            const pct = (n) => total > 0 ? (n/total*100).toFixed(0) : 0;
-            return `
-              <div style="display:flex;height:28px;border-radius:6px;overflow:hidden;margin-bottom:14px;">
-                ${stars > 0 ? `<div style="width:${stars/total*100}%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;">${stars} (${pct(stars)}%)</div>` : ''}
-                ${steady > 0 ? `<div style="width:${steady/total*100}%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;">${steady} (${pct(steady)}%)</div>` : ''}
-                ${declining2 > 0 ? `<div style="width:${declining2/total*100}%;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;">${declining2} (${pct(declining2)}%)</div>` : ''}
-                ${dead > 0 ? `<div style="width:${dead/total*100}%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;">${dead} (${pct(dead)}%)</div>` : ''}
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:10px;height:10px;border-radius:3px;background:var(--green);"></div> Growing: ${stars} SKUs — momentum &gt;10%</div>
-                <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:10px;height:10px;border-radius:3px;background:var(--blue);"></div> Steady: ${steady} SKUs — momentum ±10%</div>
-                <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:10px;height:10px;border-radius:3px;background:var(--warm);"></div> Declining: ${declining2} SKUs — momentum &lt;-10%</div>
-                <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:10px;height:10px;border-radius:3px;background:var(--red);"></div> Dead: ${dead} SKUs — zero sales velocity</div>
-              </div>
-            `;
-          })()}
-        </div>
-      </div>
-    </div>
-  </div>`;
-
-  // ═══ J. ROOT CAUSE & DECISION INTELLIGENCE ═══
-  html += `
-  <div class="ai-section">
-    <div class="ai-sec-head">
-      <div class="ai-sec-icon" style="background:var(--accent2-light);color:var(--accent2);">🔬</div>
-      <div class="ai-sec-title">Root Cause & Decision Intelligence</div>
-      <span class="ai-sec-badge" style="background:var(--accent2-light);color:var(--accent2);">Deep Dive</span>
-    </div>
-    <div class="ai-rc-tree">
-      <div class="ai-rc-node" style="background:var(--bg);border:1px solid var(--border);">
-        <div class="ai-rc-node-head">
-          <span>🏢</span> Business Performance: ${healthLabel} (Score ${healthScore}/100)
-        </div>
-        <div class="ai-rc-node-desc">Overall business health assessment based on sales momentum, inventory efficiency, client diversification, and portfolio vitality.</div>
-      </div>
-      <div class="ai-rc-children">
-        <div class="ai-rc-node" style="background:${momentum >= 0 ? 'var(--green-light)' : 'var(--red-light)'};">
-          <div class="ai-rc-node-head">
-            <span>${momentum >= 0 ? '✅' : '⚠️'}</span> Sales Momentum: ${momentum >= 0 ? 'Positive' : 'Negative'} (${(momentum*100).toFixed(0)}%)
-          </div>
-          <div class="ai-rc-node-desc">${momentum >= 0 ? 'Recent sales velocity is accelerating relative to prior period.' : 'Sales deceleration detected. Investigate by client and SKU for root cause.'}</div>
-        </div>
-        <div class="ai-rc-children">
-          ${clientList.slice(0,3).map(c => `
-            <div class="ai-rc-node" style="background:${c.clientMomentum >= 0 ? '#f0f9f4' : '#fef2f2'};border:1px solid ${c.clientMomentum >= 0 ? '#d1e7dd' : '#fcd5d5'};">
-              <div class="ai-rc-node-head"><span>${c.clientMomentum >= 0 ? '📈' : '📉'}</span> ${c.name}: ${(c.clientMomentum*100).toFixed(0)}% momentum</div>
-              <div class="ai-rc-node-desc">${fmtV(c.val)} revenue · ${c.skuCount} SKUs · ${(c.share*100).toFixed(0)}% share</div>
-            </div>
-          `).join('')}
-        </div>
-        <div class="ai-rc-node" style="background:${woc >= 6 && woc <= 26 ? 'var(--green-light)' : 'var(--warm-light)'};">
-          <div class="ai-rc-node-head">
-            <span>${woc >= 6 && woc <= 26 ? '✅' : '⚠️'}</span> Inventory Health: ${woc >= 6 && woc <= 26 ? 'Balanced' : woc > 26 ? 'Overstocked' : 'Understocked'} (${fmtD(woc,1)} WOC)
-          </div>
-          <div class="ai-rc-node-desc">${fmt(totalStock)} total units. ${stockoutRisk.length} at risk of stockout, ${overstocked.length} overstocked, ${deadSKUs.length} dead.</div>
-        </div>
-        <div class="ai-rc-node" style="background:${grossMargin > 0.3 ? 'var(--green-light)' : 'var(--warm-light)'};">
-          <div class="ai-rc-node-head">
-            <span>${grossMargin > 0.3 ? '✅' : '⚠️'}</span> Margin Quality: ${fmtP(grossMargin)}
-          </div>
-          <div class="ai-rc-node-desc">Revenue: ${fmtV(totalVal)} · Cost: ${fmtV(totalCostVal)} · Gross profit: ${fmtV(totalVal - totalCostVal)}</div>
-        </div>
-        <div class="ai-rc-node" style="background:${!concentrationRisk ? 'var(--green-light)' : 'var(--red-light)'};">
-          <div class="ai-rc-node-head">
-            <span>${!concentrationRisk ? '✅' : '🔴'}</span> Client Diversification: ${!concentrationRisk ? 'Adequate' : 'High Risk'}
-          </div>
-          <div class="ai-rc-node-desc">${clientList.length} active accounts. Top account (${topClient ? topClient.name : '—'}) at ${topClient ? (topClient.share*100).toFixed(0) : 0}% share.</div>
-        </div>
-      </div>
-    </div>
-  </div>`;
-
-  // ── Render ──
+  html += '</div>';
   root.innerHTML = html;
-
-  // ── Render trend chart after DOM update ──
-  renderAITrendChart(monthKeys, monthVals);
 }
 
-function renderAITrendChart(labels, values) {
-  const container = document.getElementById('aiTrendChart');
-  if (!container || !labels.length) return;
+function computeAIAnalytics() {
+  const a = {};
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  const clientF = document.getElementById('clientFilter').value;
+  const curSKUs = getCurrentSKUs();
+  const skuActive = selectedSKUs.size > 0 && selectedSKUs.size < curSKUs.length;
+  a.filterDesc = [];
+  if (clientF) a.filterDesc.push(clientF);
+  if (skuActive) a.filterDesc.push(selectedSKUs.size + ' product' + (selectedSKUs.size > 1 ? 's' : ''));
+  if (from) a.filterDesc.push('from ' + from);
+  if (to) a.filterDesc.push('to ' + to);
+  a.filterLabel = a.filterDesc.length ? a.filterDesc.join(' · ') : 'All Data — Full Range';
+  a.clientFilter = clientF;
+  a.skuActive = skuActive;
 
-  const W = container.clientWidth || 600;
-  const H = 220;
-  const pad = {t:32, r:20, b:40, l:55};
-  const cW = W - pad.l - pad.r;
-  const cH = H - pad.t - pad.b;
-  const mn = Math.min(...values);
-  const mx = Math.max(...values);
-  const rng = mx - mn || 1;
+  // ── Basic aggregates ──
+  let tQty = 0, tVal = 0, tCost = 0, totalStoreWeeks = 0;
+  const weekSet = new Set(), clientSet = new Set(), skuSet = new Set();
+  const latestClientDate = {};
+  // Per-SKU aggregation
+  const skuAgg = {}, clientAgg = {}, weekAgg = {}, monthAgg = {};
+  // Per client-sku
+  const clientSkuAgg = {};
 
-  const pts = values.map((v, i) => ({
-    x: pad.l + (i / Math.max(labels.length - 1, 1)) * cW,
-    y: pad.t + cH - ((v - mn) / rng) * cH
-  }));
+  for (let i = 0; i < filtered.length; i++) {
+    const r = filtered[i];
+    tQty += r.sale_qty; tVal += r.sale_value; tCost += r.cost_value;
+    totalStoreWeeks += r.store_count;
+    const wk = r.year * 100 + r.week;
+    weekSet.add(wk);
+    clientSet.add(r.client);
+    skuSet.add(r.sku_code);
+    if (!latestClientDate[r.client] || r.date > latestClientDate[r.client]) latestClientDate[r.client] = r.date;
 
-  // Area path
-  let pathD = `M${pts[0].x},${pts[0].y}`;
-  for (let i = 1; i < pts.length; i++) {
-    const cx = (pts[i-1].x + pts[i].x) / 2;
-    pathD += ` C${cx},${pts[i-1].y} ${cx},${pts[i].y} ${pts[i].x},${pts[i].y}`;
+    // SKU level
+    if (!skuAgg[r.sku_code]) skuAgg[r.sku_code] = { code: r.sku_code, name: r.sku_name, qty: 0, val: 0, cost: 0, stores: 0, weeks: new Set(), clients: new Set(), latestSOH: 0, latestDC: 0, latestDate: '', latestRush: 0, storeWeeks: 0 };
+    const sa = skuAgg[r.sku_code];
+    sa.qty += r.sale_qty; sa.val += r.sale_value; sa.cost += r.cost_value;
+    sa.storeWeeks += r.store_count;
+    sa.weeks.add(wk); sa.clients.add(r.client);
+    if (r.date > sa.latestDate) { sa.latestDate = r.date; sa.latestSOH = r.soh_qty; sa.latestDC = r.stock_dc; sa.latestRush = r.soh_rushorder; }
+
+    // Client level
+    if (!clientAgg[r.client]) clientAgg[r.client] = { name: r.client, qty: 0, val: 0, skus: new Set(), weeks: new Set(), storeWeeks: 0 };
+    const ca = clientAgg[r.client];
+    ca.qty += r.sale_qty; ca.val += r.sale_value; ca.skus.add(r.sku_code); ca.weeks.add(wk); ca.storeWeeks += r.store_count;
+
+    // Week level
+    if (!weekAgg[wk]) weekAgg[wk] = { wk, qty: 0, val: 0, date: r.date };
+    weekAgg[wk].qty += r.sale_qty; weekAgg[wk].val += r.sale_value;
+    if (r.date > weekAgg[wk].date) weekAgg[wk].date = r.date;
+
+    // Month level
+    const mon = r.month || r.date.substring(0, 7);
+    if (!monthAgg[mon]) monthAgg[mon] = { mon, qty: 0, val: 0 };
+    monthAgg[mon].qty += r.sale_qty; monthAgg[mon].val += r.sale_value;
+
+    // Client-SKU
+    const csKey = r.client + '|' + r.sku_code;
+    if (!clientSkuAgg[csKey]) clientSkuAgg[csKey] = { client: r.client, code: r.sku_code, name: r.sku_name, qty: 0, val: 0 };
+    clientSkuAgg[csKey].qty += r.sale_qty; clientSkuAgg[csKey].val += r.sale_value;
   }
-  const areaD = pathD + ` L${pts[pts.length-1].x},${pad.t+cH} L${pts[0].x},${pad.t+cH} Z`;
 
-  // Y-axis ticks
-  const yTicks = 5;
-  let yAxisHTML = '';
-  for (let i = 0; i <= yTicks; i++) {
-    const val = mn + (rng * i / yTicks);
-    const y = pad.t + cH - (i / yTicks) * cH;
-    yAxisHTML += `<line x1="${pad.l}" y1="${y}" x2="${pad.l+cW}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
-    yAxisHTML += `<text x="${pad.l-8}" y="${y+4}" text-anchor="end" font-size="10" fill="var(--text3)">${fmt(Math.round(val))}</text>`;
-  }
-
-  // X-axis labels
-  let xLabelsHTML = '';
-  const labelStep = Math.max(1, Math.floor(labels.length / 8));
-  labels.forEach((l, i) => {
-    if (i % labelStep === 0 || i === labels.length - 1) {
-      xLabelsHTML += `<text x="${pts[i].x}" y="${pad.t+cH+20}" text-anchor="middle" font-size="10" fill="var(--text3)">${l.substring(2)}</text>`;
+  // Latest stock per client-sku (use latest date per client)
+  const skuStock = {};
+  for (let i = 0; i < filtered.length; i++) {
+    const r = filtered[i];
+    if (r.date === latestClientDate[r.client]) {
+      if (!skuStock[r.sku_code]) skuStock[r.sku_code] = { soh: 0, dc: 0, rush: 0 };
+      skuStock[r.sku_code].soh += r.soh_qty;
+      skuStock[r.sku_code].dc += r.stock_dc;
+      skuStock[r.sku_code].rush += r.soh_rushorder;
     }
+  }
+
+  a.totalQty = tQty; a.totalVal = tVal; a.totalCost = tCost;
+  a.weeks = weekSet.size; a.clients = [...clientSet]; a.skus = [...skuSet];
+  a.avgWeeklySales = a.weeks > 0 ? tQty / a.weeks : 0;
+
+  // Stock totals
+  let soh = 0, dc = 0, rush = 0;
+  for (let i = 0; i < filtered.length; i++) {
+    const r = filtered[i];
+    if (r.date === latestClientDate[r.client]) { soh += r.soh_qty; dc += r.stock_dc; rush += r.soh_rushorder; }
+  }
+  a.totalSOH = soh; a.totalDC = dc; a.totalRush = rush;
+  a.totalStock = soh + dc;
+  a.woc = a.avgWeeklySales > 0 ? a.totalStock / a.avgWeeklySales : 999;
+  a.sellThru = (tQty + soh) > 0 ? tQty / (tQty + soh) : 0;
+
+  // SKU arrays sorted by qty
+  a.skuList = Object.values(skuAgg).sort((x, y) => y.qty - x.qty);
+  a.clientList = Object.values(clientAgg).sort((x, y) => y.qty - x.qty);
+  a.weekList = Object.values(weekAgg).sort((x, y) => x.wk - y.wk);
+  a.monthList = Object.values(monthAgg).sort((x, y) => x.mon.localeCompare(y.mon));
+
+  // ── SKU concentration ──
+  let cumQty = 0;
+  a.skuConcentration80 = 0;
+  for (const s of a.skuList) { cumQty += s.qty; a.skuConcentration80++; if (cumQty >= tQty * 0.8) break; }
+
+  // ── Client concentration ──
+  let cumClientQty = 0;
+  a.clientConcentration80 = 0;
+  for (const c of a.clientList) { cumClientQty += c.qty; a.clientConcentration80++; if (cumClientQty >= tQty * 0.8) break; }
+
+  // ── Zero-sales SKUs with stock ──
+  a.zeroSalesWithStock = a.skuList.filter(s => s.qty === 0 && skuStock[s.code] && (skuStock[s.code].soh + skuStock[s.code].dc) > 0)
+    .map(s => ({ ...s, stock: (skuStock[s.code]?.soh || 0) + (skuStock[s.code]?.dc || 0) }));
+
+  // ── Dead stock: very low sales relative to stock ──
+  a.deadStock = a.skuList.filter(s => {
+    const st = skuStock[s.code]; if (!st) return false;
+    const totalSt = st.soh + st.dc;
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return s.qty > 0 && totalSt > 0 && weeklyRate > 0 && (totalSt / weeklyRate) > 52;
+  }).map(s => {
+    const st = skuStock[s.code]; const totalSt = (st?.soh || 0) + (st?.dc || 0);
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return { ...s, stock: totalSt, woc: weeklyRate > 0 ? totalSt / weeklyRate : 999 };
+  }).sort((x, y) => y.woc - x.woc);
+
+  // ── Overstock: WOC > 26 weeks ──
+  a.overstocked = a.skuList.filter(s => {
+    const st = skuStock[s.code]; if (!st) return false;
+    const totalSt = st.soh + st.dc;
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return weeklyRate > 0 && (totalSt / weeklyRate) > 26 && (totalSt / weeklyRate) <= 52;
+  }).map(s => {
+    const st = skuStock[s.code]; const totalSt = (st?.soh || 0) + (st?.dc || 0);
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return { ...s, stock: totalSt, woc: weeklyRate > 0 ? totalSt / weeklyRate : 999 };
+  }).sort((x, y) => y.woc - x.woc);
+
+  // ── Stockout risk: WOC < 4 weeks and selling ──
+  a.stockoutRisk = a.skuList.filter(s => {
+    const st = skuStock[s.code]; if (!st) return false;
+    const totalSt = st.soh + st.dc;
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return weeklyRate > 2 && totalSt > 0 && (totalSt / weeklyRate) < 4;
+  }).map(s => {
+    const st = skuStock[s.code]; const totalSt = (st?.soh || 0) + (st?.dc || 0);
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return { ...s, stock: totalSt, woc: weeklyRate > 0 ? totalSt / weeklyRate : 0, weeklyRate };
+  }).sort((x, y) => x.woc - y.woc);
+
+  // ── Trend analysis (weekly) ──
+  if (a.weekList.length >= 4) {
+    const half = Math.floor(a.weekList.length / 2);
+    const firstHalf = a.weekList.slice(0, half);
+    const secondHalf = a.weekList.slice(half);
+    const avg1 = firstHalf.reduce((s, w) => s + w.qty, 0) / firstHalf.length;
+    const avg2 = secondHalf.reduce((s, w) => s + w.qty, 0) / secondHalf.length;
+    a.trendPct = avg1 > 0 ? (avg2 - avg1) / avg1 : 0;
+    a.trendDirection = a.trendPct > 0.05 ? 'improving' : a.trendPct < -0.05 ? 'declining' : 'stable';
+  } else {
+    a.trendPct = 0; a.trendDirection = 'insufficient data';
+  }
+
+  // ── Inventory trend (compare latest week SOH vs average) ──
+  // Use stock data to assess inventory direction
+  a.inventoryDirection = a.woc > 26 ? 'high' : a.woc < 6 ? 'low' : 'balanced';
+
+  // ── Top growth SKUs (most sales, good velocity) ──
+  a.growthSKUs = a.skuList.filter(s => {
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return weeklyRate > 5 && s.clients.size > 1;
+  }).slice(0, 5);
+
+  // ── Underperforming: SKUs with wide distribution but low sales per store ──
+  a.underperformingSKUs = a.skuList.filter(s => {
+    const avgStores = s.weeks.size > 0 ? s.storeWeeks / s.weeks.size : 0;
+    const salesPerStorePerWeek = (avgStores > 0 && s.weeks.size > 0) ? s.qty / (avgStores * s.weeks.size) : 0;
+    return avgStores > 50 && salesPerStorePerWeek < 0.03 && s.qty > 0;
+  }).map(s => {
+    const avgStores = s.weeks.size > 0 ? s.storeWeeks / s.weeks.size : 0;
+    const salesPerStorePerWeek = (avgStores > 0 && s.weeks.size > 0) ? s.qty / (avgStores * s.weeks.size) : 0;
+    return { ...s, avgStores, salesPerStorePerWeek };
+  }).sort((x, y) => x.salesPerStorePerWeek - y.salesPerStorePerWeek).slice(0, 8);
+
+  // ── Underperforming clients ──
+  a.underperformingClients = a.clientList.filter(c => {
+    const avgStores = c.weeks.size > 0 ? c.storeWeeks / c.weeks.size : 0;
+    const salesPerStorePerWeek = (avgStores > 0 && c.weeks.size > 0) ? c.qty / (avgStores * c.weeks.size) : 0;
+    return avgStores > 20 && salesPerStorePerWeek < 0.05;
+  }).map(c => {
+    const avgStores = c.weeks.size > 0 ? c.storeWeeks / c.weeks.size : 0;
+    const salesPerStorePerWeek = (avgStores > 0 && c.weeks.size > 0) ? c.qty / (avgStores * c.weeks.size) : 0;
+    return { ...c, avgStores, salesPerStorePerWeek };
   });
 
-  // Dots + callout labels on each point
-  let dotsHTML = '';
-  pts.forEach((p, i) => {
-    dotsHTML += `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--accent)" stroke="#fff" stroke-width="1.5"/>`;
-    // Callout — alternate above/below to avoid overlap
-    const valStr = fmt(Math.round(values[i]));
-    const yOff = (i % 2 === 0) ? -10 : -10;
-    // Check if point is near top, shift label below
-    const labelY = p.y < pad.t + 18 ? p.y + 16 : p.y + yOff;
-    dotsHTML += `<text x="${p.x}" y="${labelY}" text-anchor="middle" font-size="9" font-weight="600" fill="var(--accent)">${valStr}</text>`;
+  // ── SKUs with stock but not converting ──
+  a.stockNotConverting = a.skuList.filter(s => {
+    const st = skuStock[s.code]; if (!st) return false;
+    const totalSt = st.soh + st.dc;
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return totalSt > 500 && weeklyRate < 5 && weeklyRate > 0;
+  }).map(s => {
+    const st = skuStock[s.code]; const totalSt = (st?.soh || 0) + (st?.dc || 0);
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return { ...s, stock: totalSt, weeklyRate };
+  }).sort((x, y) => y.stock - x.stock).slice(0, 6);
+
+  // ── Attach stock info to skuList for general use ──
+  a.skuList.forEach(s => {
+    const st = skuStock[s.code];
+    s.totalStock = st ? st.soh + st.dc : 0;
+    s.weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    s.skuWOC = s.weeklyRate > 0 ? s.totalStock / s.weeklyRate : (s.totalStock > 0 ? 999 : 0);
   });
 
-  container.innerHTML = `
-    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;">
-      <defs>
-        <linearGradient id="aiTrendGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--accent)" stop-opacity=".25"/>
-          <stop offset="100%" stop-color="var(--accent)" stop-opacity=".02"/>
-        </linearGradient>
-      </defs>
-      ${yAxisHTML}
-      <path d="${areaD}" fill="url(#aiTrendGrad)"/>
-      <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      ${dotsHTML}
-      ${xLabelsHTML}
-    </svg>
-  `;
+  // ── Health score (0-100) ──
+  let score = 50; // Start neutral
+  // Positive signals
+  if (a.trendDirection === 'improving') score += 12;
+  if (a.sellThru > 0.4) score += 8;
+  if (a.woc >= 6 && a.woc <= 20) score += 10; // healthy WOC
+  if (a.stockoutRisk.length === 0) score += 5;
+  if (a.zeroSalesWithStock.length <= 2) score += 5;
+  // Negative signals
+  if (a.trendDirection === 'declining') score -= 15;
+  if (a.sellThru < 0.2) score -= 10;
+  if (a.woc > 40) score -= 10;
+  if (a.stockoutRisk.length > 3) score -= 8;
+  if (a.zeroSalesWithStock.length > 5) score -= 8;
+  if (a.deadStock.length > 5) score -= 8;
+  if (a.skuConcentration80 <= 3 && a.skuList.length > 10) score -= 5; // too concentrated
+  a.healthScore = Math.max(0, Math.min(100, Math.round(score)));
+  a.healthLabel = a.healthScore >= 75 ? 'Strong' : a.healthScore >= 50 ? 'Moderate' : a.healthScore >= 30 ? 'Weak' : 'Critical';
+  a.healthClass = a.healthScore >= 75 ? 'health-strong' : a.healthScore >= 50 ? 'health-moderate' : a.healthScore >= 30 ? 'health-weak' : 'health-critical';
+
+  a.skuStock = skuStock;
+  return a;
+}
+
+// ── Render: Context Ribbon ──
+function renderAIContextRibbon(a) {
+  return `
+  <div class="ai-context-ribbon">
+    <div class="ai-ctx-left">
+      <div class="ai-ctx-icon">🧠</div>
+      <div>
+        <div class="ai-ctx-title">Executive Intelligence Brief</div>
+        <div class="ai-ctx-sub">${a.filterLabel}</div>
+      </div>
+    </div>
+    <div class="ai-ctx-right">
+      <div class="ai-ctx-chip">${a.clients.length} Client${a.clients.length !== 1 ? 's' : ''}</div>
+      <div class="ai-ctx-chip">${a.skus.length} SKUs</div>
+      <div class="ai-ctx-chip">${a.weeks} Weeks</div>
+      <div class="ai-health-wrap">
+        <div>
+          <div class="ai-health-score ${a.healthClass}">${a.healthScore}</div>
+        </div>
+        <div>
+          <div class="ai-health-label">Health</div>
+          <div class="ai-health-word ${a.healthClass}">${a.healthLabel}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Render: Executive Summary Cards ──
+function renderAISummarySection(a) {
+  const avgWeekly = a.avgWeeklySales;
+  const margin = a.totalVal > 0 ? ((a.totalVal - a.totalCost) / a.totalVal * 100) : 0;
+  const salesPerStore = (a.totalQty > 0 && a.weeks > 0) ? a.totalQty / a.weeks : 0;
+  const activeSKUs = a.skuList.filter(s => s.qty > 0).length;
+  const dormantSKUs = a.skuList.length - activeSKUs;
+
+  const cards = [
+    { emoji: '💰', label: 'Total Revenue', value: fmtV(a.totalVal), insight: fmt(a.totalQty) + ' units across ' + a.weeks + ' weeks', cls: 'ai-sc-green' },
+    { emoji: '📈', label: 'Avg Weekly Sales', value: fmt(Math.round(avgWeekly)), insight: a.trendDirection === 'improving' ? 'Trending upward vs earlier period' : a.trendDirection === 'declining' ? 'Trending downward — needs attention' : 'Holding steady over the period', cls: a.trendDirection === 'declining' ? 'ai-sc-red' : 'ai-sc-green' },
+    { emoji: '📦', label: 'Inventory on Hand', value: fmt(a.totalStock), insight: fmtD(a.woc, 1) + ' weeks of cover at current sales rate', cls: a.woc > 30 ? 'ai-sc-amber' : a.woc < 6 ? 'ai-sc-red' : 'ai-sc-blue' },
+    { emoji: '🎯', label: 'Sell-Through Rate', value: fmtP(a.sellThru), insight: a.sellThru > 0.4 ? 'Healthy — stock is turning well' : a.sellThru > 0.2 ? 'Moderate — room to improve conversion' : 'Low — significant inventory sitting idle', cls: a.sellThru > 0.4 ? 'ai-sc-green' : a.sellThru > 0.2 ? 'ai-sc-amber' : 'ai-sc-red' },
+    { emoji: '🧩', label: 'Active vs Dormant SKUs', value: activeSKUs + ' / ' + dormantSKUs, insight: dormantSKUs > 0 ? dormantSKUs + ' product' + (dormantSKUs > 1 ? 's' : '') + ' had zero sales in this period' : 'Every listed SKU generated sales', cls: dormantSKUs > 3 ? 'ai-sc-amber' : 'ai-sc-purple' },
+  ];
+
+  let html = '<div class="ai-section"><div class="ai-sec-head"><div class="ai-sec-icon" style="background:var(--accent-light);">📊</div><div class="ai-sec-title">Executive Summary</div><div class="ai-sec-badge" style="background:var(--accent-light);color:var(--accent);">Overview</div></div>';
+  html += '<div class="ai-summary-grid">';
+  for (const c of cards) {
+    html += `<div class="ai-summary-card ${c.cls}">
+      <div class="ai-sc-head"><span class="ai-sc-emoji">${c.emoji}</span><span class="ai-sc-label">${c.label}</span></div>
+      <div class="ai-sc-value">${c.value}</div>
+      <div class="ai-sc-insight">${c.insight}</div>
+    </div>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// ── Render: What This Means ──
+function renderAIMeaning(a) {
+  let meaning = '';
+  // Compose a concise narrative
+  const topClient = a.clientList[0];
+  const topSKU = a.skuList[0];
+  const trendWord = a.trendDirection === 'improving' ? 'on an upward trajectory' : a.trendDirection === 'declining' ? 'showing a downward trend that needs intervention' : 'holding stable without significant growth or decline';
+
+  meaning += `The business generated <strong>${fmtV(a.totalVal)}</strong> in retail revenue (${fmt(a.totalQty)} units) over <strong>${a.weeks} weeks</strong>. `;
+  meaning += `Sales momentum is currently <strong>${trendWord}</strong>. `;
+
+  if (topClient) {
+    const topClientPct = a.totalQty > 0 ? (topClient.qty / a.totalQty * 100).toFixed(0) : 0;
+    meaning += `<strong>${topClient.name}</strong> is the largest account, contributing ${topClientPct}% of total volume. `;
+  }
+  if (topSKU) {
+    meaning += `Top-selling product is <strong>${topSKU.name}</strong> with ${fmt(topSKU.qty)} units. `;
+  }
+
+  if (a.woc > 30) {
+    meaning += `Inventory levels are elevated at <strong>${fmtD(a.woc, 0)} weeks of cover</strong>, suggesting overstock in parts of the range. `;
+  } else if (a.woc < 6) {
+    meaning += `Stock is running low at <strong>${fmtD(a.woc, 1)} weeks of cover</strong> — replenishment urgency is high. `;
+  }
+
+  if (a.stockoutRisk.length > 0) {
+    meaning += `There are <strong>${a.stockoutRisk.length} SKU${a.stockoutRisk.length > 1 ? 's' : ''}</strong> at risk of stocking out within 4 weeks. `;
+  }
+  if (a.zeroSalesWithStock.length > 0) {
+    meaning += `<strong>${a.zeroSalesWithStock.length} product${a.zeroSalesWithStock.length > 1 ? 's' : ''}</strong> have inventory on hand but recorded zero sales — potential dead stock requiring review.`;
+  }
+
+  return `<div class="ai-meaning-box">
+    <div class="ai-meaning-title">💡 What This Means for Leadership</div>
+    <div class="ai-meaning-text">${meaning}</div>
+  </div>`;
+}
+
+// ── Render: Trend & Direction ──
+function renderAITrend(a) {
+  const salesArrow = a.trendDirection === 'improving' ? '↗' : a.trendDirection === 'declining' ? '↘' : '→';
+  const salesClass = a.trendDirection === 'improving' ? 'trend-up' : a.trendDirection === 'declining' ? 'trend-down' : 'trend-flat';
+  const salesWord = a.trendDirection === 'improving' ? 'Improving' : a.trendDirection === 'declining' ? 'Declining' : 'Stable';
+  const salesDetail = a.trendPct !== 0 ? `${a.trendPct > 0 ? '+' : ''}${(a.trendPct * 100).toFixed(1)}% shift, second half vs first half of selected period` : 'Not enough data to determine trend direction';
+
+  const invClass = a.inventoryDirection === 'high' ? 'trend-down' : a.inventoryDirection === 'low' ? 'trend-down' : 'trend-up';
+  const invArrow = a.inventoryDirection === 'high' ? '⬆' : a.inventoryDirection === 'low' ? '⬇' : '⚖';
+  const invWord = a.inventoryDirection === 'high' ? 'Elevated' : a.inventoryDirection === 'low' ? 'Critically Low' : 'Balanced';
+  const invDetail = `${fmtD(a.woc, 1)} weeks of cover. ${a.inventoryDirection === 'high' ? 'Stock levels exceed healthy range — review slow movers' : a.inventoryDirection === 'low' ? 'Replenishment is urgent across multiple SKUs' : 'Stock coverage is within a healthy 6–26 week range'}`;
+
+  const stWord = a.sellThru > 0.4 ? 'Healthy' : a.sellThru > 0.2 ? 'Moderate' : 'Weak';
+  const stArrow = a.sellThru > 0.4 ? '✓' : a.sellThru > 0.2 ? '~' : '✗';
+  const stClass = a.sellThru > 0.4 ? 'trend-up' : a.sellThru > 0.2 ? 'trend-flat' : 'trend-down';
+  const stDetail = `${fmtP(a.sellThru)} of available inventory converted to sales. ${a.sellThru > 0.4 ? 'Stock is moving well through the channel' : 'Conversion needs improvement — check distribution and promotions'}`;
+
+  let html = `<div class="ai-section"><div class="ai-sec-head">
+    <div class="ai-sec-icon" style="background:var(--blue-light);">📉</div>
+    <div class="ai-sec-title">Trend &amp; Direction</div>
+    <div class="ai-sec-badge" style="background:var(--blue-light);color:var(--blue);">Momentum</div>
+  </div>`;
+  html += `<div class="ai-trend-grid">
+    <div class="ai-trend-card">
+      <div class="ai-trend-label">Sales Momentum</div>
+      <div class="ai-trend-arrow ${salesClass}">${salesArrow}</div>
+      <div class="ai-trend-word ${salesClass}">${salesWord}</div>
+      <div class="ai-trend-detail">${salesDetail}</div>
+      ${renderMiniBarChart(a.weekList.map(w => w.qty), salesClass)}
+    </div>
+    <div class="ai-trend-card">
+      <div class="ai-trend-label">Inventory Level</div>
+      <div class="ai-trend-arrow ${invClass}">${invArrow}</div>
+      <div class="ai-trend-word ${invClass}">${invWord}</div>
+      <div class="ai-trend-detail">${invDetail}</div>
+    </div>
+    <div class="ai-trend-card">
+      <div class="ai-trend-label">Sell-Through</div>
+      <div class="ai-trend-arrow ${stClass}">${stArrow}</div>
+      <div class="ai-trend-word ${stClass}">${stWord}</div>
+      <div class="ai-trend-detail">${stDetail}</div>
+    </div>
+  </div></div>`;
+  return html;
+}
+
+function renderMiniBarChart(values, colorClass) {
+  if (!values.length) return '';
+  const max = Math.max(...values, 1);
+  // Show last 12 bars max
+  const show = values.slice(-12);
+  const color = colorClass === 'trend-up' ? 'var(--green)' : colorClass === 'trend-down' ? 'var(--red)' : 'var(--gold)';
+  let html = '<div class="ai-minibar-wrap">';
+  for (const v of show) {
+    const h = Math.max(2, (v / max) * 36);
+    html += `<div class="ai-minibar" style="height:${h}px;background:${color};opacity:0.6;"></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Render: Key Drivers ──
+function renderAIDrivers(a) {
+  const posDrivers = [];
+  const negDrivers = [];
+
+  // Top selling SKU as positive driver
+  if (a.skuList[0] && a.skuList[0].qty > 0) {
+    const s = a.skuList[0];
+    const pct = a.totalQty > 0 ? (s.qty / a.totalQty * 100).toFixed(0) : 0;
+    posDrivers.push({ title: `${s.name} leads with ${pct}% of volume`, detail: `${fmt(s.qty)} units sold, making it the top revenue driver across ${s.clients.size} account${s.clients.size > 1 ? 's' : ''}.` });
+  }
+  // Top client
+  if (a.clientList[0]) {
+    const c = a.clientList[0];
+    const pct = a.totalQty > 0 ? (c.qty / a.totalQty * 100).toFixed(0) : 0;
+    posDrivers.push({ title: `${c.name} drives ${pct}% of total sales`, detail: `${fmt(c.qty)} units across ${c.skus.size} SKUs — the largest account by volume.` });
+  }
+  // Good sell-through
+  if (a.sellThru > 0.3) {
+    posDrivers.push({ title: 'Healthy sell-through rate', detail: `${fmtP(a.sellThru)} conversion indicates good product-market fit and demand alignment.` });
+  }
+  // Multi-client distribution
+  if (a.clients.length >= 3) {
+    posDrivers.push({ title: `Distribution across ${a.clients.length} accounts`, detail: 'Sales diversification reduces single-client dependency risk.' });
+  }
+
+  // Negative: declining trend
+  if (a.trendDirection === 'declining') {
+    negDrivers.push({ title: 'Sales momentum is declining', detail: `Weekly average fell ${Math.abs(a.trendPct * 100).toFixed(0)}% from the first half to the second half of the period. Investigate causes.` });
+  }
+  // High WOC
+  if (a.woc > 26) {
+    negDrivers.push({ title: `Excess inventory at ${fmtD(a.woc, 0)} weeks of cover`, detail: `Stock is piling up beyond healthy levels. ${a.overstocked.length + a.deadStock.length} SKUs flagged for overstock or dead stock.` });
+  }
+  // Zero sales items
+  if (a.zeroSalesWithStock.length > 0) {
+    const totalDead = a.zeroSalesWithStock.reduce((s, x) => s + x.stock, 0);
+    negDrivers.push({ title: `${a.zeroSalesWithStock.length} SKU${a.zeroSalesWithStock.length > 1 ? 's' : ''} with zero sales but ${fmt(totalDead)} units in stock`, detail: 'Capital tied up in non-moving inventory. Consider markdowns, returns, or discontinuation.' });
+  }
+  // Stockout risk
+  if (a.stockoutRisk.length > 0) {
+    negDrivers.push({ title: `${a.stockoutRisk.length} fast-selling SKU${a.stockoutRisk.length > 1 ? 's' : ''} at stockout risk`, detail: 'These products will run out within 4 weeks at the current sell rate. Revenue at risk if not replenished.' });
+  }
+  // SKU concentration
+  if (a.skuConcentration80 <= 3 && a.skuList.length > 8) {
+    negDrivers.push({ title: `Sales concentrated in just ${a.skuConcentration80} SKU${a.skuConcentration80 > 1 ? 's' : ''} (80% of volume)`, detail: `Out of ${a.skuList.length} products, only ${a.skuConcentration80} drive the bulk of sales. High dependency risk.` });
+  }
+  // Low sell-through
+  if (a.sellThru < 0.2) {
+    negDrivers.push({ title: 'Weak sell-through rate', detail: `Only ${fmtP(a.sellThru)} of inventory has converted. Products may be mispositioned or lack promotional support.` });
+  }
+
+  let html = `<div class="ai-section"><div class="ai-sec-head">
+    <div class="ai-sec-icon" style="background:var(--accent-light);">⚡</div>
+    <div class="ai-sec-title">Key Drivers</div>
+    <div class="ai-sec-badge" style="background:var(--accent-light);color:var(--accent);">Cause & Effect</div>
+  </div>`;
+  html += '<div class="ai-drivers-grid">';
+
+  // Positive column
+  html += '<div class="ai-driver-col"><div class="ai-driver-header positive">▲ Positive Drivers</div>';
+  if (posDrivers.length === 0) html += '<div class="ai-driver-item"><div class="ai-driver-info"><div class="ai-driver-detail">No significant positive drivers identified for this selection.</div></div></div>';
+  posDrivers.slice(0, 3).forEach((d, i) => {
+    html += `<div class="ai-driver-item"><div class="ai-driver-rank pos">${i + 1}</div><div class="ai-driver-info"><div class="ai-driver-title">${d.title}</div><div class="ai-driver-detail">${d.detail}</div></div></div>`;
+  });
+  html += '</div>';
+
+  // Negative column
+  html += '<div class="ai-driver-col"><div class="ai-driver-header negative">▼ Negative Drivers</div>';
+  if (negDrivers.length === 0) html += '<div class="ai-driver-item"><div class="ai-driver-info"><div class="ai-driver-detail">No significant negative drivers identified — a healthy signal.</div></div></div>';
+  negDrivers.slice(0, 3).forEach((d, i) => {
+    html += `<div class="ai-driver-item"><div class="ai-driver-rank neg">${i + 1}</div><div class="ai-driver-info"><div class="ai-driver-title">${d.title}</div><div class="ai-driver-detail">${d.detail}</div></div></div>`;
+  });
+  html += '</div></div></div>';
+  return html;
+}
+
+// ── Render: Executive Alerts ──
+function renderAIAlerts(a) {
+  const alerts = [];
+
+  if (a.stockoutRisk.length > 0) {
+    const names = a.stockoutRisk.slice(0, 3).map(s => s.name).join(', ');
+    alerts.push({ type: 'red', icon: '🚨', title: 'Stockout Imminent', body: `${a.stockoutRisk.length} SKU${a.stockoutRisk.length > 1 ? 's' : ''} will run out within 4 weeks: ${names}${a.stockoutRisk.length > 3 ? '…' : ''}. Immediate replenishment action required.` });
+  }
+
+  if (a.zeroSalesWithStock.length > 3) {
+    alerts.push({ type: 'red', icon: '🔴', title: 'Zero Movement Despite Inventory', body: `${a.zeroSalesWithStock.length} products have stock on hand or in DC but recorded zero sales. This represents dead capital and potential write-off risk.` });
+  }
+
+  if (a.skuConcentration80 <= 3 && a.skuList.length > 8) {
+    alerts.push({ type: 'amber', icon: '⚠️', title: 'Concentrated Sales Dependency', body: `80% of sales volume comes from just ${a.skuConcentration80} SKU${a.skuConcentration80 > 1 ? 's' : ''} out of ${a.skuList.length}. If any top seller underperforms, the business impact is outsized.` });
+  }
+
+  if (a.clientList.length >= 2 && a.clientList[0].qty > a.totalQty * 0.6) {
+    alerts.push({ type: 'amber', icon: '🏢', title: 'Client Concentration Risk', body: `${a.clientList[0].name} represents ${(a.clientList[0].qty / a.totalQty * 100).toFixed(0)}% of total volume. Heavy reliance on a single account creates vulnerability.` });
+  }
+
+  if (a.woc > 40) {
+    alerts.push({ type: 'amber', icon: '📦', title: 'High Stock with Weak Sell-Through', body: `${fmtD(a.woc, 0)} weeks of cover is well above healthy levels. Excess inventory ties up working capital and increases obsolescence risk.` });
+  }
+
+  if (a.trendDirection === 'declining' && Math.abs(a.trendPct) > 0.15) {
+    alerts.push({ type: 'red', icon: '📉', title: 'Significant Declining Trend', body: `Sales have dropped ${Math.abs(a.trendPct * 100).toFixed(0)}% in the second half of the period. This may signal market weakness, competition, or seasonal downturn.` });
+  }
+
+  if (a.deadStock.length > 3) {
+    alerts.push({ type: 'amber', icon: '🪦', title: 'Potential Dead Stock Detected', body: `${a.deadStock.length} SKU${a.deadStock.length > 1 ? 's' : ''} have over 52 weeks of cover at current sales velocity. Consider range rationalization or clearance action.` });
+  }
+
+  if (a.overstocked.length > 3) {
+    alerts.push({ type: 'blue', icon: '📊', title: 'Potential Replenishment Mismatch', body: `${a.overstocked.length} SKU${a.overstocked.length > 1 ? 's' : ''} have 26–52 weeks of cover, suggesting inbound stock may be outpacing demand. Adjust future order quantities.` });
+  }
+
+  if (alerts.length === 0) {
+    return `<div class="ai-section"><div class="ai-sec-head">
+      <div class="ai-sec-icon" style="background:var(--green-light);">🛡</div>
+      <div class="ai-sec-title">Executive Alerts</div>
+      <div class="ai-sec-badge" style="background:var(--green-light);color:var(--green);">All Clear</div>
+    </div>
+    <div class="ai-meaning-box" style="border-left-color:var(--green);">
+      <div class="ai-meaning-text">No critical alerts for the current selection. Business health indicators are within acceptable ranges.</div>
+    </div></div>`;
+  }
+
+  let html = `<div class="ai-section"><div class="ai-sec-head">
+    <div class="ai-sec-icon" style="background:var(--red-light);">🚨</div>
+    <div class="ai-sec-title">Executive Alerts</div>
+    <div class="ai-sec-badge" style="background:var(--red-light);color:var(--red);">${alerts.length} Alert${alerts.length > 1 ? 's' : ''}</div>
+  </div>`;
+  html += '<div class="ai-alerts-grid">';
+  for (const al of alerts) {
+    html += `<div class="ai-alert-card alert-${al.type}"><div class="ai-alert-icon">${al.icon}</div><div><div class="ai-alert-title">${al.title}</div><div class="ai-alert-body">${al.body}</div></div></div>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// ── Render: Problem Areas ──
+function renderAIProblems(a) {
+  const items = [];
+
+  // Underperforming clients
+  for (const c of a.underperformingClients) {
+    items.push({ severity: 'medium', title: `${c.name} — weak sales velocity`, body: `Only ${fmtD(c.salesPerStorePerWeek, 3)} units/store/week across ${fmt(Math.round(c.avgStores))} avg stores. Low conversion despite distribution.`, metric: `${fmt(c.qty)} units total` });
+  }
+
+  // Underperforming SKUs
+  for (const s of a.underperformingSKUs.slice(0, 4)) {
+    items.push({ severity: 'medium', title: `${s.name} — underperforming`, body: `Distributed to ${fmt(Math.round(s.avgStores))} stores on average but selling only ${fmtD(s.salesPerStorePerWeek, 3)} units/store/week. Consider promotion or range review.`, metric: `${fmt(s.qty)} units · ${fmt(Math.round(s.avgStores))} stores` });
+  }
+
+  // Stockout risk
+  for (const s of a.stockoutRisk.slice(0, 3)) {
+    items.push({ severity: 'high', title: `${s.name} — stockout in ${fmtD(s.woc, 1)} weeks`, body: `Selling ${fmt(Math.round(s.weeklyRate))} units/week with only ${fmt(s.stock)} units remaining. Urgent replenishment needed.`, metric: `${fmtD(s.woc, 1)} WOC · ${fmt(Math.round(s.weeklyRate))}/wk` });
+  }
+
+  // Dead stock
+  for (const s of a.deadStock.slice(0, 3)) {
+    items.push({ severity: 'high', title: `${s.name} — dead stock`, body: `${fmt(s.stock)} units in stock but only selling ${fmtD(s.qty / Math.max(a.weeks, 1), 1)} units/week. Over ${fmtD(s.woc, 0)} weeks of cover — consider clearance.`, metric: `${fmtD(s.woc, 0)} WOC · ${fmt(s.stock)} units` });
+  }
+
+  // Zero sales
+  for (const s of a.zeroSalesWithStock.slice(0, 3)) {
+    items.push({ severity: 'high', title: `${s.name} — zero sales`, body: `${fmt(s.stock)} units sitting in stock with absolutely no sales recorded. Dead capital requiring immediate review.`, metric: `${fmt(s.stock)} units · 0 sold` });
+  }
+
+  // Stock not converting
+  for (const s of a.stockNotConverting.slice(0, 3)) {
+    items.push({ severity: 'low', title: `${s.name} — inventory not converting`, body: `${fmt(s.stock)} units in stock but only moving ${fmtD(s.weeklyRate, 1)}/week. May need better shelf placement or promotional support.`, metric: `${fmt(s.stock)} stock · ${fmtD(s.weeklyRate, 1)}/wk` });
+  }
+
+  if (items.length === 0) {
+    return `<div class="ai-section"><div class="ai-sec-head">
+      <div class="ai-sec-icon" style="background:var(--red-light);">⚠️</div>
+      <div class="ai-sec-title">Problem Areas</div>
+    </div>
+    <div class="ai-meaning-box" style="border-left-color:var(--green);">
+      <div class="ai-meaning-text">No significant problem areas detected for the current filter selection.</div>
+    </div></div>`;
+  }
+
+  let html = `<div class="ai-section"><div class="ai-sec-head">
+    <div class="ai-sec-icon" style="background:var(--red-light);">⚠️</div>
+    <div class="ai-sec-title">Problem Areas</div>
+    <div class="ai-sec-badge" style="background:var(--red-light);color:var(--red);">${items.length} Issue${items.length > 1 ? 's' : ''}</div>
+  </div>`;
+  html += '<div class="ai-items-grid">';
+  for (const it of items) {
+    const pillClass = it.severity === 'high' ? 'pill-high' : it.severity === 'medium' ? 'pill-medium' : 'pill-low';
+    const cardClass = 'severity-' + it.severity;
+    html += `<div class="ai-item-card ${cardClass}">
+      <div class="ai-item-head"><div class="ai-item-title">${it.title}</div><div class="ai-item-pill ${pillClass}">${it.severity}</div></div>
+      <div class="ai-item-body">${it.body}</div>
+      ${it.metric ? `<div class="ai-item-metric">📊 ${it.metric}</div>` : ''}
+    </div>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// ── Render: Opportunities ──
+function renderAIOpportunities(a) {
+  const items = [];
+
+  // Growth SKUs
+  for (const s of a.growthSKUs.slice(0, 3)) {
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    items.push({ level: 'high', title: `${s.name} — strong seller`, body: `Averaging ${fmtD(weeklyRate, 0)} units/week across ${s.clients.size} client${s.clients.size > 1 ? 's' : ''}. Explore expanding distribution or increasing shelf count.`, metric: `${fmt(s.qty)} units · ${s.clients.size} account${s.clients.size > 1 ? 's' : ''}` });
+  }
+
+  // SKUs with high stock and decent sales — can push harder
+  const pushCandidates = a.skuList.filter(s => {
+    const weeklyRate = a.weeks > 0 ? s.qty / a.weeks : 0;
+    return weeklyRate > 3 && s.totalStock > 300 && s.skuWOC >= 10 && s.skuWOC <= 30;
+  }).slice(0, 3);
+  for (const s of pushCandidates) {
+    items.push({ level: 'medium', title: `${s.name} — inventory available to push`, body: `${fmt(s.totalStock)} units in stock with ${fmtD(s.skuWOC, 0)} weeks of cover. Sales are moderate — a promotional push could accelerate sell-through.`, metric: `${fmtD(s.weeklyRate, 0)}/wk · ${fmt(s.totalStock)} in stock` });
+  }
+
+  // Clients with fewer SKUs than average — expand assortment
+  if (a.clientList.length >= 2) {
+    const avgSKUsPerClient = a.clientList.reduce((s, c) => s + c.skus.size, 0) / a.clientList.length;
+    const expandClients = a.clientList.filter(c => c.skus.size < avgSKUsPerClient * 0.6 && c.qty > 0).slice(0, 2);
+    for (const c of expandClients) {
+      items.push({ level: 'medium', title: `${c.name} — assortment expansion opportunity`, body: `Currently carrying ${c.skus.size} SKU${c.skus.size > 1 ? 's' : ''} vs the average of ${Math.round(avgSKUsPerClient)}. Adding proven sellers could grow this account.`, metric: `${c.skus.size} SKUs · ${fmt(c.qty)} units` });
+    }
+  }
+
+  // SKUs sold in limited clients — expansion potential
+  const limitedDistSKUs = a.skuList.filter(s => s.clients.size === 1 && a.clients.length >= 2 && s.qty > 50).slice(0, 2);
+  for (const s of limitedDistSKUs) {
+    items.push({ level: 'medium', title: `${s.name} — single-client product with potential`, body: `${fmt(s.qty)} units sold through only 1 account. Could be introduced to other clients for incremental volume.`, metric: `1 client · ${fmt(s.qty)} units` });
+  }
+
+  if (items.length === 0) {
+    return `<div class="ai-section"><div class="ai-sec-head">
+      <div class="ai-sec-icon" style="background:var(--green-light);">🌱</div>
+      <div class="ai-sec-title">Opportunity Areas</div>
+    </div>
+    <div class="ai-meaning-box" style="border-left-color:var(--accent);">
+      <div class="ai-meaning-text">No standout opportunities identified for the current selection. Try broadening your filter range.</div>
+    </div></div>`;
+  }
+
+  let html = `<div class="ai-section"><div class="ai-sec-head">
+    <div class="ai-sec-icon" style="background:var(--green-light);">🌱</div>
+    <div class="ai-sec-title">Opportunity Areas</div>
+    <div class="ai-sec-badge" style="background:var(--green-light);color:var(--green);">${items.length} Found</div>
+  </div>`;
+  html += '<div class="ai-items-grid">';
+  for (const it of items) {
+    const cardClass = 'opp-' + it.level;
+    html += `<div class="ai-item-card ${cardClass}">
+      <div class="ai-item-head"><div class="ai-item-title">${it.title}</div><div class="ai-item-pill pill-opp">Opportunity</div></div>
+      <div class="ai-item-body">${it.body}</div>
+      ${it.metric ? `<div class="ai-item-metric">🎯 ${it.metric}</div>` : ''}
+    </div>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// ── Render: AI Recommendations ──
+function renderAIRecommendations(a) {
+  const recs = [];
+
+  // 1. Stockout replenishment
+  if (a.stockoutRisk.length > 0) {
+    const names = a.stockoutRisk.slice(0, 3).map(s => s.name).join(', ');
+    recs.push({ issue: 'Stockout Risk on Fast Sellers', why: `${a.stockoutRisk.length} SKU${a.stockoutRisk.length > 1 ? 's' : ''} will exhaust stock within 4 weeks. Losing shelf availability on proven sellers directly impacts revenue.`, action: `Trigger immediate replenishment orders for: ${names}. Prioritize rush orders or DC-to-store transfers where stock is available in the distribution center.`, benefit: 'Prevents lost sales and maintains shelf presence at retail partners.' });
+  }
+
+  // 2. Dead stock cleanup
+  if (a.zeroSalesWithStock.length > 0 || a.deadStock.length > 0) {
+    const count = a.zeroSalesWithStock.length + a.deadStock.length;
+    recs.push({ issue: 'Dead or Non-Moving Inventory', why: `${count} product${count > 1 ? 's' : ''} have extremely slow or zero sell-through. This ties up working capital and warehouse space.`, action: `Run a clearance analysis on all SKUs with >52 weeks of cover. Options include markdown promotions, bundle deals, retailer return negotiations, or discontinuation. Prioritize items with zero sales first.`, benefit: 'Frees working capital, reduces storage costs, and focuses resources on productive SKUs.' });
+  }
+
+  // 3. Concentration risk
+  if (a.skuConcentration80 <= 3 && a.skuList.length > 8) {
+    recs.push({ issue: `SKU Concentration — Top ${a.skuConcentration80} Drive 80% of Volume`, why: `Heavy dependence on a narrow range means a supply disruption or retailer delisting on any top SKU would significantly impact total revenue.`, action: `Invest in growing the next tier of products through better shelf placement, co-marketing with retailers, and increasing distribution breadth for mid-tier SKUs.`, benefit: 'Diversifies the revenue base and reduces business risk.' });
+  }
+
+  // 4. Client concentration
+  if (a.clientList.length >= 2 && a.clientList[0].qty > a.totalQty * 0.5) {
+    recs.push({ issue: `Heavy Reliance on ${a.clientList[0].name}`, why: `${(a.clientList[0].qty / a.totalQty * 100).toFixed(0)}% of volume flows through a single account. Any change in their buying pattern disproportionately affects the business.`, action: `Actively grow volumes with secondary accounts. Propose exclusive SKUs, promotional calendars, or expanded assortments to smaller clients to balance the portfolio.`, benefit: 'Reduces account-level risk and builds a more resilient revenue base.' });
+  }
+
+  // 5. Overstock rebalancing
+  if (a.overstocked.length > 0) {
+    recs.push({ issue: 'Overstock Across Multiple SKUs', why: `${a.overstocked.length} product${a.overstocked.length > 1 ? 's' : ''} carry 26–52 weeks of cover, more than necessary for healthy operations.`, action: `Pause or reduce upcoming purchase orders for overstocked SKUs. Reallocate excess DC stock to stores with higher velocity. Run targeted promotions to accelerate sell-through.`, benefit: 'Improves inventory turnover and frees cash for better-performing products.' });
+  }
+
+  // 6. Underperforming SKU review
+  if (a.underperformingSKUs.length > 0) {
+    recs.push({ issue: 'Wide Distribution but Poor Velocity', why: `${a.underperformingSKUs.length} SKU${a.underperformingSKUs.length > 1 ? 's' : ''} are in many stores but selling very little per location. Shelf space may be better used.`, action: `Conduct a range rationalization review. For each underperformer, decide whether to invest in promotional support, improve positioning, or phase out and replace with stronger alternatives.`, benefit: 'Optimizes shelf space ROI and focuses distribution on products that actually sell.' });
+  }
+
+  // 7. Distribution expansion
+  const singleClientSellers = a.skuList.filter(s => s.clients.size === 1 && a.clients.length >= 2 && s.qty > 100);
+  if (singleClientSellers.length > 0) {
+    recs.push({ issue: 'Proven Products in Single Account Only', why: `${singleClientSellers.length} SKU${singleClientSellers.length > 1 ? 's' : ''} have solid sales through just one retailer. This is untapped potential.`, action: `Prepare sell-in presentations for these products targeting other national accounts. Use existing sales performance data as proof points in buyer meetings.`, benefit: 'Incremental revenue from expanding distribution of already-proven products.' });
+  }
+
+  // 8. Trend recovery (if declining)
+  if (a.trendDirection === 'declining') {
+    recs.push({ issue: 'Declining Sales Trend', why: `Weekly sales averaged ${Math.abs(a.trendPct * 100).toFixed(0)}% lower in the second half of the period. Continued decline will erode full-year targets.`, action: `Diagnose the root cause: is it seasonal, competitive, or operational? Review promotional calendars with key accounts. Consider refreshing merchandising and running targeted in-store activations.`, benefit: 'Reverses the declining trajectory and protects annual revenue commitments.' });
+  }
+
+  if (recs.length === 0) {
+    recs.push({ issue: 'General Business Health', why: 'No critical issues detected, but continuous improvement is always possible.', action: 'Maintain current supply chain discipline, expand distribution for mid-tier SKUs, and negotiate more favorable shelf placement with retail partners.', benefit: 'Sustained growth and operational efficiency.' });
+  }
+
+  let html = `<div class="ai-section"><div class="ai-sec-head">
+    <div class="ai-sec-icon" style="background:var(--accent2-light);">💡</div>
+    <div class="ai-sec-title">AI Recommendations</div>
+    <div class="ai-sec-badge" style="background:var(--accent2-light);color:var(--accent2);">${recs.length} Action${recs.length > 1 ? 's' : ''}</div>
+  </div>`;
+  html += '<div class="ai-recs-list">';
+  recs.forEach((r, i) => {
+    html += `<div class="ai-rec-card">
+      <div class="ai-rec-num">${i + 1}</div>
+      <div class="ai-rec-content">
+        <div class="ai-rec-issue">⚡ ${r.issue}</div>
+        <div class="ai-rec-why">${r.why}</div>
+        <div class="ai-rec-action">→ ${r.action}</div>
+        <div class="ai-rec-benefit">✓ ${r.benefit}</div>
+      </div>
+    </div>`;
+  });
+  html += '</div></div>';
+  return html;
 }
 
 init();
