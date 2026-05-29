@@ -2046,6 +2046,7 @@ function resetFilters() {
   wocSortCol=null; wocSortDir='desc';
   repSortCol=null; repSortDir='desc';
   repStockFilter='all';
+  repStockColumn='all';
   yoyClientSortCol=null; yoyClientSortDir='desc';
   yoySkuSortCol=null; yoySkuSortDir='desc';
   moveView='soh';
@@ -2991,6 +2992,7 @@ let stSortCol = null, stSortDir = 'desc';
 let wocSortCol = null, wocSortDir = 'desc';
 let repSortCol = null, repSortDir = 'desc';
 let repStockFilter = 'all'; // 'all', 'no_stock', 'has_stock'
+let repStockColumn = 'all'; // 'all', 'soh_qty', 'stock_dc', 'soh_rushorder'
 let yoyClientSortCol = null, yoyClientSortDir = 'desc';
 let yoySkuSortCol = null, yoySkuSortDir = 'desc';
 
@@ -3823,7 +3825,11 @@ function renderRepPlan() {
   let rows = Object.values(skuMap).map(s => {
     const k = s.client + '||' + s.sku_code;
     const ds = dsMap[k];
-    const totalStock = s.soh_qty + s.stock_dc + s.rush_order;
+    const totalStock =
+      repStockColumn === 'soh_qty'      ? s.soh_qty :
+      repStockColumn === 'stock_dc'     ? s.stock_dc :
+      repStockColumn === 'soh_rushorder'? s.rush_order :
+      (s.soh_qty + s.stock_dc + s.rush_order);
 
     // Avg/wk from date range
     let avgWk = 0, avgStores = 0;
@@ -4017,6 +4023,14 @@ function renderRepPlan() {
       <button class="${activeFilter('all')}" data-repfilter="all">All (${rows.length})</button>
       <button class="${activeFilter('no_stock')}" data-repfilter="no_stock">No Stock (${rows.filter(r=>r.totalStock===0).length})</button>
       <button class="${activeFilter('has_stock')}" data-repfilter="has_stock">Has Stock (${rows.filter(r=>r.totalStock>0).length})</button>
+      <span style="display:inline-block;width:1px;height:22px;background:var(--border2);margin:0 6px;"></span>
+      <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-right:2px;">Stock Source</span>
+      <select class="filter-select" id="repStockColumn" style="min-width:120px;">
+        <option value="all"${repStockColumn==='all'?' selected':''}>All</option>
+        <option value="soh_qty"${repStockColumn==='soh_qty'?' selected':''}>Store</option>
+        <option value="stock_dc"${repStockColumn==='stock_dc'?' selected':''}>DC</option>
+        <option value="soh_rushorder"${repStockColumn==='soh_rushorder'?' selected':''}>Rush Order</option>
+      </select>
     </div>
     <div class="table-wrap" style="max-height:520px;overflow:auto;">
       <table>
@@ -4060,6 +4074,15 @@ function renderRepPlan() {
       renderRepPlan();
     });
   });
+
+  // Bind stock-source column filter
+  const repStockColumnSel = el.querySelector('#repStockColumn');
+  if(repStockColumnSel){
+    repStockColumnSel.addEventListener('change',()=>{
+      repStockColumn=repStockColumnSel.value;
+      renderRepPlan();
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
