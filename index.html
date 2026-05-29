@@ -3011,18 +3011,23 @@ function renderSecH() {
   for (let i = 0; i < len; i++) {
     const r = all[i];
     const k=r.client+'|'+r.sku_code;
-    const a=avgMap[k]; const avgW=a.wks.size?a.qty/a.wks.size:0;
-    const unitsPerStore=r.store_count?avgW/r.store_count:0;
+    const a=avgMap[k];
+    const unitsPerStore=r.store_count ? (r.sale_qty / r.store_count) : 0;
     const totalStock=r.soh_qty+r.stock_dc+r.soh_rushorder;
     const weekLabel='Wk'+r.week+" '"+String(r.year).slice(2);
-    rows[i] = { client:r.client, sku_code:r.sku_code, sku_name:r.sku_name, year:r.year, week:r.week, sale_qty:r.sale_qty, sale_value:r.sale_value, soh_qty:r.soh_qty, stock_dc:r.stock_dc, soh_rushorder:r.soh_rushorder, store_count:r.store_count, avgW, unitsPerStore, totalStock, weekLabel };
+    rows[i] = {
+      client:r.client, sku_code:r.sku_code, sku_name:r.sku_name, year:r.year, week:r.week,
+      sale_qty:r.sale_qty, sale_value:r.sale_value, cost:r.cost, retail:r.retail,
+      soh_qty:r.soh_qty, stock_dc:r.stock_dc, soh_rushorder:r.soh_rushorder, store_count:r.store_count,
+      unitsPerStore, totalStock, weekLabel
+    };
   }
 
   const colMap = {
     sku: r=>r.sku_code+'|'+r.sku_name, week: r=>r.year*100+r.week,
-    units: r=>r.sale_qty, value: r=>r.sale_value, soh: r=>r.soh_qty,
-    dc: r=>r.stock_dc, rush: r=>r.soh_rushorder, total_stock: r=>r.totalStock, stores: r=>r.store_count,
-    avg_wk: r=>r.avgW, ups: r=>r.unitsPerStore
+    units: r=>r.sale_qty, value: r=>r.sale_value, cost: r=>r.cost, retail: r=>r.retail,
+    soh: r=>r.soh_qty, dc: r=>r.stock_dc, rush: r=>r.soh_rushorder, total_stock: r=>r.totalStock, stores: r=>r.store_count,
+    ups: r=>r.unitsPerStore
   };
   if(secHSortCol && colMap[secHSortCol]){
     const getter=colMap[secHSortCol];
@@ -3049,6 +3054,8 @@ function renderSecH() {
   const tableRows = display.map(r=>`<tr>
     <td><b>${r.sku_code}</b> — ${r.sku_name}</td>
     <td class="tn">${r.weekLabel}</td>
+    <td class="tn">${fmtV(r.cost)}</td>
+    <td class="tn">${fmtV(r.retail)}</td>
     <td class="tn ta">${fmt(r.sale_qty)}</td>
     <td class="tn">${fmtV(r.sale_value)}</td>
     <td class="tn">${fmt(r.soh_qty)}</td>
@@ -3056,7 +3063,6 @@ function renderSecH() {
     <td class="tn">${fmt(r.soh_rushorder)}</td>
     <td class="tn">${fmt(r.totalStock)}</td>
     <td class="tn">${fmt(r.store_count)}</td>
-    <td class="tn">${fmtD(r.avgW,1)}</td>
     <td class="tn">${r.unitsPerStore>0?fmtD(r.unitsPerStore,3):'—'}</td>
   </tr>`).join('');
 
@@ -3067,6 +3073,8 @@ function renderSecH() {
       <thead><tr>
         ${sortTh('sku','SKU Details')}
         ${sortTh('week','Week','tn')}
+        ${sortTh('cost','Cost Price','tn')}
+        ${sortTh('retail','Retail Price','tn')}
         ${sortTh('units','Units','tn')}
         ${sortTh('value','Sales Value','tn')}
         ${sortTh('soh','SOH Qty','tn')}
@@ -3074,7 +3082,6 @@ function renderSecH() {
         ${sortTh('rush','Rush Order','tn')}
         ${sortTh('total_stock','Total Stock','tn')}
         ${sortTh('stores','Stores','tn')}
-        ${sortTh('avg_wk','Avg/Wk','tn')}
         ${sortTh('ups','Units / Stores','tn')}
       </tr></thead>
       <tbody>${tableRows}</tbody>
