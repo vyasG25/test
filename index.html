@@ -2132,7 +2132,7 @@ function renderSecA() {
   const weekSet=new Set(), clientSet=new Set(), csSet=new Set(), skuSet=new Set();
   const latestClientDate={};
   const skuStockMap={};
-  const csGroup={}; // per client+sku: latest week store count & week count (for "Latest Store Count" basis)
+  const csGroup={}; // per client+sku: latest-week store count (for "Latest Store Count" basis)
 
   for (let i = 0, len = filtered.length; i < len; i++) {
     const r = filtered[i];
@@ -2149,8 +2149,7 @@ function renderSecA() {
     // Track latest-week store count per product (client+sku)
     const csKey=r.client+'|'+r.sku_code;
     let g=csGroup[csKey];
-    if(!g) g=csGroup[csKey]={latestDate:'',latestStore:0,weeks:new Set()};
-    g.weeks.add(r.year*100+r.week);
+    if(!g) g=csGroup[csKey]={latestDate:'',latestStore:0};
     if(r.date>g.latestDate){ g.latestDate=r.date; g.latestStore=r.store_count; }
     else if(r.date===g.latestDate){ g.latestStore+=r.store_count; }
   }
@@ -2169,11 +2168,11 @@ function renderSecA() {
   const csCount=csSet.size;
 
   // Sales / Store / Week basis: 'average' = store-weeks across the range,
-  // 'latest' = each product's latest-week store count applied across its weeks.
+  // 'latest' = (sum of each product's latest-week store count) × weeks in range.
   const storeMode = (document.getElementById('storeCountMode')||{}).value || 'average';
-  let latestStoreWeeks = 0;
-  for(const key in csGroup){ const g=csGroup[key]; latestStoreWeeks += g.latestStore * g.weeks.size; }
-  const spswDenom = storeMode==='latest' ? latestStoreWeeks : totalStoreWeeks;
+  let latestStoreSum = 0;
+  for(const key in csGroup){ latestStoreSum += csGroup[key].latestStore; }
+  const spswDenom = storeMode==='latest' ? (latestStoreSum * wks) : totalStoreWeeks;
   const spsw = spswDenom ? tQty / spswDenom : 0;
   const spswSub = storeMode==='latest' ? 'Units per store · latest count' : 'Units per store · avg count';
 
@@ -2191,7 +2190,7 @@ function renderSecA() {
     <div class="metric-card"><div class="metric-label">Sales Value</div><div style="display:flex;align-items:stretch;gap:0;margin:8px 0 6px;"><div style="flex:1;border-right:2px solid var(--border2);padding-right:10px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;"><div class="metric-value c-warm sm">${fmtV(tVal)}</div><div style="font-size:12px;font-weight:600;color:var(--warm);">Retail Price</div></div><div style="flex:1;padding-left:10px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;"><div class="metric-value c-accent sm">${fmtV(tCost)}</div><div style="font-size:12px;font-weight:600;color:var(--accent);">Cost Price</div></div></div></div>
     <div class="metric-card" style="cursor:pointer;transition:box-shadow .15s;grid-column:span 2;" onclick="switchTab('inventory')" title="View Inventory details"><div class="metric-label">Stock Overview <span style="font-size:10px;color:var(--accent);">↗</span></div><div style="display:flex;align-items:stretch;gap:0;margin:8px 0 6px;"><div style="flex:0 0 auto;padding-right:14px;border-right:2px solid var(--border2);text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="metric-value c-blue">${fmt(soh+dc+rushOrder)}</div><div style="font-size:12px;font-weight:600;color:#3a6080;">Total Stock</div></div><div style="flex:1;border-right:2px solid var(--border2);padding:0 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="metric-value c-blue sm">${fmt(soh)}</div><div style="font-size:12px;font-weight:600;color:#3a6080;">Stock on Hand</div></div><div style="flex:1;border-right:2px solid var(--border2);padding:0 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="metric-value c-blue sm">${fmt(dc)}</div><div style="font-size:12px;font-weight:600;color:#3a6080;">Stock in DC</div></div><div style="flex:1;padding-left:12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="metric-value c-blue sm">${fmt(rushOrder)}</div><div style="font-size:12px;font-weight:600;color:#3a6080;">Stock in Rush Order</div></div></div></div>
     <div class="metric-card"><div class="metric-label">Avg Units / Week</div><div class="metric-value">${fmtD(avgW,0)}</div><div class="metric-sub">Over ${fmt(wks)} weeks</div></div>
-    <div class="metric-card"><div class="metric-label">Sales / Store / Week</div><div class="metric-value">${fmtD(spsw,2)}</div><div class="metric-sub">${spswSub}</div></div>
+    <div class="metric-card"><div class="metric-label">Sales / Store / Week</div><div class="metric-value">${fmtD(spsw,3)}</div><div class="metric-sub">${spswSub}</div></div>
     <div class="metric-card"><div class="metric-label">Latest Week</div><div class="metric-value c-purple sm">Wk ${latestWk}</div><div class="metric-sub">Year ${latestYr}</div></div>
     <div class="metric-card" style="grid-column:span 2;"><div class="metric-label">SKU Stock Status</div><div style="margin:6px 0 2px;"><div style="display:flex;align-items:baseline;gap:0;"><div style="flex:1;text-align:center;border-right:2px solid var(--border2);padding-right:8px;"><span class="metric-value">${fmt(skuInStock+skuOutOfStock)}</span></div><div style="flex:1;text-align:center;border-right:2px solid var(--border2);padding:0 8px;"><span class="metric-value sm c-accent">${fmt(skuInStock)}</span></div><div style="flex:1;text-align:center;padding-left:8px;"><span class="metric-value sm" style="color:var(--red);">${fmt(skuOutOfStock)}</span></div></div><div style="display:flex;margin-top:4px;"><div style="flex:1;text-align:center;border-right:2px solid var(--border2);padding-right:8px;font-size:11px;font-weight:600;color:var(--text2);">Unique SKUs</div><div style="flex:1;text-align:center;border-right:2px solid var(--border2);padding:0 8px;font-size:11px;font-weight:600;color:var(--accent);">In Stock</div><div style="flex:1;text-align:center;padding-left:8px;font-size:11px;font-weight:600;color:var(--red);">Out of Stock</div></div></div></div>
     <div class="metric-card"><div class="metric-label">Clients / SKU Placements</div><div class="metric-value sm">${fmt(uClients)} / ${fmt(csCount)}</div><div class="metric-sub">Accounts & combos</div></div>
