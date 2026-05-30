@@ -5733,16 +5733,24 @@ function getISOWeek(d) {
     let titles='';
     if(yTitle){ const cy=padT+plotH/2; titles+=`<text x="22" y="${cy.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)" transform="rotate(-90 22 ${cy.toFixed(1)})">${esc(yTitle)}</text>`; }
     if(xTitle){ titles+=`<text x="${(padL+plotW/2).toFixed(1)}" y="${(H-7).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)">${esc(xTitle)}</text>`; }
-    // points + on-point value labels (strided so dense series stays readable)
+    // points + on-point value labels (collision-aware so numbers never overlap)
     const ls=Math.max(1,Math.ceil(n/(opts.maxLabels||30)));
+    const cand=[];
+    for(let i=0;i<n;i++){ if(i%ls===0 || i===n-1) cand.push(i); }
     let dots='', vlabels='';
-    for(let i=0;i<n;i++){
-      if(i%ls!==0 && i!==n-1) continue;
-      const p=pts[i];
-      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.2" fill="${color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+    for(const i of cand){ const p=pts[i]; dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.2" fill="${color}" stroke="var(--surface)" stroke-width="1.6"/>`; }
+    const VFS=11, charW=VFS*0.62, placed=[];
+    const tryLabel=(i)=>{
+      const p=pts[i], txt=fmt(Math.round(p.v));
+      const hw=(txt.length*charW)/2 + 3;          // half text width + gap
       const ly=Math.max(padT-3, p.y-11);
-      vlabels+=`<text x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--text2)">${fmt(Math.round(p.v))}</text>`;
-    }
+      const box={x0:p.x-hw, x1:p.x+hw, y0:ly-VFS, y1:ly+3};
+      for(const b of placed){ if(box.x0<b.x1 && box.x1>b.x0 && box.y0<b.y1 && box.y1>b.y0) return; }
+      placed.push(box);
+      vlabels+=`<text x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="${VFS}" font-weight="600" fill="var(--text2)">${txt}</text>`;
+    };
+    tryLabel(n-1);                                  // always prioritise the latest value
+    for(const i of cand){ if(i!==n-1) tryLabel(i); }
     return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">
       ${grid}
       <path d="${area}" fill="${color}" fill-opacity="0.12" stroke="none"/>
