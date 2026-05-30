@@ -1790,7 +1790,8 @@ async function loadDashboardData() {
         stock_dc: parseInt(row.stock_dc) || 0,
         soh_rushorder: parseInt(row.soh_rushorder) || 0,
         sale_value: saleQty * retail,
-        quarter: row.quarter || ""
+        quarter: row.quarter || "",
+        replenishable: (row.replenishable || "").toString().trim()
       };
     }
 
@@ -2068,6 +2069,7 @@ function resetFilters() {
   repSortCol=null; repSortDir='desc';
   repStockFilter='all';
   repStockColumn='all';
+  repReplenishable='all';
   yoyClientSortCol=null; yoyClientSortDir='desc';
   yoySkuSortCol=null; yoySkuSortDir='desc';
   moveView='soh';
@@ -3029,6 +3031,7 @@ let wocSortCol = null, wocSortDir = 'desc';
 let repSortCol = null, repSortDir = 'desc';
 let repStockFilter = 'all'; // 'all', 'no_stock', 'has_stock'
 let repStockColumn = 'all'; // 'all', 'soh_qty', 'stock_dc', 'soh_rushorder'
+let repReplenishable = 'all'; // 'all', 'yes', 'no'
 let yoyClientSortCol = null, yoyClientSortDir = 'desc';
 let yoySkuSortCol = null, yoySkuSortDir = 'desc';
 
@@ -3841,10 +3844,10 @@ function renderRepPlan() {
     if (!skuMap[k]) skuMap[k] = {
       client: r.client, sku_code: r.sku_code, sku_name: r.sku_name,
       _latestDate: '', soh_qty: 0, stock_dc: 0, rush_order: 0, total_units: 0, store_counts: [],
-      weeks: new Set(), _latestStore: 0
+      weeks: new Set(), _latestStore: 0, replenishable: ''
     };
     const s = skuMap[k];
-    if (r.date > s._latestDate) { s._latestDate = r.date; s.soh_qty = r.soh_qty; s.stock_dc = r.stock_dc; s.rush_order = r.soh_rushorder; s._latestStore = r.store_count; }
+    if (r.date > s._latestDate) { s._latestDate = r.date; s.soh_qty = r.soh_qty; s.stock_dc = r.stock_dc; s.rush_order = r.soh_rushorder; s._latestStore = r.store_count; s.replenishable = r.replenishable; }
     s.total_units += r.sale_qty;
     s.store_counts.push(r.store_count);
     s.weeks.add(r.date);
@@ -3916,9 +3919,14 @@ function renderRepPlan() {
       client: s.client, sku_code: s.sku_code, sku_name: s.sku_name,
       soh_qty: s.soh_qty, stock_dc: s.stock_dc, rush_order: s.rush_order,
       totalStock, avgStores, avgWk, unitsPerStore, sellThru, woc,
-      stockLastTill, repArrival, dispatch, prodStart, poReceive, daysFromNow
+      stockLastTill, repArrival, dispatch, prodStart, poReceive, daysFromNow,
+      replenishable: s.replenishable
     };
   });
+
+  // Apply Replenishable filter (narrows the product set before all stock-based counts)
+  if (repReplenishable === 'yes') rows = rows.filter(r => (r.replenishable||'').toLowerCase() === 'yes');
+  else if (repReplenishable === 'no') rows = rows.filter(r => (r.replenishable||'').toLowerCase() === 'no');
 
   // Sort: most urgent first (by poReceive date ascending)
   rows.sort((a,b) => a.poReceive - b.poReceive);
@@ -4067,6 +4075,14 @@ function renderRepPlan() {
       </div>
     </div>
     <div class="move-toggle" style="margin-bottom:14px;align-items:center;flex-wrap:wrap;row-gap:8px;">
+      <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-right:6px;">Replenishable</span>
+      <select class="filter-select" id="repReplenishable" style="min-width:120px;">
+        <option value="all"${repReplenishable==='all'?' selected':''}>All</option>
+        <option value="yes"${repReplenishable==='yes'?' selected':''}>Yes</option>
+        <option value="no"${repReplenishable==='no'?' selected':''}>No</option>
+      </select>
+    </div>
+    <div class="move-toggle" style="margin-bottom:14px;align-items:center;flex-wrap:wrap;row-gap:8px;">
       <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-right:6px;">Stock Filter</span>
       <button class="${activeFilter('all')}" data-repfilter="all">All (${rows.length})</button>
       <button class="${activeFilter('no_stock')}" data-repfilter="no_stock">No Stock (${rows.filter(r=>r.totalStock===0).length})</button>
@@ -4128,6 +4144,16 @@ function renderRepPlan() {
   if(repStockColumnSel){
     repStockColumnSel.addEventListener('change',()=>{
       repStockColumn=repStockColumnSel.value;
+      renderRepPlan();
+    });
+  }
+
+  // Bind replenishable filter
+  const repReplenishableSel = el.querySelector('#repReplenishable');
+  if(repReplenishableSel){
+    repReplenishableSel.addEventListener('change',()=>{
+      repReplenishable=repReplenishableSel.value;
+      repStockFilter='all';
       renderRepPlan();
     });
   }
