@@ -1878,7 +1878,7 @@ function setup() {
   document.addEventListener('click',e=>{ if(!trigger.contains(e.target)&&!panel.contains(e.target)){ panel.classList.remove('open'); trigger.classList.remove('open'); } });
   document.getElementById('skuSearch').addEventListener('input',e=>{ const q=e.target.value.toLowerCase(); renderSKUList(getCurrentSKUs().filter(s=>s.code.toLowerCase().includes(q)||s.name.toLowerCase().includes(q))); });
   document.getElementById('skuSelectAll').addEventListener('click',()=>{ getVisibleSKUs().forEach(s=>selectedSKUs.add(s.code)); renderSKUList(getVisibleSKUs()); updateSKUTrigger(); applyFilters(); });
-  document.getElementById('skuClearAll').addEventListener('click',()=>{ getVisibleSKUs().forEach(s=>selectedSKUs.delete(s.code)); renderSKUList(getVisibleSKUs()); updateSKUTrigger(); applyFilters(); });
+  document.getElementById('skuClearAll').addEventListener('click',()=>{ getVisibleSKUs().forEach(s=>selectedSKUs.delete(s.code)); document.getElementById('skuSearch').value=''; renderSKUList(getVisibleSKUs()); updateSKUTrigger(); applyFilters(); });
 
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -2060,6 +2060,7 @@ function resetFilters() {
   document.getElementById('dateTo').value=dates[dates.length-1];
   document.getElementById('clientFilter').value='';
   document.getElementById('storeCountMode').value='average';
+  const skuSearchBox=document.getElementById('skuSearch'); if(skuSearchBox) skuSearchBox.value='';
   selectedSKUs.clear();
   secHSortCol=null; secHSortDir='desc';
   stSortCol=null; stSortDir='desc';
