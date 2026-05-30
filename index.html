@@ -875,9 +875,9 @@
   .tab-btn-guide.active{color:var(--accent);border-bottom-color:var(--accent);}
   .tab-btn-guide:hover{color:var(--accent);}
 
-  /* On the Guide tab there is no filter bar, so the tab bar sticks directly under the header */
-  body.guide-active .filter-bar{display:none;}
-  body.guide-active .tab-bar{top:60px;}
+  /* Tabs with no global filter bar (Guide, Forecast): tab bar sticks directly under the header */
+  body.no-filterbar .filter-bar{display:none;}
+  body.no-filterbar .tab-bar{top:60px;}
 
   .gd-wrap{max-width:1180px;margin:0 auto;padding:8px 2px 70px;}
   /* hero */
@@ -2449,7 +2449,7 @@ function renderAll() {
 }
 
 function renderActiveTab() {
-  document.body.classList.toggle('guide-active', activeTab==='guide');
+  document.body.classList.toggle('no-filterbar', activeTab==='guide' || activeTab==='forecast');
   if (!tabDirty[activeTab]) return;
   tabDirty[activeTab] = false;
 
