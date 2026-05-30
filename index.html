@@ -3443,6 +3443,8 @@ function renderSecSellThru() {
   const to = document.getElementById('dateTo').value;
   const curSKUs = getCurrentSKUs();
   const skuActive = selectedSKUs.size > 0 && selectedSKUs.size < curSKUs.length;
+  const storeMode = (document.getElementById('storeCountMode')||{}).value || 'average';
+  const storeHead = storeMode==='latest' ? 'Latest' : 'Avg';
 
   // Base: client + SKU filtered (all dates for weekly columns)
   let base = client ? RAW.filter(r => r.client === client) : [...RAW];
@@ -3466,11 +3468,13 @@ function renderSecSellThru() {
   for (let i = 0, len = dateScoped.length; i < len; i++) {
     const r = dateScoped[i];
     const k = r.client + '||' + r.sku_code;
-    if (!dsMap[k]) dsMap[k] = { qty: 0, wks: new Set(), store_counts: [] };
+    if (!dsMap[k]) dsMap[k] = { qty: 0, wks: new Set(), store_counts: [], latestDate:'', latestStore:0 };
     const d = dsMap[k];
     d.qty += r.sale_qty;
     d.wks.add(r.date);
     d.store_counts.push(r.store_count);
+    if (r.date > d.latestDate) { d.latestDate = r.date; d.latestStore = r.store_count; }
+    else if (r.date === d.latestDate) { d.latestStore += r.store_count; }
 
     // Pre-aggregate qty per date for wksWithSales lookup
     const dk = k + '||' + r.date;
@@ -3484,11 +3488,12 @@ function renderSecSellThru() {
     if (!skuMap[k]) skuMap[k] = {
       client: r.client, sku_code: r.sku_code, sku_name: r.sku_name,
       _latestDate: '', _firstDate: '', soh_qty: 0, stock_dc: 0, rush_order: 0,
-      store_counts: [], total_units: 0, sales_value: 0, weeks: {}, retail_price: 0
+      store_counts: [], total_units: 0, sales_value: 0, weeks: {}, retail_price: 0, _latestStore: 0
     };
     const s = skuMap[k];
     if (r.date > s._latestDate) {
       s._latestDate = r.date; s.soh_qty = r.soh_qty; s.stock_dc = r.stock_dc; s.rush_order = r.soh_rushorder;
+      s._latestStore = r.store_count;
       if (r.retail > 0) s.retail_price = r.retail;
     }
     if (r.sale_qty > 0 && (s._firstDate === '' || r.date < s._firstDate)) {
@@ -3516,12 +3521,13 @@ function renderSecSellThru() {
       if (wksWithSales === 0) wksWithSales = 1;
       s.avg_wk = ds.qty / wksWithSales;
       const avgStores = ds.store_counts.length ? ds.store_counts.reduce((a,b) => a+b, 0) / ds.store_counts.length : 0;
-      s.avg_stores = avgStores;
-      s.units_per_store = avgStores > 0 ? s.avg_wk / avgStores : 0;
+      const stores = storeMode==='latest' ? (ds.latestStore || 0) : avgStores;
+      s.avg_stores = stores;
+      s.units_per_store = stores > 0 ? s.avg_wk / stores : 0;
     } else {
       s.avg_wk = 0;
       const avgStores = s.store_counts.length ? s.store_counts.reduce((a,b) => a+b, 0) / s.store_counts.length : 0;
-      s.avg_stores = avgStores;
+      s.avg_stores = storeMode==='latest' ? (s._latestStore || 0) : avgStores;
       s.units_per_store = 0;
     }
     s.total_stock = s.soh_qty + s.stock_dc + s.rush_order;
@@ -3594,7 +3600,7 @@ function renderSecSellThru() {
     ${stSortTh('dc','DC Stock')}
     ${stSortTh('rush','Rush Order')}
     ${stSortTh('total_stock','Total Stock')}
-    ${stSortTh('stores','Stores<br><span style="font-weight:400;font-size:9px;">(Avg)</span>')}
+    ${stSortTh('stores','Stores<br><span style="font-weight:400;font-size:9px;">('+storeHead+')</span>')}
     ${stSortTh('retail','Retail<br><span style="font-weight:400;font-size:9px;">Price</span>')}
     ${stSortTh('first_sale','1st Sales<br><span style="font-weight:400;font-size:9px;">Date</span>')}
     ${stSortTh('total_units','Total Units')}
@@ -3785,6 +3791,8 @@ function renderRepPlan() {
   const to = document.getElementById('dateTo').value;
   const curSKUs = getCurrentSKUs();
   const skuActive = selectedSKUs.size > 0 && selectedSKUs.size < curSKUs.length;
+  const storeMode = (document.getElementById('storeCountMode')||{}).value || 'average';
+  const storeHead = storeMode==='latest' ? 'Latest' : 'Avg';
 
   // Base: client + SKU filtered (all dates for stock)
   let base = client ? RAW.filter(r => r.client === client) : [...RAW];
@@ -3803,11 +3811,13 @@ function renderRepPlan() {
   for (let i = 0, len = dateScoped.length; i < len; i++) {
     const r = dateScoped[i];
     const k = r.client + '||' + r.sku_code;
-    if (!dsMap[k]) dsMap[k] = { qty: 0, wks: new Set(), store_counts: [] };
+    if (!dsMap[k]) dsMap[k] = { qty: 0, wks: new Set(), store_counts: [], latestDate:'', latestStore:0 };
     const d = dsMap[k];
     d.qty += r.sale_qty;
     d.wks.add(r.date);
     d.store_counts.push(r.store_count);
+    if (r.date > d.latestDate) { d.latestDate = r.date; d.latestStore = r.store_count; }
+    else if (r.date === d.latestDate) { d.latestStore += r.store_count; }
     const dk = k + '||' + r.date;
     repDsQtyByDate[dk] = (repDsQtyByDate[dk] || 0) + r.sale_qty;
   }
@@ -3820,10 +3830,10 @@ function renderRepPlan() {
     if (!skuMap[k]) skuMap[k] = {
       client: r.client, sku_code: r.sku_code, sku_name: r.sku_name,
       _latestDate: '', soh_qty: 0, stock_dc: 0, rush_order: 0, total_units: 0, store_counts: [],
-      weeks: new Set()
+      weeks: new Set(), _latestStore: 0
     };
     const s = skuMap[k];
-    if (r.date > s._latestDate) { s._latestDate = r.date; s.soh_qty = r.soh_qty; s.stock_dc = r.stock_dc; s.rush_order = r.soh_rushorder; }
+    if (r.date > s._latestDate) { s._latestDate = r.date; s.soh_qty = r.soh_qty; s.stock_dc = r.stock_dc; s.rush_order = r.soh_rushorder; s._latestStore = r.store_count; }
     s.total_units += r.sale_qty;
     s.store_counts.push(r.store_count);
     s.weeks.add(r.date);
@@ -3865,9 +3875,11 @@ function renderRepPlan() {
       }
       if (wksWithSales === 0) wksWithSales = 1;
       avgWk = ds.qty / wksWithSales;
-      avgStores = ds.store_counts.length ? ds.store_counts.reduce((a,b)=>a+b,0)/ds.store_counts.length : 0;
+      const avgSt = ds.store_counts.length ? ds.store_counts.reduce((a,b)=>a+b,0)/ds.store_counts.length : 0;
+      avgStores = storeMode==='latest' ? (ds.latestStore || 0) : avgSt;
     } else {
-      avgStores = s.store_counts.length ? s.store_counts.reduce((a,b)=>a+b,0)/s.store_counts.length : 0;
+      const avgSt = s.store_counts.length ? s.store_counts.reduce((a,b)=>a+b,0)/s.store_counts.length : 0;
+      avgStores = storeMode==='latest' ? (s._latestStore || 0) : avgSt;
     }
     const unitsPerStore = avgStores > 0 ? avgWk / avgStores : 0;
 
@@ -4063,7 +4075,7 @@ function renderRepPlan() {
           ${repSortTh('client','Client')}
           ${repSortTh('sku','SKU Details')}
           ${repSortTh('total_stock','Total Stock','tn')}
-          ${repSortTh('stores','Stores<br><span style="font-weight:400;font-size:10px;">(Avg)</span>','tn')}
+          ${repSortTh('stores','Stores<br><span style="font-weight:400;font-size:10px;">('+storeHead+')</span>','tn')}
           ${repSortTh('avg_wk','Avg/Wk','tn')}
           ${repSortTh('ups','Units/<br>Stores','tn')}
           ${repSortTh('sell_thru','Sell-Thru %','tn')}
