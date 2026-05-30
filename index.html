@@ -121,9 +121,10 @@
   .pop-select:focus{border-color:var(--accent);}
   .pop-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .pop-period{font-size:11px;color:var(--text3);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pop-qtyrow{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .pop-qty{font-size:22px;font-weight:600;color:var(--text);}
   .pop-val{font-size:13px;color:var(--text2);margin-top:2px;}
-  .pop-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600;margin-top:8px;}
+  .pop-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600;flex:0 0 auto;white-space:nowrap;}
   .up{background:var(--green-light);color:var(--green);} .dn{background:var(--red-light);color:var(--red);} .na{background:var(--bg);color:var(--text3);}
   .pop-divider{border-left:1px solid var(--border);}
 
@@ -2326,9 +2327,11 @@ function renderPOP(cardId, mode, selVal, data) {
   body.innerHTML=`
     <div>
       <div class="pop-period">${curLabel}</div>
-      <div class="pop-qty">${fmt(cq)}</div>
+      <div class="pop-qtyrow">
+        <div class="pop-qty">${fmt(cq)}</div>
+        <div class="pop-badge ${dq!==null?chgClass(dq):'na'}">${dq!==null?chgArrow(dq)+' '+Math.abs(dq*100).toFixed(1)+'%':'N/A'}</div>
+      </div>
       <div class="pop-val">${fmtV(cv)}</div>
-      <div class="pop-badge ${dq!==null?chgClass(dq):'na'}">${dq!==null?chgArrow(dq)+' '+Math.abs(dq*100).toFixed(1)+'%':'N/A'}</div>
     </div>
     <div class="pop-divider">
       <div style="padding-left:14px;">
@@ -2368,9 +2371,11 @@ function renderYTD(cardId, data, curYear) {
   body.innerHTML=`
     <div>
       <div class="pop-period">CYTD ${curYear} (Wk 1–${latestWk})</div>
-      <div class="pop-qty">${fmt(cq)}</div>
+      <div class="pop-qtyrow">
+        <div class="pop-qty">${fmt(cq)}</div>
+        <div class="pop-badge ${dq!==null?chgClass(dq):'na'}">${dq!==null?chgArrow(dq)+' '+Math.abs(dq*100).toFixed(1)+'%':'N/A'}</div>
+      </div>
       <div class="pop-val">${fmtV(cv)}</div>
-      <div class="pop-badge ${dq!==null?chgClass(dq):'na'}">${dq!==null?chgArrow(dq)+' '+Math.abs(dq*100).toFixed(1)+'%':'N/A'}</div>
     </div>
     <div class="pop-divider">
       <div style="padding-left:14px;">
