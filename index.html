@@ -5704,10 +5704,10 @@ function getISOWeek(d) {
     const n = vals.length;
     if(n < 2) return `<div class="ai-note">Not enough data to chart.</div>`;
     const yTitle = opts.yTitle || '', xTitle = opts.xTitle || '';
-    const W=1400, H=340;
-    const padL = yTitle ? 128 : 96;
-    const padR=30, padT=44;
-    const padB = (labels?42:22) + (xTitle?30:0);
+    const W=1400, H=330;
+    const padL = yTitle ? 110 : 86;
+    const padR=28, padT=40;
+    const padB = (labels?36:20) + (xTitle?24:0);
     const plotW=W-padL-padR, plotH=H-padT-padB;
     const mn=Math.min(...vals), mx=Math.max(...vals), rng=(mx-mn)||1;
     const X=i=> padL + (i/(n-1))*plotW;
@@ -5718,30 +5718,30 @@ function getISOWeek(d) {
     for(let i=0;i<=GL;i++){
       const val=mn+(i/GL)*rng, yy=Y(val);
       grid+=`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`;
-      grid+=`<text x="${(padL-14).toFixed(1)}" y="${(yy+5.5).toFixed(1)}" text-anchor="end" font-size="17" fill="var(--text2)">${fmt(Math.round(val))}</text>`;
+      grid+=`<text x="${(padL-12).toFixed(1)}" y="${(yy+4.4).toFixed(1)}" text-anchor="end" font-size="13" fill="var(--text2)">${fmt(Math.round(val))}</text>`;
     }
     const sp=smoothPath(pts);
     const area=`${sp} L ${pts[n-1].x.toFixed(1)} ${Y(mn).toFixed(1)} L ${pts[0].x.toFixed(1)} ${Y(mn).toFixed(1)} Z`;
     // x-axis labels (strided)
     let xl='';
-    const xLabelY = (H - padB) + 26;
+    const xLabelY = (H - padB) + 22;
     if(labels && labels.length===n){
       const xs=Math.max(1,Math.ceil(n/(opts.maxXLabels||12)));
-      for(let i=0;i<n;i+=xs){ xl+=`<text x="${X(i).toFixed(1)}" y="${xLabelY.toFixed(1)}" text-anchor="middle" font-size="17" fill="var(--text2)">${esc(labels[i])}</text>`; }
+      for(let i=0;i<n;i+=xs){ xl+=`<text x="${X(i).toFixed(1)}" y="${xLabelY.toFixed(1)}" text-anchor="middle" font-size="13" fill="var(--text2)">${esc(labels[i])}</text>`; }
     }
-    // axis titles (kept large & dark so they read after the chart scales down)
+    // axis titles (dark so they read after the chart scales down)
     let titles='';
-    if(yTitle){ const cy=padT+plotH/2; titles+=`<text x="24" y="${cy.toFixed(1)}" text-anchor="middle" font-size="20" font-weight="700" fill="var(--text)" transform="rotate(-90 24 ${cy.toFixed(1)})">${esc(yTitle)}</text>`; }
-    if(xTitle){ titles+=`<text x="${(padL+plotW/2).toFixed(1)}" y="${(H-8).toFixed(1)}" text-anchor="middle" font-size="20" font-weight="700" fill="var(--text)">${esc(xTitle)}</text>`; }
+    if(yTitle){ const cy=padT+plotH/2; titles+=`<text x="22" y="${cy.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)" transform="rotate(-90 22 ${cy.toFixed(1)})">${esc(yTitle)}</text>`; }
+    if(xTitle){ titles+=`<text x="${(padL+plotW/2).toFixed(1)}" y="${(H-7).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)">${esc(xTitle)}</text>`; }
     // points + on-point value labels (strided so dense series stays readable)
     const ls=Math.max(1,Math.ceil(n/(opts.maxLabels||30)));
     let dots='', vlabels='';
     for(let i=0;i<n;i++){
       if(i%ls!==0 && i!==n-1) continue;
       const p=pts[i];
-      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.6" fill="${color}" stroke="var(--surface)" stroke-width="1.8"/>`;
-      const ly=Math.max(padT-4, p.y-13);
-      vlabels+=`<text x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="13" font-weight="600" fill="var(--text2)">${fmt(Math.round(p.v))}</text>`;
+      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.2" fill="${color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+      const ly=Math.max(padT-3, p.y-11);
+      vlabels+=`<text x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--text2)">${fmt(Math.round(p.v))}</text>`;
     }
     return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">
       ${grid}
