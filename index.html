@@ -793,6 +793,15 @@
   .ai-driver-bar{height:6px;border-radius:3px;background:var(--bg);margin-top:6px;overflow:hidden;}
   .ai-driver-fill{height:100%;border-radius:3px;}
   .ai-driver-val{flex:0 0 auto;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:60px;margin-top:1px;}
+  .ai-acct{display:flex;flex-direction:column;gap:9px;}
+  .ai-acct-row{display:grid;grid-template-columns:130px 1fr 130px 46px;align-items:center;gap:14px;}
+  .ai-acct-name{font-size:13px;font-weight:600;color:var(--text);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ai-acct-track{height:22px;background:var(--bg);border-radius:5px;overflow:hidden;}
+  .ai-acct-bar{height:100%;border-radius:5px;display:flex;align-items:center;justify-content:flex-end;min-width:34px;padding:0 8px;box-sizing:border-box;}
+  .ai-acct-pct{font-size:11px;font-weight:700;color:#fff;}
+  .ai-acct-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);text-align:right;}
+  .ai-acct-cum{font-size:12px;font-weight:600;color:var(--text3);text-align:right;}
+  @media(max-width:640px){.ai-acct-row{grid-template-columns:84px 1fr 92px 38px;gap:8px;}}
 
   /* ISSUE / OPP CARDS */
   .ai-issue{border:1px solid var(--border);border-radius:var(--r);padding:15px 16px;background:var(--surface);box-shadow:var(--shadow);position:relative;border-left-width:4px;transition:transform .15s;}
@@ -5443,6 +5452,7 @@ function getISOWeek(d) {
     const skuRecent = {}, skuPrior = {};// per-sku momentum split
     const cliQty = {}, cliVal = {}, cliRecent = {}, cliPrior = {}, cliSkus = {};
     const cliLatestDate = {};
+    const monthQty = {};                // month (YYYY-MM) -> qty
     let minWA=Infinity, maxWA=-Infinity;
 
     for(let i=0;i<rows.length;i++){
@@ -5464,7 +5474,11 @@ function getISOWeek(d) {
       cliQty[r.client]=(cliQty[r.client]||0)+q;
       cliVal[r.client]=(cliVal[r.client]||0)+(r.sale_value||0);
       if(!cliLatestDate[r.client]||r.date>cliLatestDate[r.client]) cliLatestDate[r.client]=r.date;
+      if(r.month) monthQty[r.month]=(monthQty[r.month]||0)+q;
     }
+
+    // monthly trajectory series (chronological)
+    M.monthly = Object.keys(monthQty).sort().map(m=>({month:m, qty:monthQty[m]}));
 
     // chronological week series (oldest → newest). weeks_ago: larger = older.
     const waKeys = Object.keys(weekAgo).map(Number).sort((a,b)=>b-a); // old→new
@@ -5644,6 +5658,63 @@ function getISOWeek(d) {
     return `<span class="ai-chip ${cls}">${ar} ${sPct(pct)}</span>`;
   }
   function bar(pct,color){ return `<div class="ai-driver-bar"><div class="ai-driver-fill" style="width:${clamp(pct,2,100)}%;background:${color}"></div></div>`; }
+
+  // smooth (Catmull-Rom → cubic bezier) path through points
+  function smoothPath(pts){
+    if(pts.length<2) return '';
+    let d=`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+    for(let i=0;i<pts.length-1;i++){
+      const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+      const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6;
+      const c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+      d+=` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
+    return d;
+  }
+  // full line+area chart with axis, gridlines and on-point value labels
+  function trendChart(vals, labels, opts){
+    opts = opts || {};
+    const color = opts.color || C.good;
+    const n = vals.length;
+    if(n < 2) return `<div class="ai-note">Not enough data to chart.</div>`;
+    const W=1400, H=320, padL=82, padR=28, padT=36, padB=labels?34:18;
+    const plotW=W-padL-padR, plotH=H-padT-padB;
+    const mn=Math.min(...vals), mx=Math.max(...vals), rng=(mx-mn)||1;
+    const X=i=> padL + (i/(n-1))*plotW;
+    const Y=v=> padT + plotH - ((v-mn)/rng)*plotH;
+    const pts=vals.map((v,i)=>({x:X(i),y:Y(v),v}));
+    // gridlines + y labels (min→max in 5 steps, like the reference)
+    const GL=5; let grid='';
+    for(let i=0;i<=GL;i++){
+      const val=mn+(i/GL)*rng, yy=Y(val);
+      grid+=`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`;
+      grid+=`<text x="${(padL-12).toFixed(1)}" y="${(yy+3.6).toFixed(1)}" text-anchor="end" font-size="11.5" fill="var(--text3)">${fmt(Math.round(val))}</text>`;
+    }
+    const sp=smoothPath(pts);
+    const area=`${sp} L ${pts[n-1].x.toFixed(1)} ${Y(mn).toFixed(1)} L ${pts[0].x.toFixed(1)} ${Y(mn).toFixed(1)} Z`;
+    // x-axis labels (strided)
+    let xl='';
+    if(labels && labels.length===n){
+      const xs=Math.max(1,Math.ceil(n/(opts.maxXLabels||12)));
+      for(let i=0;i<n;i+=xs){ xl+=`<text x="${X(i).toFixed(1)}" y="${(H-10).toFixed(1)}" text-anchor="middle" font-size="11.5" fill="var(--text3)">${esc(labels[i])}</text>`; }
+    }
+    // points + on-point value labels (strided so dense series stays readable)
+    const ls=Math.max(1,Math.ceil(n/(opts.maxLabels||30)));
+    let dots='', vlabels='';
+    for(let i=0;i<n;i++){
+      if(i%ls!==0 && i!==n-1) continue;
+      const p=pts[i];
+      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.2" fill="${color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+      const ly=Math.max(padT-2, p.y-9);
+      vlabels+=`<text x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text2)">${fmt(Math.round(p.v))}</text>`;
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">
+      ${grid}
+      <path d="${area}" fill="${color}" fill-opacity="0.12" stroke="none"/>
+      <path d="${sp}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}${vlabels}${xl}
+    </svg>`;
+  }
 
   // ═══════════════════════ NARRATIVE GENERATORS ════════════════════════
   function execNarrative(M){
@@ -6100,15 +6171,40 @@ function getISOWeek(d) {
       <div class="ai-pareto-legend">${segs.slice(0,6).map(s=>`<span class="ai-pareto-leg"><span class="sw" style="background:${s.c}"></span>${s.name} ${(s.share*100).toFixed(0)}%</span>`).join('')}</div>
       <div class="ai-note">Top 5 SKUs carry ${(k.top5share*100).toFixed(0)}% of volume.</div></div>`;
 
-    // client contribution + momentum heat
-    const cli=M.clients.slice(0,8);
-    const maxQ=cli.length?cli[0].qty:1;
-    const cliPanel=`<div class="ai-panel"><div class="ai-panel-h">Account contribution & momentum</div>
-      ${cli.map((c,i)=>`<div class="ai-driver"><span class="ai-driver-rank">${i+1}</span>
-        <div class="ai-driver-info"><div class="ai-driver-name">${esc(c.client)}</div>
-        <div class="ai-driver-why">${(c.share*100).toFixed(0)}% of sales · ${c.skus} SKUs · ${chip(c.mom)}</div>
-        ${bar((c.qty/maxQ)*100, c.mom>=0?C.good:C.crit)}</div>
-        <div class="ai-driver-val">${fmt(c.qty)}</div></div>`).join('')}</div>`;
+    // client contribution + momentum — full-width horizontal bars (share of value + cumulative)
+    const cliByVal=[...M.clients].sort((a,b)=>(b.val||0)-(a.val||0));
+    const totVal=cliByVal.reduce((s,c)=>s+(c.val||0),0)||1;
+    let cumV=0;
+    const acctRows=cliByVal.map(c=>{
+      const sh=(c.val||0)/totVal; cumV+=sh;
+      const col=c.mom>=0?C.good:C.crit;
+      return `<div class="ai-acct-row">
+        <span class="ai-acct-name" title="${esc(c.client)}">${esc(c.client)}</span>
+        <div class="ai-acct-track"><div class="ai-acct-bar" style="width:${(sh*100).toFixed(2)}%;background:${col}"><span class="ai-acct-pct">${(sh*100).toFixed(0)}%</span></div></div>
+        <span class="ai-acct-val">$${fmt(Math.round(c.val||0))}</span>
+        <span class="ai-acct-cum">${(cumV*100).toFixed(0)}%</span></div>`;
+    }).join('');
+    const acctPanel=`<div class="ai-panel"><div class="ai-panel-h">Account contribution &amp; momentum</div>
+      <div class="ai-acct">${acctRows}</div>
+      <div class="ai-note">Share of sales value by account with cumulative coverage on the right. Bar colour reflects momentum (green = improving, red = declining).</div></div>`;
+
+    // monthly sales trajectory — full-width line/area chart
+    const mon=M.monthly||[];
+    let trajPanel;
+    if(mon.length>=2){
+      const mVals=mon.map(m=>m.qty), mLabels=mon.map(m=>m.month.length>=7?m.month.slice(2):m.month);
+      const w=Math.min(3,Math.floor(mon.length/2))||1;
+      const earlyAvg=mVals.slice(0,w).reduce((s,v)=>s+v,0)/w;
+      const recentAvg=mVals.slice(-w).reduce((s,v)=>s+v,0)/w;
+      const growth=earlyAvg>0?(recentAvg-earlyAvg)/earlyAvg:(recentAvg>0?1:0);
+      const dirWord=growth>=0?'grown':'declined';
+      const trendCol=growth>=0?C.good:C.crit;
+      trajPanel=`<div class="ai-panel"><div class="ai-panel-h">Monthly sales trajectory <span class="ai-badge neutral">${mon.length} periods</span></div>
+        ${trendChart(mVals, mLabels, {color:trendCol, maxLabels:40, maxXLabels:10})}
+        <div class="ai-note">📈 <b>Trajectory:</b> Sales have ${dirWord} ${Math.abs(growth*100).toFixed(0)}% comparing the most recent ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(recentAvg))}/mo) to the earliest ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(earlyAvg))}/mo) in the selected period.</div></div>`;
+    } else {
+      trajPanel=`<div class="ai-panel"><div class="ai-panel-h">Monthly sales trajectory</div><div class="ai-note">Not enough monthly history in the selected period to plot a trajectory.</div></div>`;
+    }
 
     // inventory band scorecard
     const bands=[
@@ -6123,13 +6219,15 @@ function getISOWeek(d) {
       <div class="ai-pareto-legend">${bands.map(b=>`<span class="ai-pareto-leg"><span class="sw" style="background:${b.c}"></span>${b.lbl}: ${b.n}</span>`).join('')}</div>
       <div class="ai-note">${totB} stocked client-SKU lines classified by weeks of cover.</div></div>`;
 
-    // weekly momentum ribbon (sparkline big)
+    // weekly sales pulse — full-width line/area chart with on-point numbers
     const ribbon=`<div class="ai-panel"><div class="ai-panel-h">Weekly sales pulse <span class="ai-badge ${k.momDir==='improving'?'good':k.momDir==='declining'?'crit':'neutral'}">${k.momDir}</span></div>
-      ${spark(M.series, k.momDir==='declining'?C.crit:C.good, 600, 60)}
+      ${trendChart(M.series, null, {color:k.momDir==='declining'?C.crit:C.good, maxLabels:24})}
       <div class="ai-note">${M.nWeeks} weeks, oldest → newest. Recent half avg ${fmt(Math.round(k.recentAvg))} vs prior half ${fmt(Math.round(k.priorAvg))} units/week.</div></div>`;
 
-    return `<div class="ai-grid-2" style="margin-bottom:14px">${pareto}${cliPanel}</div>
-            <div class="ai-grid-2">${invPanel}${ribbon}</div>`;
+    return `<div class="ai-grid-2" style="margin-bottom:14px">${pareto}${invPanel}</div>
+            <div style="margin-bottom:14px">${acctPanel}</div>
+            <div style="margin-bottom:14px">${trajPanel}</div>
+            <div>${ribbon}</div>`;
   }
 
   // ═══════════════════════ PUBLIC ENTRY ════════════════════════════════
