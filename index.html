@@ -5532,6 +5532,8 @@ function getISOWeek(d) {
       return {client:c, qty:cliQty[c], val:cliVal[c], skus:cliSkus[c].size, stock, rec, pri, mom, share:tQty?cliQty[c]/tQty:0};
     }).sort((a,b)=>b.qty-a.qty);
     M.clients = cliArr; M.nClient = cliArr.length;
+    // account contribution independent of the client filter (date + SKU filters only)
+    M.clientsAll = cliRollup(typeof dateSkuFiltered!=='undefined' && dateSkuFiltered.length ? dateSkuFiltered : rows);
 
     // ── client+sku WOC classification ───────────────────────────────────────
     const csArr = Object.values(cs).map(m=>{
@@ -5664,6 +5666,25 @@ function getISOWeek(d) {
   }
   function bar(pct,color){ return `<div class="ai-driver-bar"><div class="ai-driver-fill" style="width:${clamp(pct,2,100)}%;background:${color}"></div></div>`; }
 
+  // client roll-up (qty, value, #SKUs, momentum) from an arbitrary row set
+  function cliRollup(src){
+    if(!src || !src.length) return [];
+    const q={}, v={}, sk={}, rec={}, pri={};
+    let mnW=Infinity, mxW=-Infinity;
+    for(let i=0;i<src.length;i++){ const wa=src[i].weeks_ago||0; if(wa<mnW)mnW=wa; if(wa>mxW)mxW=wa; }
+    const mid=(mnW+mxW)/2;
+    for(let i=0;i<src.length;i++){
+      const r=src[i], c=r.client, qq=r.sale_qty||0;
+      q[c]=(q[c]||0)+qq; v[c]=(v[c]||0)+(r.sale_value||0);
+      (sk[c]=sk[c]||new Set()).add(r.sku_code);
+      if((r.weeks_ago||0)<=mid) rec[c]=(rec[c]||0)+qq; else pri[c]=(pri[c]||0)+qq;
+    }
+    return Object.keys(q).map(c=>{
+      const rc=rec[c]||0, pr=pri[c]||0, mom=pr>0?(rc-pr)/pr:(rc>0?1:0);
+      return {client:c, qty:q[c], val:v[c], skus:sk[c].size, mom};
+    }).sort((a,b)=>b.val-a.val);
+  }
+
   // smooth (Catmull-Rom → cubic bezier) path through points
   function smoothPath(pts){
     if(pts.length<2) return '';
@@ -5683,10 +5704,10 @@ function getISOWeek(d) {
     const n = vals.length;
     if(n < 2) return `<div class="ai-note">Not enough data to chart.</div>`;
     const yTitle = opts.yTitle || '', xTitle = opts.xTitle || '';
-    const W=1400, H=320;
-    const padL = yTitle ? 100 : 82;
-    const padR=28, padT=36;
-    const padB = (labels?34:18) + (xTitle?20:0);
+    const W=1400, H=340;
+    const padL = yTitle ? 128 : 96;
+    const padR=30, padT=44;
+    const padB = (labels?42:22) + (xTitle?30:0);
     const plotW=W-padL-padR, plotH=H-padT-padB;
     const mn=Math.min(...vals), mx=Math.max(...vals), rng=(mx-mn)||1;
     const X=i=> padL + (i/(n-1))*plotW;
@@ -5697,30 +5718,30 @@ function getISOWeek(d) {
     for(let i=0;i<=GL;i++){
       const val=mn+(i/GL)*rng, yy=Y(val);
       grid+=`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`;
-      grid+=`<text x="${(padL-12).toFixed(1)}" y="${(yy+3.6).toFixed(1)}" text-anchor="end" font-size="11.5" fill="var(--text3)">${fmt(Math.round(val))}</text>`;
+      grid+=`<text x="${(padL-14).toFixed(1)}" y="${(yy+5.5).toFixed(1)}" text-anchor="end" font-size="17" fill="var(--text2)">${fmt(Math.round(val))}</text>`;
     }
     const sp=smoothPath(pts);
     const area=`${sp} L ${pts[n-1].x.toFixed(1)} ${Y(mn).toFixed(1)} L ${pts[0].x.toFixed(1)} ${Y(mn).toFixed(1)} Z`;
     // x-axis labels (strided)
     let xl='';
-    const xLabelY = H - padB + (labels?20:14);
+    const xLabelY = (H - padB) + 26;
     if(labels && labels.length===n){
       const xs=Math.max(1,Math.ceil(n/(opts.maxXLabels||12)));
-      for(let i=0;i<n;i+=xs){ xl+=`<text x="${X(i).toFixed(1)}" y="${xLabelY.toFixed(1)}" text-anchor="middle" font-size="11.5" fill="var(--text3)">${esc(labels[i])}</text>`; }
+      for(let i=0;i<n;i+=xs){ xl+=`<text x="${X(i).toFixed(1)}" y="${xLabelY.toFixed(1)}" text-anchor="middle" font-size="17" fill="var(--text2)">${esc(labels[i])}</text>`; }
     }
-    // axis titles
+    // axis titles (kept large & dark so they read after the chart scales down)
     let titles='';
-    if(yTitle){ const cy=padT+plotH/2; titles+=`<text x="20" y="${cy.toFixed(1)}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text2)" transform="rotate(-90 20 ${cy.toFixed(1)})">${esc(yTitle)}</text>`; }
-    if(xTitle){ titles+=`<text x="${(padL+plotW/2).toFixed(1)}" y="${(H-6).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text2)">${esc(xTitle)}</text>`; }
+    if(yTitle){ const cy=padT+plotH/2; titles+=`<text x="24" y="${cy.toFixed(1)}" text-anchor="middle" font-size="20" font-weight="700" fill="var(--text)" transform="rotate(-90 24 ${cy.toFixed(1)})">${esc(yTitle)}</text>`; }
+    if(xTitle){ titles+=`<text x="${(padL+plotW/2).toFixed(1)}" y="${(H-8).toFixed(1)}" text-anchor="middle" font-size="20" font-weight="700" fill="var(--text)">${esc(xTitle)}</text>`; }
     // points + on-point value labels (strided so dense series stays readable)
     const ls=Math.max(1,Math.ceil(n/(opts.maxLabels||30)));
     let dots='', vlabels='';
     for(let i=0;i<n;i++){
       if(i%ls!==0 && i!==n-1) continue;
       const p=pts[i];
-      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.2" fill="${color}" stroke="var(--surface)" stroke-width="1.6"/>`;
-      const ly=Math.max(padT-2, p.y-9);
-      vlabels+=`<text x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text2)">${fmt(Math.round(p.v))}</text>`;
+      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.6" fill="${color}" stroke="var(--surface)" stroke-width="1.8"/>`;
+      const ly=Math.max(padT-4, p.y-13);
+      vlabels+=`<text x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="13" font-weight="600" fill="var(--text2)">${fmt(Math.round(p.v))}</text>`;
     }
     return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">
       ${grid}
@@ -6186,7 +6207,8 @@ function getISOWeek(d) {
       <div class="ai-note">Top 5 SKUs carry ${(k.top5share*100).toFixed(0)}% of volume.</div></div>`;
 
     // client contribution + momentum — full-width horizontal bars (share of value, SKUs & growth)
-    const cliByVal=[...M.clients].sort((a,b)=>(b.val||0)-(a.val||0));
+    // NOTE: independent of the client filter — always shows every account.
+    const cliByVal=[...(M.clientsAll&&M.clientsAll.length?M.clientsAll:M.clients)].sort((a,b)=>(b.val||0)-(a.val||0));
     const totVal=cliByVal.reduce((s,c)=>s+(c.val||0),0)||1;
     const acctRows=cliByVal.map(c=>{
       const sh=(c.val||0)/totVal;
@@ -6204,10 +6226,12 @@ function getISOWeek(d) {
       <div class="ai-note">Bar = each account's share of sales value (label inside). Subtitle shows SKU count and period-over-period momentum (green = improving, red = declining). Right column = total sales value ($).</div></div>`;
 
     // monthly sales trajectory — full-width line/area chart
+    const MON3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmtMon=m=>{ const p=String(m).split('-'); return (p.length>=2 && +p[1]>=1 && +p[1]<=12) ? MON3[(+p[1])-1]+'-'+p[0].slice(2) : m; };
     const mon=M.monthly||[];
     let trajPanel;
     if(mon.length>=2){
-      const mVals=mon.map(m=>m.qty), mLabels=mon.map(m=>m.month.length>=7?m.month.slice(2):m.month);
+      const mVals=mon.map(m=>m.qty), mLabels=mon.map(m=>fmtMon(m.month));
       const w=Math.min(3,Math.floor(mon.length/2))||1;
       const earlyAvg=mVals.slice(0,w).reduce((s,v)=>s+v,0)/w;
       const recentAvg=mVals.slice(-w).reduce((s,v)=>s+v,0)/w;
@@ -6215,8 +6239,8 @@ function getISOWeek(d) {
       const dirWord=growth>=0?'grown':'declined';
       const trendCol=growth>=0?C.good:C.crit;
       trajPanel=`<div class="ai-panel"><div class="ai-panel-h">Monthly sales trajectory <span class="ai-badge neutral">${mon.length} periods</span></div>
-        ${trendChart(mVals, mLabels, {color:trendCol, maxLabels:40, maxXLabels:10, yTitle:'Units sold / month', xTitle:'Month (YY-MM)'})}
-        <div class="ai-note">Each point = total units sold in that month (sum of sale qty). X-axis: calendar month (YY-MM); Y-axis: monthly unit total.<br>📈 <b>Trajectory:</b> Sales have ${dirWord} ${Math.abs(growth*100).toFixed(0)}% comparing the most recent ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(recentAvg))} units/mo) to the earliest ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(earlyAvg))} units/mo) in the selected period.</div></div>`;
+        ${trendChart(mVals, mLabels, {color:trendCol, maxLabels:40, maxXLabels:10, yTitle:'Units sold / month', xTitle:'Month (MMM-YY)'})}
+        <div class="ai-note">📈 <b>Trajectory:</b> Sales have ${dirWord} ${Math.abs(growth*100).toFixed(0)}% comparing the most recent ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(recentAvg))} units/mo) to the earliest ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(earlyAvg))} units/mo) in the selected period.</div></div>`;
     } else {
       trajPanel=`<div class="ai-panel"><div class="ai-panel-h">Monthly sales trajectory</div><div class="ai-note">Not enough monthly history in the selected period to plot a trajectory.</div></div>`;
     }
@@ -6239,7 +6263,7 @@ function getISOWeek(d) {
     const wkLabels=(M.weekLabels||[]).map(d=>d&&d.length>=10?d.slice(2):d);
     const ribbon=`<div class="ai-panel"><div class="ai-panel-h">Weekly sales pulse <span class="ai-badge ${k.momDir==='improving'?'good':k.momDir==='declining'?'crit':'neutral'}">${k.momDir}</span></div>
       ${trendChart(M.series, wkLabels.length===M.series.length?wkLabels:null, {color:k.momDir==='declining'?C.crit:C.good, maxLabels:22, maxXLabels:13, yTitle:'Units sold / week', xTitle:'Week ending (YY-MM-DD)'})}
-      <div class="ai-note">Each point = total units sold that week (sum of sale qty). X-axis: week-ending date (YY-MM-DD); Y-axis: weekly unit total. ${M.nWeeks} weeks shown, oldest → newest. Recent-half avg ${fmt(Math.round(k.recentAvg))} vs prior-half avg ${fmt(Math.round(k.priorAvg))} units/week.</div></div>`;
+      <div class="ai-note">${M.nWeeks} weeks shown, oldest → newest. Recent-half avg ${fmt(Math.round(k.recentAvg))} vs prior-half avg ${fmt(Math.round(k.priorAvg))} units/week.</div></div>`;
 
     return `<div class="ai-grid-2" style="margin-bottom:14px">${pareto}${invPanel}</div>
             <div style="margin-bottom:14px">${acctPanel}</div>
