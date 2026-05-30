@@ -4018,7 +4018,7 @@ function renderRepPlan() {
         <div class="woc-stat-label">No Stock</div>
       </div>
     </div>
-    <div class="move-toggle" style="margin-bottom:14px;">
+    <div class="move-toggle" style="margin-bottom:14px;align-items:center;flex-wrap:wrap;row-gap:8px;">
       <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-right:6px;">Stock Filter</span>
       <button class="${activeFilter('all')}" data-repfilter="all">All (${rows.length})</button>
       <button class="${activeFilter('no_stock')}" data-repfilter="no_stock">No Stock (${rows.filter(r=>r.totalStock===0).length})</button>
