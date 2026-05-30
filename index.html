@@ -970,6 +970,33 @@
 
   .gd-foot{text-align:center;color:var(--text3);font-size:12.5px;margin-top:46px;padding-top:22px;border-top:1px solid var(--border);}
 
+  /* config → calculation → output flow (used for Replenishment & Forecast) */
+  .gd-flowtitle{display:flex;align-items:center;gap:11px;margin:26px 0 2px;}
+  .gd-flowtitle .n{width:30px;height:30px;border-radius:9px;background:var(--accent2-light);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;}
+  .gd-flowtitle h3{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--text);}
+  .gd-flow{display:grid;grid-template-columns:1fr auto 1fr auto 1.18fr;align-items:start;gap:0;margin:14px 0 4px;}
+  .gd-flow .gd-arrow{align-self:center;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:26px;font-weight:700;padding:0 10px;}
+  .gd-stage{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:15px 16px 14px;height:100%;box-sizing:border-box;}
+  .gd-stage-lbl{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;display:inline-flex;align-items:center;gap:6px;}
+  .gd-stage-lbl .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);}
+  .gd-stage h4{font-size:14px;font-weight:700;color:var(--text);margin:0 0 8px;}
+  .gd-stage ul{list-style:none;margin:0;padding:0;}
+  .gd-stage li{font-size:12.5px;color:var(--text2);line-height:1.5;padding:5px 0;border-bottom:1px dashed var(--border);}
+  .gd-stage li:last-child{border-bottom:none;}
+  .gd-stage li b{color:var(--text);}
+  .gd-fchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .gd-fchip{font-size:10.5px;font-weight:700;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 9px;}
+  .gd-stage.out{position:relative;border:2px solid var(--accent);background:linear-gradient(160deg,var(--accent-light),var(--surface) 75%);box-shadow:0 16px 36px -20px rgba(58,138,92,.65);overflow:hidden;}
+  .gd-stage.out .gd-stage-lbl{color:var(--accent);} .gd-stage.out .gd-stage-lbl .dot{background:var(--accent);}
+  .gd-stage.out h4{color:var(--accent);}
+  .gd-ribbon{position:absolute;top:13px;right:-36px;transform:rotate(45deg);background:var(--accent);color:#fff;font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:3px 40px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+  .gd-flownote{font-size:12px;color:var(--text2);line-height:1.5;margin-top:9px;}
+  @media(max-width:860px){
+    .gd-flow{grid-template-columns:1fr;}
+    .gd-flow .gd-arrow{transform:rotate(90deg);padding:9px 0;justify-self:center;}
+    .gd-stage{margin:0;}
+  }
+
 </style>
 </head>
 <body>
@@ -1759,7 +1786,7 @@
       <a href="#gd-filters">Filters</a>
       <a href="#gd-linkage">Filter reference</a>
       <a href="#gd-tabs">Tabs &amp; reports</a>
-      <a href="#gd-config">Replenishment setup</a>
+      <a href="#gd-config">Config &amp; outputs</a>
       <a href="#gd-glossary">Glossary</a>
       <a href="#gd-faq">FAQ</a>
     </div>
@@ -1879,7 +1906,7 @@
       <!-- REPLENISHMENT -->
       <div class="gd-tabblock">
         <div class="gd-tabhead"><span class="gd-ic" style="background:var(--accent2-light)">🔄</span><h3>Replenishment<span class="sub">Re-order planning and lead-time setup.</span></h3></div>
-        <div class="gd-rep"><b class="t">Lead Time Configuration</b><span class="scope" style="background:var(--blue-light);color:var(--blue)">Per Client</span><p>Records the lead times for each account — production, transit, PO processing and arrival buffer (in weeks). <b>How to read:</b> These values drive the planning report below. See the <a href="#gd-config" style="color:var(--accent);font-weight:600">Replenishment setup</a> section for details.</p></div>
+        <div class="gd-rep"><b class="t">Lead Time Configuration</b><span class="scope" style="background:var(--blue-light);color:var(--blue)">Per Client</span><p>Records the lead times for each account — production, transit, PO processing and arrival buffer (in weeks). <b>How to read:</b> These values drive the planning report below. See the <a href="#gd-config" style="color:var(--accent);font-weight:600">Configuration-driven outputs</a> section for details.</p></div>
         <div class="gd-rep"><b class="t">Replenishment Planning Report</b><span class="scope" style="background:var(--warm-light);color:var(--warm)">Backward Schedule</span><p>For each product, shows how long current stock will last and the latest dates to dispatch, begin production and raise a purchase order to avoid a stock-out. <b>How to read:</b> <span style="color:var(--red);font-weight:600">Red dates</span> have already passed; <span style="color:var(--warm);font-weight:600">amber dates</span> fall within the next 14 days. This report includes additional filters, described in the next section.</p></div>
       </div>
 
@@ -1897,37 +1924,86 @@
       </div>
     </div>
 
-    <!-- REPLENISHMENT CONFIG DEEP DIVE -->
+    <!-- CONFIGURATION-DRIVEN OUTPUTS -->
     <div class="gd-section" id="gd-config">
-      <div class="gd-h2"><span class="gd-ic">⚙</span> Replenishment setup</div>
-      <p class="gd-lead">The Replenishment Planning Report calculates required order dates by working backwards from the date stock is expected to run out. To do this, it uses the lead times defined for each account in <b>Lead Time Configuration</b>.</p>
-      <table class="gd-table">
-        <thead><tr><th>Setting (weeks)</th><th>Definition</th></tr></thead>
-        <tbody>
-          <tr><td><b>Replenishment Arrival Buffer</b></td><td>The additional weeks of stock to hold when a new order arrives, providing a safety margin.</td></tr>
-          <tr><td><b>Transit Lead Time</b></td><td>The time required to move goods from the factory or warehouse to the client.</td></tr>
-          <tr><td><b>Production Lead Time</b></td><td>The time required to manufacture the product after an order is placed.</td></tr>
-          <tr><td><b>PO Processing Lead Time</b></td><td>The time required to raise and confirm a purchase order before production begins.</td></tr>
-        </tbody>
-      </table>
-      <p class="gd-lead" style="margin-top:16px">The report totals these lead times and counts backwards from the projected stock-out date to produce four target dates: <b>PO Receive By</b>, <b>Production Start</b>, <b>Expected Dispatch</b> and <b>Replenishment Arrival</b>. A date that has already passed is shown in red, indicating a risk of stock-out.</p>
+      <div class="gd-h2"><span class="gd-ic">⚙</span> Configuration-driven outputs</div>
+      <p class="gd-lead">Two reports are not read directly from the data — they are <b>calculated from the settings you provide</b>. Adjust the settings and the results recalculate. These are the portal's two key outputs: the <b>Replenishment Planning Report</b> and the <b>Forecast Output</b>. Each follows the same path: your inputs feed a calculation, which produces the output.</p>
 
-      <div class="gd-h2" style="font-size:19px;margin-top:24px"><span class="gd-ic" style="width:32px;height:32px;font-size:16px">⛃</span> Filters on the planning report</div>
-      <p class="gd-lead">Three additional controls appear above the table, from left to right.</p>
-      <div class="gd-grid">
-        <div class="gd-card" style="border-left-color:var(--accent2)">
-          <h3>Replenishable <span class="gd-tag">All · Yes · No</span></h3>
-          <p>Displays only re-orderable products (<b>Yes</b>), only non-re-orderable products (<b>No</b>), or all products (<b>All</b>). Selecting Yes or No updates all counts in the report.</p>
+      <!-- Replenishment flow -->
+      <div class="gd-flowtitle"><span class="n">🔄</span><h3>Replenishment Planning Report</h3></div>
+      <div class="gd-flow">
+        <div class="gd-stage">
+          <span class="gd-stage-lbl"><span class="dot"></span>Inputs · Lead Time Configuration</span>
+          <h4>What you set (per client)</h4>
+          <ul>
+            <li><b>Arrival Buffer</b> — safety weeks of stock to hold on arrival.</li>
+            <li><b>Transit Lead Time</b> — factory / warehouse to client.</li>
+            <li><b>Production Lead Time</b> — time to manufacture after ordering.</li>
+            <li><b>PO Processing</b> — time to raise &amp; confirm the order.</li>
+          </ul>
+          <div class="gd-fchips"><span class="gd-fchip">Replenishable</span><span class="gd-fchip">Stock Filter</span><span class="gd-fchip">Stock Source</span></div>
         </div>
-        <div class="gd-card" style="border-left-color:var(--blue)">
-          <h3>Stock Filter <span class="gd-tag">All · No Stock · Has Stock</span></h3>
-          <p>Isolates products that are out of stock or that still hold stock. The count on each option updates with the other selections.</p>
+        <div class="gd-arrow">▸</div>
+        <div class="gd-stage">
+          <span class="gd-stage-lbl"><span class="dot"></span>Calculation</span>
+          <h4>Backward scheduling</h4>
+          <ul>
+            <li>Estimates when current stock runs out.</li>
+            <li>Adds the four lead times together.</li>
+            <li>Counts backwards from the stock-out date.</li>
+          </ul>
         </div>
-        <div class="gd-card" style="border-left-color:var(--gold)">
-          <h3>Stock Source <span class="gd-tag">All · Store · DC · Rush</span></h3>
-          <p>Determines which stock is included in Total Stock: all sources combined, or store, distribution-centre or rush-order stock individually.</p>
+        <div class="gd-arrow">▸</div>
+        <div class="gd-stage out">
+          <span class="gd-ribbon">Key output</span>
+          <span class="gd-stage-lbl"><span class="dot"></span>Output</span>
+          <h4>Planning Report</h4>
+          <ul>
+            <li><b>PO Receive By</b></li>
+            <li><b>Production Start</b></li>
+            <li><b>Expected Dispatch</b></li>
+            <li><b>Replenishment Arrival</b></li>
+            <li>Status remark per product.</li>
+          </ul>
+          <p class="gd-flownote"><span style="color:var(--red);font-weight:600">Red</span> = past due · <span style="color:var(--warm);font-weight:600">Amber</span> = within 14 days.</p>
         </div>
       </div>
+      <p class="gd-flownote" style="margin-top:10px">Change any lead time and every date recalculates. The three filters above the table (Replenishable, Stock Filter, Stock Source) decide which products and which stock are included, and the Store Count basis sets how per-store figures are worked out.</p>
+
+      <!-- Forecast flow -->
+      <div class="gd-flowtitle" style="margin-top:30px"><span class="n">🔮</span><h3>Forecast Output</h3></div>
+      <div class="gd-flow">
+        <div class="gd-stage">
+          <span class="gd-stage-lbl"><span class="dot"></span>Inputs · Forecast Configuration</span>
+          <h4>What you set</h4>
+          <ul>
+            <li><b>Client &amp; Product</b> — the line to forecast.</li>
+            <li><b>Forecast period</b> — how far ahead to project.</li>
+            <li><b>Method</b> — Year-over-Year or Recent Trend.</li>
+          </ul>
+        </div>
+        <div class="gd-arrow">▸</div>
+        <div class="gd-stage">
+          <span class="gd-stage-lbl"><span class="dot"></span>Method</span>
+          <h4>How it projects</h4>
+          <ul>
+            <li><b>Year-over-Year</b> — uses the same period last year. Best for established products (12+ months of history).</li>
+            <li><b>Recent Trend</b> — uses recent sales velocity. Best for new launches.</li>
+          </ul>
+        </div>
+        <div class="gd-arrow">▸</div>
+        <div class="gd-stage out">
+          <span class="gd-ribbon">Key output</span>
+          <span class="gd-stage-lbl"><span class="dot"></span>Output</span>
+          <h4>Forecast Output</h4>
+          <ul>
+            <li>Projected sales for the selected period.</li>
+            <li>The chosen method is shown so the basis is clear.</li>
+          </ul>
+          <p class="gd-flownote">Switching the method or period recalculates the projection instantly.</p>
+        </div>
+      </div>
+      <p class="gd-flownote" style="margin-top:10px">Treat the Forecast Output as a planning guide: choose the method that fits the product's history, then validate the result against current business knowledge.</p>
     </div>
 
     <!-- GLOSSARY -->
