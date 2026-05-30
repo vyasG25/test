@@ -868,6 +868,104 @@
 
   .ai-note{font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5;}
 
+  /* ═══════════════════════════════════════════════════════════
+     GUIDE / USER MANUAL TAB  (namespaced .gd-*)
+     ═══════════════════════════════════════════════════════════ */
+  .tab-btn-guide{font-weight:600;color:var(--text2);}
+  .tab-btn-guide.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab-btn-guide:hover{color:var(--accent);}
+
+  .gd-wrap{max-width:1180px;margin:0 auto;padding:8px 2px 70px;}
+  /* hero */
+  .gd-hero{position:relative;overflow:hidden;border-radius:20px;padding:40px 40px 36px;color:#fff;
+    background:radial-gradient(1100px 380px at 88% -40%, rgba(123,108,170,.55), transparent 60%),
+               linear-gradient(135deg, #1f2e25 0%, #2f4a39 52%, #34404e 100%);
+    box-shadow:0 18px 44px -22px rgba(31,46,37,.6);}
+  .gd-hero::after{content:"";position:absolute;right:-60px;bottom:-90px;width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.07), transparent 70%);pointer-events:none;}
+  .gd-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:1.4px;
+    text-transform:uppercase;color:#bfe8cf;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);
+    padding:6px 13px;border-radius:30px;}
+  .gd-hero h1{font-family:'Fraunces',serif;font-weight:700;font-size:39px;line-height:1.08;margin:18px 0 12px;letter-spacing:-.5px;}
+  .gd-hero h1 em{font-style:italic;color:#cdbcf2;}
+  .gd-hero p{font-size:15.5px;line-height:1.62;color:rgba(255,255,255,.9);max-width:760px;}
+  .gd-hero-meta{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px;}
+  .gd-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#eef6f1;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:7px 13px;border-radius:30px;}
+
+  /* in-page nav */
+  .gd-nav{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 4px;position:sticky;top:0;z-index:5;
+    background:linear-gradient(var(--bg) 70%, transparent);padding:12px 0;}
+  .gd-nav a{font-size:12.5px;font-weight:600;color:var(--text2);text-decoration:none;background:var(--surface);
+    border:1px solid var(--border);padding:8px 14px;border-radius:30px;transition:all .15s;}
+  .gd-nav a:hover{color:var(--accent);border-color:var(--accent);transform:translateY(-1px);}
+
+  .gd-section{margin-top:34px;scroll-margin-top:72px;}
+  .gd-h2{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.3px;
+    display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+  .gd-h2 .gd-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-size:19px;background:var(--accent-light);flex:0 0 auto;}
+  .gd-lead{font-size:14.5px;color:var(--text2);line-height:1.6;margin:4px 0 18px;max-width:840px;}
+
+  /* steps */
+  .gd-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media(max-width:880px){.gd-steps{grid-template-columns:1fr;}}
+  .gd-step{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:20px 20px 18px;position:relative;overflow:hidden;}
+  .gd-step::before{content:attr(data-n);position:absolute;top:-14px;right:6px;font-family:'Fraunces',serif;font-size:78px;font-weight:700;color:var(--accent);opacity:.08;}
+  .gd-step h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:7px;display:flex;align-items:center;gap:8px;}
+  .gd-step p{font-size:13px;color:var(--text2);line-height:1.55;}
+
+  /* generic cards grid */
+  .gd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  @media(max-width:880px){.gd-grid{grid-template-columns:1fr;}}
+  .gd-card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:18px 20px;border-left-width:4px;}
+  .gd-card h3{font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .gd-card .gd-tag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:20px;background:var(--bg);color:var(--text3);}
+  .gd-card p{font-size:13px;color:var(--text2);line-height:1.58;margin:5px 0;}
+  .gd-card .gd-read{font-size:12.5px;color:var(--text2);line-height:1.55;margin-top:8px;padding-top:9px;border-top:1px dashed var(--border);}
+  .gd-card .gd-read b{color:var(--text);}
+
+  /* tab block */
+  .gd-tabblock{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px 4px;margin-bottom:14px;overflow:hidden;}
+  .gd-tabhead{display:flex;align-items:center;gap:13px;padding:16px 20px 14px;}
+  .gd-tabhead .gd-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;}
+  .gd-tabhead h3{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--text);}
+  .gd-tabhead span.sub{font-size:12.5px;color:var(--text3);display:block;margin-top:2px;font-family:'DM Sans',sans-serif;}
+  .gd-rep{padding:13px 20px;border-top:1px solid var(--border);}
+  .gd-rep b.t{font-size:14px;color:var(--text);}
+  .gd-rep .scope{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 9px;border-radius:20px;margin-left:8px;vertical-align:middle;}
+  .gd-rep p{font-size:13px;color:var(--text2);line-height:1.56;margin-top:5px;}
+
+  /* filter ↔ report table */
+  .gd-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;font-size:13px;}
+  .gd-table th{text-align:left;background:var(--surface2);color:var(--text2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:12px 16px;border-bottom:1px solid var(--border);}
+  .gd-table td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text2);line-height:1.5;vertical-align:top;}
+  .gd-table tr:last-child td{border-bottom:none;}
+  .gd-table td b{color:var(--text);}
+
+  /* chips/legend */
+  .gd-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 11px;border-radius:20px;margin:3px 4px 3px 0;}
+  .gd-legend{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;}
+
+  /* accordion (details) */
+  .gd-acc{background:var(--surface);border:1px solid var(--border);border-radius:13px;margin-bottom:10px;overflow:hidden;}
+  .gd-acc>summary{cursor:pointer;list-style:none;padding:15px 18px;font-size:14px;font-weight:700;color:var(--text);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .gd-acc>summary::-webkit-details-marker{display:none;}
+  .gd-acc>summary::after{content:"+";font-size:20px;font-weight:400;color:var(--text3);transition:transform .2s;}
+  .gd-acc[open]>summary::after{content:"–";}
+  .gd-acc[open]>summary{border-bottom:1px solid var(--border);}
+  .gd-acc .gd-acc-body{padding:14px 18px 17px;font-size:13px;color:var(--text2);line-height:1.62;}
+  .gd-acc .gd-acc-body b{color:var(--text);}
+  .gd-acc .gd-acc-body code{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--accent);}
+
+  .gd-callout{display:flex;gap:13px;background:var(--accent-light);border:1px solid var(--accent);border-radius:14px;padding:16px 18px;margin-top:16px;}
+  .gd-callout .gd-ic{font-size:20px;flex:0 0 auto;}
+  .gd-callout p{font-size:13.5px;color:var(--text);line-height:1.6;}
+  .gd-callout p b{font-weight:700;}
+
+  .gd-foot{text-align:center;color:var(--text3);font-size:12.5px;margin-top:46px;padding-top:22px;border-top:1px solid var(--border);}
+
 </style>
 </head>
 <body>
@@ -1034,6 +1132,7 @@
   <button class="tab-btn" data-tab="replenish">🔄 Replenishment</button>
   <button class="tab-btn" data-tab="forecast">🔮 Forecast</button>
   <button class="tab-btn tab-btn-ai" data-tab="ai">✦ AI Analysis</button>
+  <button class="tab-btn tab-btn-guide" data-tab="guide">📖 Guide</button>
 </div>
 
 <!-- MAIN -->
@@ -1633,7 +1732,235 @@
     </div>
   </div><!-- /tab-ai -->
 
+  <!-- ════════════ GUIDE / USER MANUAL ════════════ -->
+  <div class="tab-content" id="tab-guide">
+   <div class="gd-wrap">
+
+    <!-- HERO -->
+    <div class="gd-hero">
+      <span class="gd-eyebrow">📖 Portal Playbook</span>
+      <h1>Everything you need to <em>read the numbers</em> with confidence.</h1>
+      <p>This is your plain-English field guide to the analytics portal. No jargon, no guesswork — just what each report means, which filter changes what, and how to turn a screen full of numbers into a decision. Skim it once and you'll know your way around every tab.</p>
+      <div class="gd-hero-meta">
+        <span class="gd-pill">⏱️ 6-minute read</span>
+        <span class="gd-pill">🧭 6 tabs explained</span>
+        <span class="gd-pill">🔗 Filters mapped to reports</span>
+        <span class="gd-pill">📚 Glossary &amp; FAQ</span>
+      </div>
+    </div>
+
+    <!-- NAV -->
+    <div class="gd-nav">
+      <a href="#gd-start">🚀 Start here</a>
+      <a href="#gd-filters">🎛️ The filters</a>
+      <a href="#gd-linkage">🔗 Filters ↔ reports</a>
+      <a href="#gd-tabs">🗂️ Tab by tab</a>
+      <a href="#gd-config">⚙️ Replenishment setup</a>
+      <a href="#gd-glossary">📚 Glossary</a>
+      <a href="#gd-faq">❓ FAQ</a>
+    </div>
+
+    <!-- START HERE -->
+    <div class="gd-section" id="gd-start">
+      <div class="gd-h2"><span class="gd-ic">🚀</span> Start here — the portal in 3 moves</div>
+      <p class="gd-lead">The whole portal follows one simple rhythm. Once it clicks, every tab works the same way.</p>
+      <div class="gd-steps">
+        <div class="gd-step" data-n="1">
+          <h3>① Set your filters</h3>
+          <p>At the very top sits the filter bar — a date range, a client, the products, and a store-count mode. Think of it as the "lens" you look through. Set it once and it follows you across the tabs.</p>
+        </div>
+        <div class="gd-step" data-n="2">
+          <h3>② Pick a tab</h3>
+          <p>Each tab answers a different question: How are sales? What's the inventory like? What should we re-order? Where are we headed? Choose the tab that matches the question on your mind.</p>
+        </div>
+        <div class="gd-step" data-n="3">
+          <h3>③ Read the report</h3>
+          <p>Every report has a small coloured tag under its title telling you which filters it listens to. Green is good, red needs attention, amber means "soon". Colour does the heavy lifting — let it guide your eye.</p>
+        </div>
+      </div>
+      <div class="gd-callout">
+        <span class="gd-ic">💡</span>
+        <p><b>The golden rule:</b> if a number ever looks surprising, check the filter bar first. 9 times out of 10 the data is simply being shown through a narrower lens (a single client, a short date range, or a few products) than you expected.</p>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="gd-section" id="gd-filters">
+      <div class="gd-h2"><span class="gd-ic">🎛️</span> The filter bar, explained</div>
+      <p class="gd-lead">These controls live at the top of the screen and shape almost everything below them. Here's what each one does — and a tip for using it well.</p>
+      <div class="gd-grid">
+        <div class="gd-card" style="border-left-color:var(--accent)">
+          <h3>📅 From / To dates</h3>
+          <p>Sets the time window for the data. Everything date-aware only counts sales that fall between these two dates.</p>
+          <div class="gd-read"><b>Tip:</b> Widen the range to spot long-term trends; narrow it to focus on a recent quarter or promotion.</div>
+        </div>
+        <div class="gd-card" style="border-left-color:var(--blue)">
+          <h3>🏢 Client</h3>
+          <p>Focus the whole portal on one account, or leave it on <b>All Clients</b> to see the combined picture.</p>
+          <div class="gd-read"><b>Tip:</b> A couple of reports deliberately ignore this so you can compare accounts — they're flagged in the next section.</div>
+        </div>
+        <div class="gd-card" style="border-left-color:var(--gold)">
+          <h3>📦 Products</h3>
+          <p>Pick one, many, or all products. Use the search box to find a SKU by code or name, then <b>Select All</b> / <b>Clear All</b> to act on what you've searched.</p>
+          <div class="gd-read"><b>Tip:</b> "Select All" only adds the products currently matching your search — so you can build a selection across several searches.</div>
+        </div>
+        <div class="gd-card" style="border-left-color:var(--accent2)">
+          <h3>🏬 Store Count</h3>
+          <p>Switches how "per-store" figures are calculated. <b>Average</b> uses the typical store count across the period; <b>Latest</b> uses the most recent week's store count.</p>
+          <div class="gd-read"><b>Why it matters:</b> If a product rolled out to more stores recently, "Latest" gives a fairer read of current per-store performance.</div>
+        </div>
+      </div>
+      <div class="gd-callout" style="background:var(--surface2);border-color:var(--border)">
+        <span class="gd-ic">↺</span>
+        <p><b>Reset</b> clears everything back to the full date range, all clients, all products, and Average store count — a clean slate whenever you feel lost. The <b>↻ Refresh</b> button pulls the latest data from the source.</p>
+      </div>
+    </div>
+
+    <!-- LINKAGE -->
+    <div class="gd-section" id="gd-linkage">
+      <div class="gd-h2"><span class="gd-ic">🔗</span> Which filters drive which reports</div>
+      <p class="gd-lead">Most reports respond to every filter. A few are intentionally "independent" so they can do their job — for example, comparing all clients side by side. The coloured tag under each report title tells you its scope at a glance:</p>
+      <div class="gd-legend">
+        <span class="gd-chip" style="background:var(--accent-light);color:var(--accent)">Listens to all filters</span>
+        <span class="gd-chip" style="background:var(--blue-light);color:var(--blue)">Has its own period picker</span>
+        <span class="gd-chip" style="background:var(--gold-light);color:var(--gold)">Ignores one filter on purpose</span>
+        <span class="gd-chip" style="background:var(--red-light);color:var(--red)">Action / attention</span>
+      </div>
+      <table class="gd-table" style="margin-top:14px">
+        <thead><tr><th>Filter</th><th>What it changes</th><th>Good to know</th></tr></thead>
+        <tbody>
+          <tr><td><b>From / To dates</b></td><td>The sales window for nearly every report.</td><td>The <b>Period-over-Period Comparison</b> and <b>Top SKU Performance</b> ignore it — they use their own Week / Month / Year pickers instead.</td></tr>
+          <tr><td><b>Client</b></td><td>Narrows every tab to one account.</td><td><b>Client Yearly Performance</b> (Sales tab) and <b>Account contribution &amp; momentum</b> (AI tab) always show <b>all</b> accounts, so you can compare them.</td></tr>
+          <tr><td><b>Products</b></td><td>Limits reports to the chosen SKUs.</td><td>Applies almost everywhere. A handful of "all-products" overviews show the full catalogue by design (look for an "All Clients · No Filter" style tag).</td></tr>
+          <tr><td><b>Store Count<br>(Avg / Latest)</b></td><td>How per-store numbers are worked out.</td><td>Affects three places: the Dashboard's <b>Sales / Store / Week</b> KPI, the <b>Product-Level Sell-Through Matrix</b>, and the <b>Replenishment Planning Report</b>. The "Stores" column header flips between (Avg) and (Latest) so you always know which is in play.</td></tr>
+        </tbody>
+      </table>
+      <div class="gd-callout"><span class="gd-ic">🔎</span><p><b>Rule of thumb:</b> when a number doesn't move after you change a filter, glance at that report's coloured tag — it's probably telling you the report doesn't use that particular filter.</p></div>
+    </div>
+
+    <!-- TAB BY TAB -->
+    <div class="gd-section" id="gd-tabs">
+      <div class="gd-h2"><span class="gd-ic">🗂️</span> A tour of every tab</div>
+      <p class="gd-lead">Each tab is a chapter. Here's the question it answers, the reports inside, and how to read each one.</p>
+
+      <!-- DASHBOARD -->
+      <div class="gd-tabblock">
+        <div class="gd-tabhead"><span class="gd-ic" style="background:var(--accent-light)">📊</span><h3>Dashboard<span class="sub">"How is the business doing right now?" — your daily health check.</span></h3></div>
+        <div class="gd-rep"><b class="t">Executive KPI Summary</b><span class="scope" style="background:var(--accent-light);color:var(--accent)">Overview</span><p>The headline numbers — total units, value, average weekly sales, store productivity and more. <b>How to read:</b> start here for the one-glance pulse before diving deeper.</p></div>
+        <div class="gd-rep"><b class="t">Period-over-Period Comparison</b><span class="scope" style="background:var(--blue-light);color:var(--blue)">CW · CM · CY · YTD</span><p>Compares this week vs last week, this month vs last, this year vs last, and year-to-date vs the same stretch last year. <b>How to read:</b> the green ▲ / red ▼ chip next to each number is the growth versus the comparison period. Use the little pickers to choose which week / month / year to compare.</p></div>
+        <div class="gd-rep"><b class="t">Top SKU Performance</b><span class="scope" style="background:var(--gold-light);color:var(--gold)">By Period</span><p>Your best-selling products for the chosen period. <b>How to read:</b> spot which SKUs are carrying the sales and which are fading.</p></div>
+        <div class="gd-rep"><b class="t">Best SKU by Account</b><span class="scope" style="background:var(--accent2-light);color:var(--accent2)">In Selected Range</span><p>The hero product for each client in your date range. <b>How to read:</b> a quick way to see what each account loves most.</p></div>
+        <div class="gd-rep"><b class="t">Top SKU Performance &amp; Sell-Through</b><span class="scope" style="background:var(--warm-light);color:var(--warm)">Top 5 · ST%</span><p>Top products paired with their sell-through rate. <b>How to read:</b> high sales <i>and</i> high sell-through = a winner; high stock but low sell-through = a watch-out.</p></div>
+        <div class="gd-rep"><b class="t">Weekly &amp; Monthly Sales Tracker</b><span class="scope" style="background:var(--accent-light);color:var(--accent)">Latest 5 Periods · YoY</span><p>Recent weeks and months with a year-on-year comparison. <b>How to read:</b> check whether the latest periods are up or down against the same time last year.</p></div>
+        <div class="gd-rep"><b class="t">Year × Month Matrix</b><span class="scope" style="background:var(--blue-light);color:var(--blue)">Qty &amp; Value</span><p>A grid of every month across years. <b>How to read:</b> scan down a column to see seasonality, across a row to see year-on-year change.</p></div>
+      </div>
+
+      <!-- SALES -->
+      <div class="gd-tabblock">
+        <div class="gd-tabhead"><span class="gd-ic" style="background:var(--blue-light)">🗂️</span><h3>Sales<span class="sub">"Who and what is selling?" — the detailed sales ledger.</span></h3></div>
+        <div class="gd-rep"><b class="t">Client Yearly Performance</b><span class="scope" style="background:var(--blue-light);color:var(--blue)">All Clients · No Filter</span><p>Every account's yearly totals, side by side. <b>How to read:</b> this one ignores the Client filter on purpose so you can rank and compare all accounts at once.</p></div>
+        <div class="gd-rep"><b class="t">SKU Yearly Performance</b><span class="scope" style="background:var(--warm-light);color:var(--warm)">Client &amp; Product Filter Applied</span><p>Yearly totals per product, following your client and product selections. <b>How to read:</b> filter to one account to see how its products trend year over year.</p></div>
+        <div class="gd-rep"><b class="t">Full Product Performance Detail</b><span class="scope" style="background:var(--gold-light);color:var(--gold)">All Metrics</span><p>The complete row-by-row table — every metric for every product. <b>How to read:</b> your deep-dive / export-style view when you need the full picture.</p></div>
+        <div class="gd-rep"><b class="t">Product-Level Sell-Through Matrix</b><span class="scope" style="background:var(--warm-light);color:var(--warm)">Weekly · All Filters</span><p>Week-by-week sales per product with a Stores column and Units/Stores. <b>How to read:</b> the <b>Stores (Avg / Latest)</b> header follows your Store Count choice; Units/Stores tells you how hard each store is working for that product.</p></div>
+      </div>
+
+      <!-- INVENTORY -->
+      <div class="gd-tabblock">
+        <div class="gd-tabhead"><span class="gd-ic" style="background:var(--gold-light)">📦</span><h3>Inventory<span class="sub">"Do we have the right amount of stock?" — health and risk.</span></h3></div>
+        <div class="gd-rep"><b class="t">Weeks of Cover (WOC)</b><span class="scope" style="background:var(--blue-light);color:var(--blue)">Stock Health</span><p>How many weeks the current stock will last at the recent sales pace. <b>How to read:</b> very low = risk of running out; very high = too much stock tied up.</p></div>
+        <div class="gd-rep"><b class="t">Stock Risk Alerts</b><span class="scope" style="background:var(--red-light);color:var(--red)">Action Required</span><p>Products that need attention — about to stock out or sitting on excess. <b>How to read:</b> treat this as your to-do list; red means act now.</p></div>
+        <div class="gd-rep"><b class="t">Inventory Movement Tracker</b><span class="scope" style="background:var(--warm-light);color:var(--warm)">WoW Changes</span><p>Week-over-week changes in stock. <b>How to read:</b> see what's draining fast or building up so nothing catches you by surprise.</p></div>
+      </div>
+
+      <!-- REPLENISHMENT -->
+      <div class="gd-tabblock">
+        <div class="gd-tabhead"><span class="gd-ic" style="background:var(--accent2-light)">🔄</span><h3>Replenishment<span class="sub">"What should we re-order, and by when?" — your ordering plan.</span></h3></div>
+        <div class="gd-rep"><b class="t">Lead Time Configuration</b><span class="scope" style="background:var(--blue-light);color:var(--blue)">Per Client</span><p>Where you tell the portal how long things take for each account — production, transit, PO processing and an arrival buffer (all in weeks). <b>How to read:</b> these settings feed the plan below; see the <a href="#gd-config" style="color:var(--accent);font-weight:600">setup section</a> for details.</p></div>
+        <div class="gd-rep"><b class="t">Replenishment Planning Report</b><span class="scope" style="background:var(--warm-light);color:var(--warm)">Backward Schedule</span><p>For every product: how long current stock lasts and the latest dates to dispatch, start production and place a PO so you don't run dry. <b>How to read:</b> <span style="color:var(--red);font-weight:600">red dates</span> are already past due; <span style="color:var(--warm);font-weight:600">amber dates</span> fall within 14 days. This report has its own extra filters — covered next.</p></div>
+      </div>
+
+      <!-- FORECAST -->
+      <div class="gd-tabblock">
+        <div class="gd-tabhead"><span class="gd-ic" style="background:var(--warm-light)">🔮</span><h3>Forecast<span class="sub">"Where are sales heading?" — a forward look.</span></h3></div>
+        <div class="gd-rep"><b class="t">Forecast Method &amp; Configuration</b><span class="scope" style="background:var(--accent-light);color:var(--accent)">Two modes</span><p>Pick a client, a product and a horizon, then choose a method. <b>Year-over-Year</b> projects from last year's same-period sales — best for established products with 12+ months of history. <b>Recent Trend</b> projects from recent sales velocity — best for new launches. <b>How to read:</b> the projection is a guide, not a guarantee; use it to plan, then sanity-check against what you know.</p></div>
+      </div>
+
+      <!-- AI -->
+      <div class="gd-tabblock">
+        <div class="gd-tabhead"><span class="gd-ic" style="background:rgba(123,108,170,.16)">✦</span><h3>AI Analysis<span class="sub">"Just tell me what matters." — the story behind the numbers.</span></h3></div>
+        <div class="gd-rep"><b class="t">AI Executive Brief &amp; scorecards</b><span class="scope" style="background:var(--accent2-light);color:var(--accent2)">Auto-generated</span><p>A written summary plus health scores for momentum, inventory, risk and growth. <b>How to read:</b> the brief calls out what's working and what needs attention in plain words — a great place to start a meeting.</p></div>
+        <div class="gd-rep"><b class="t">Contribution, momentum &amp; trajectory charts</b><span class="scope" style="background:var(--accent-light);color:var(--accent)">Visual story</span><p>SKU concentration (Pareto), inventory health mix, account contribution, and monthly / weekly sales trends. <b>How to read:</b> each chart has a one-line caption explaining it; the account chart shows every account regardless of the Client filter so you always see the full split.</p></div>
+      </div>
+    </div>
+
+    <!-- REPLENISHMENT CONFIG DEEP DIVE -->
+    <div class="gd-section" id="gd-config">
+      <div class="gd-h2"><span class="gd-ic">⚙️</span> How replenishment setup works</div>
+      <p class="gd-lead">The Replenishment Planning Report works backwards from the day you'd run out of stock. To do that, it needs to know how long each step in your supply chain takes. You set those once, per client, in <b>Lead Time Configuration</b>.</p>
+      <table class="gd-table">
+        <thead><tr><th>Setting (weeks)</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td><b>Replenishment Arrival Buffer</b></td><td>A safety cushion — extra weeks of stock you want on hand when the new order lands, so you're never cutting it fine.</td></tr>
+          <tr><td><b>Transit Lead Time</b></td><td>How long goods take to travel from the factory/warehouse to the client.</td></tr>
+          <tr><td><b>Production Lead Time</b></td><td>How long it takes to actually make the product after an order is placed.</td></tr>
+          <tr><td><b>PO Processing Lead Time</b></td><td>The admin time to raise and confirm a purchase order before production begins.</td></tr>
+        </tbody>
+      </table>
+      <p class="gd-lead" style="margin-top:16px">The planner adds these up and counts <b>backwards</b> from "stock lasts till" to give you four dates: the latest <b>PO Receive By</b>, <b>Production Start</b>, <b>Expected Dispatch</b> and <b>Replenishment Arrival</b>. Miss the earliest one and you risk a stock-out — that's why past-due dates turn red.</p>
+
+      <div class="gd-h2" style="font-size:19px;margin-top:24px"><span class="gd-ic" style="width:32px;height:32px;font-size:16px">🧰</span> Extra filters on the planning report</div>
+      <p class="gd-lead">Above the table you'll find three controls that fine-tune what's shown. They sit in one row, left to right:</p>
+      <div class="gd-grid">
+        <div class="gd-card" style="border-left-color:var(--accent2)">
+          <h3>Replenishable <span class="gd-tag">All · Yes · No</span></h3>
+          <p>Shows only products marked as re-orderable (<b>Yes</b>), only the non-reorderable ones (<b>No</b>), or everything (<b>All</b>). Choosing Yes/No reshapes all the counts below it.</p>
+        </div>
+        <div class="gd-card" style="border-left-color:var(--blue)">
+          <h3>Stock Filter <span class="gd-tag">All · No Stock · Has Stock</span></h3>
+          <p>Quickly isolate products that are out of stock vs those that still have stock. The number in each button updates with your other choices.</p>
+        </div>
+        <div class="gd-card" style="border-left-color:var(--gold)">
+          <h3>Stock Source <span class="gd-tag">All · Store · DC · Rush</span></h3>
+          <p>Decides which stock counts toward "Total Stock": everything combined, or just store stock, distribution-centre stock, or rush-order stock. Handy when you only care about one location.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOSSARY -->
+    <div class="gd-section" id="gd-glossary">
+      <div class="gd-h2"><span class="gd-ic">📚</span> Plain-English glossary</div>
+      <p class="gd-lead">The handful of terms that show up across the portal. Tap any to expand.</p>
+
+      <details class="gd-acc"><summary>Weeks of Cover (WOC)</summary><div class="gd-acc-body">How many weeks your current stock will last if sales carry on at the recent pace. <b>Low WOC</b> = you may run out soon; <b>high WOC</b> = cash tied up in stock that's selling slowly.</div></details>
+      <details class="gd-acc"><summary>Sell-Through %</summary><div class="gd-acc-body">The share of available stock that actually sold. A high percentage means product is moving well relative to what was on hand. It's a great companion to raw sales — strong sales with weak sell-through can hide an overstock.</div></details>
+      <details class="gd-acc"><summary>Units / Store / Week</summary><div class="gd-acc-body">Average units sold per store, per week. It strips out "we just have more stores" so you can compare productivity fairly. The store count used depends on your <b>Average vs Latest</b> choice.</div></details>
+      <details class="gd-acc"><summary>Average vs Latest store count</summary><div class="gd-acc-body"><b>Average</b> uses the typical number of stores across the whole period; <b>Latest</b> uses the most recent week's store count applied across the range. If distribution changed recently, the two can differ noticeably — both are correct, they just answer slightly different questions.</div></details>
+      <details class="gd-acc"><summary>Momentum (period-over-period)</summary><div class="gd-acc-body">Whether things are speeding up or slowing down compared with the previous comparable period. Shown as a green ▲ (improving) or red ▼ (declining) with a percentage.</div></details>
+      <details class="gd-acc"><summary>YoY · YTD · CYTD · LYTD</summary><div class="gd-acc-body"><b>YoY</b> = Year-over-Year (this year vs last). <b>YTD</b> = Year-to-Date (Jan up to now). <b>CYTD</b> = Current Year-to-Date; <b>LYTD</b> = the same weeks Last Year-to-Date — so the comparison is fair, week-for-week.</div></details>
+      <details class="gd-acc"><summary>Pareto / concentration</summary><div class="gd-acc-body">A way of seeing how much of your sales come from your top few products. If a small handful of SKUs make up most of the volume, you're "concentrated" — great when they're healthy, risky if one stumbles.</div></details>
+      <details class="gd-acc"><summary>Total Stock — Store, DC &amp; Rush</summary><div class="gd-acc-body">Stock lives in a few places: on the shop floor (<b>Store</b>), in the distribution centre (<b>DC</b>), and on a <b>Rush</b> order in motion. "Total Stock" adds them up; the Stock Source filter lets you look at just one.</div></details>
+    </div>
+
+    <!-- FAQ -->
+    <div class="gd-section" id="gd-faq">
+      <div class="gd-h2"><span class="gd-ic">❓</span> Quick troubleshooting</div>
+      <p class="gd-lead">The questions that come up most often.</p>
+
+      <details class="gd-acc"><summary>A report looks empty — what happened?</summary><div class="gd-acc-body">Almost always the filters are too narrow: a date range with no sales, a client that didn't sell the selected products, or a single SKU with no activity. Hit <b>Reset</b> to widen everything, then narrow again step by step.</div></details>
+      <details class="gd-acc"><summary>I changed a filter but a number didn't move.</summary><div class="gd-acc-body">That report probably ignores that filter on purpose — check its coloured tag. For example, the <b>Period-over-Period</b> cards use their own period pickers (not the date range), and <b>Client Yearly Performance</b> always shows all clients.</div></details>
+      <details class="gd-acc"><summary>Average and Latest store count give different answers.</summary><div class="gd-acc-body">That's expected and healthy. They use a different store count in the maths. Watch the <b>Stores (Avg)</b> / <b>Stores (Latest)</b> column header so you always know which one you're reading.</div></details>
+      <details class="gd-acc"><summary>Why are some replenishment dates red or amber?</summary><div class="gd-acc-body"><span style="color:var(--red);font-weight:600">Red</span> means the date has already passed — you're at risk of a stock-out. <span style="color:var(--warm);font-weight:600">Amber</span> means it's coming up within 14 days. Green/plain dates have comfortable runway.</div></details>
+      <details class="gd-acc"><summary>How do I compare two accounts fairly?</summary><div class="gd-acc-body">Use <b>Client Yearly Performance</b> (Sales tab) or the <b>Account contribution</b> chart (AI tab) — both show every account at once regardless of the Client filter.</div></details>
+      <details class="gd-acc"><summary>How fresh is the data?</summary><div class="gd-acc-body">Press the <b>↻ Refresh</b> button at the top to pull the latest figures from the source.</div></details>
+    </div>
+
+    <div class="gd-foot">You're all set 🎉 &nbsp;·&nbsp; Keep this Guide handy — it lives right here in the portal whenever you need a refresher.</div>
+
+   </div>
+  </div><!-- /tab-guide -->
+
 </div>
+
 
 <script>
 let RAW = [];
@@ -2042,6 +2369,7 @@ function renderAll() {
 }
 
 function renderActiveTab() {
+  const _fb=document.querySelector('.filter-bar'); if(_fb) _fb.style.display = (activeTab==='guide') ? 'none' : '';
   if (!tabDirty[activeTab]) return;
   tabDirty[activeTab] = false;
 
