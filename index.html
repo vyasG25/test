@@ -4896,73 +4896,178 @@ function initForecastTab() {
 function fcDownloadExcel() {
   const r = fcLastResult;
   if (!r) { alert('Please generate a forecast first — select a client, product and date range.'); return; }
-  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const num = n => fmt(Math.round(Number(n)||0));
-  const sect = t => `<tr><td colspan="2" style="background:#2d4a37;color:#ffffff;font-weight:bold;font-size:12pt;padding:6px 10px;">${esc(t)}</td></tr>`;
-  const row = (k,v) => `<tr><td style="font-weight:bold;background:#f0ede6;border:1px solid #d9d4cc;padding:5px 10px;white-space:nowrap;">${esc(k)}</td><td style="border:1px solid #d9d4cc;padding:5px 10px;">${esc(v)}</td></tr>`;
-  const gap = `<tr><td colspan="2" style="height:6px;border:none;"></td></tr>`;
 
-  let t = `<table border="0" cellspacing="0" cellpadding="0" style="font-family:Calibri,Arial,sans-serif;font-size:11pt;border-collapse:collapse;">`;
-  t += `<tr><td colspan="2" style="font-size:15pt;font-weight:bold;color:#2d4a37;padding:4px 10px;">Sales Forecast — ${esc(r.targetSku)} · ${esc(r.targetName)}</td></tr>`;
-  t += `<tr><td colspan="2" style="font-size:9pt;color:#888;padding:0 10px 6px;">Generated ${esc(new Date().toLocaleString('en-GB'))}</td></tr>`;
-  t += gap;
+  // ---- helpers ----
+  const xe = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const colL = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; };
+  const round = (x,d) => { const p=Math.pow(10,d); return Math.round((Number(x)||0)*p)/p; };
 
-  t += sect('Forecast Configuration');
-  t += row('Forecast Method', r.methodLabel);
-  t += row('Method Basis', r.methodHint);
-  t += gap;
+  // ---- build rows: each cell {v, t:'n'|'s', s:styleIdx} ----
+  const rows = [];
+  const SEC = (title, span) => { const c=[{v:title,t:'s',s:2}]; for(let i=1;i<(span||2);i++) c.push({v:'',t:'s',s:2}); rows.push(c); };
+  const KV  = (k, v, isNum) => rows.push([{v:k,t:'s',s:1}, {v:isNum?(Number(v)||0):String(v), t:isNum?'n':'s', s:0}]);
+  const BLANK = () => rows.push([]);
 
-  t += sect('Target Selection');
-  t += row('Client / Account', r.client);
-  t += row('Product Code', r.targetSku);
-  t += row('Product Name', r.targetName);
-  t += row('Forecast From', r.fcFromDisp + ' (Wk ' + r.fcFromWk + ')');
-  t += row('Forecast To', r.fcToDisp + ' (Wk ' + r.fcToWk + ')');
-  t += row('Forecast Window (weeks)', r.fcWeeks);
-  t += row(r.periodLabel, r.periodRange);
-  t += gap;
+  rows.push([{v:'Sales Forecast — '+r.targetSku+' · '+r.targetName, t:'s', s:1}]);
+  rows.push([{v:'Generated '+new Date().toLocaleString('en-GB'), t:'s', s:0}]);
+  BLANK();
 
-  t += sect('Forecast Parameters');
-  t += row('Store Basis', r.storeBasisLabel);
-  t += row('Expected Stores', num(r.expectedStores));
-  t += row('Uplift %', (r.upliftPct>=0?'+':'') + r.upliftPct + '%');
-  t += row('Lead Time (weeks)', r.leadWeeks);
-  t += row('In-Transit Qty', num(r.inTransitQty));
-  t += row('Min Reserve Stock', num(r.minStock));
-  t += row('Rush-Order Stock', r.includeRush ? 'Included' : 'Excluded');
-  t += gap;
+  SEC('Forecast Configuration');
+  KV('Forecast Method', r.methodLabel);
+  KV('Method Basis', r.methodHint);
+  BLANK();
 
-  t += sect('Forecast Numbers');
-  t += row('Forecasted Sales (with uplift)', num(r.forecastWithUplift));
-  t += row('Base Forecast (pre-uplift)', num(r.forecastedSales));
-  t += row('Forecasted Avg Units / Week', r.avgPerWeek.toFixed(1));
-  t += row('Sales per Store / Week', r.salesPerStorePerWeek.toFixed(3));
-  t += row('Weeks of Cover', r.woc>=999 ? 'Infinite' : r.woc.toFixed(1));
-  t += row('Production Required', num(r.productionReq));
-  t += row('Stock Lasts Until', r.stockLastTillDisp);
-  t += row('Tentative PO Date', r.poDateDisp);
-  t += row(r.periodLabel + ' Sales', num(r.totalHistSales));
-  t += row('Weeks With Data', r.histWeekCount + ' of ' + r.fcWeeks);
-  t += row('All-Time Avg / Week', r.allTimeAvgWk.toFixed(1));
-  t += row('Historical Sales — All Time', num(r.allTimeSalesTarget));
-  t += row('Sell-Through %', (r.sellThru*100).toFixed(1) + '%');
-  t += row('Total Available Stock', num(r.totalAvailable));
-  t += gap;
+  SEC('Target Selection');
+  KV('Client / Account', r.client);
+  KV('Product Code', r.targetSku);
+  KV('Product Name', r.targetName);
+  KV('Forecast From', r.fcFromDisp+' (Wk '+r.fcFromWk+')');
+  KV('Forecast To', r.fcToDisp+' (Wk '+r.fcToWk+')');
+  KV('Forecast Window (weeks)', r.fcWeeks, true);
+  KV(r.periodLabel, r.periodRange);
+  BLANK();
 
-  t += `<tr><td colspan="2" style="background:#2d4a37;color:#ffffff;font-weight:bold;font-size:12pt;padding:6px 10px;">Weekly Breakdown</td></tr>`;
-  t += `<tr><td style="font-weight:bold;background:#f0ede6;border:1px solid #d9d4cc;padding:5px 10px;">Week</td><td style="font-weight:bold;background:#f0ede6;border:1px solid #d9d4cc;padding:5px 10px;">Forecast Qty</td></tr>`;
+  SEC('Forecast Parameters');
+  KV('Store Basis', r.storeBasisLabel);
+  KV('Expected Stores', r.expectedStores, true);
+  KV('Uplift %', (r.upliftPct>=0?'+':'')+r.upliftPct+'%');
+  KV('Lead Time (weeks)', r.leadWeeks, true);
+  KV('In-Transit Qty', r.inTransitQty, true);
+  KV('Min Reserve Stock', r.minStock, true);
+  KV('Rush-Order Stock', r.includeRush?'Included':'Excluded');
+  BLANK();
+
+  SEC('Forecast Numbers');
+  KV('Forecasted Sales (with uplift)', Math.round(r.forecastWithUplift), true);
+  KV('Base Forecast (pre-uplift)', Math.round(r.forecastedSales), true);
+  KV('Forecasted Avg Units / Week', round(r.avgPerWeek,1), true);
+  KV('Sales per Store / Week', round(r.salesPerStorePerWeek,3), true);
+  if (r.woc>=999) KV('Weeks of Cover', 'Infinite'); else KV('Weeks of Cover', round(r.woc,1), true);
+  KV('Production Required', Math.round(r.productionReq), true);
+  KV('Stock Lasts Until', r.stockLastTillDisp);
+  KV('Tentative PO Date', r.poDateDisp);
+  KV(r.periodLabel+' Sales', Math.round(r.totalHistSales), true);
+  KV('Weeks With Data', r.histWeekCount+' of '+r.fcWeeks);
+  KV('All-Time Avg / Week', round(r.allTimeAvgWk,1), true);
+  KV('Historical Sales — All Time', Math.round(r.allTimeSalesTarget), true);
+  KV('Sell-Through %', round(r.sellThru*100,1)+'%');
+  KV('Total Available Stock', Math.round(r.totalAvailable), true);
+  BLANK();
+
+  // Weekly breakdown — all 7 columns
+  SEC('Weekly Breakdown', 7);
+  rows.push(['Week','Period Starting','Hist. Sales','Store Scale','Forecast Qty','Per Store','Source'].map(h=>({v:h,t:'s',s:1})));
   (r.weeklyBreakdown||[]).forEach(w => {
-    t += `<tr><td style="border:1px solid #d9d4cc;padding:4px 10px;">Wk ${w.weekNum} '${String(w.yr).slice(2)}</td><td style="border:1px solid #d9d4cc;padding:4px 10px;">${num(w.scaledSales)}${w.isEstimated?' (est)':''}</td></tr>`;
+    rows.push([
+      {v:'Wk '+w.weekNum, t:'s', s:0},
+      {v:(w.weekStart instanceof Date)?w.weekStart.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):String(w.weekStart||''), t:'s', s:0},
+      {v:Math.round(w.baseSales||0), t:'n', s:0},
+      {v:round(r.storeRatio,2), t:'n', s:0},
+      {v:Math.round(w.scaledSales||0), t:'n', s:0},
+      {v:round(w.perStore,2), t:'n', s:0},
+      {v:w.isEstimated?'Estimated':'Historical', t:'s', s:0}
+    ]);
   });
-  t += `</table>`;
+  // TOTAL row
+  const totHist = (r.weeklyBreakdown||[]).reduce((s,w)=>s+(w.baseSales||0),0);
+  rows.push([
+    {v:'TOTAL', t:'s', s:1},
+    {v:'', t:'s', s:1},
+    {v:Math.round(totHist), t:'n', s:1},
+    {v:'', t:'s', s:1},
+    {v:Math.round(r.forecastWithUplift), t:'n', s:1},
+    {v:r.expectedStores>0?round(r.forecastWithUplift/r.expectedStores,2):0, t:'n', s:1},
+    {v:'', t:'s', s:1}
+  ]);
 
-  const wb = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Forecast</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>' + t + '</body></html>';
-  const blob = new Blob(['\ufeff' + wb], { type:'application/vnd.ms-excel;charset=utf-8' });
+  // ---- worksheet xml ----
+  let body='';
+  rows.forEach((cells,ri)=>{
+    const rn=ri+1; let rx=`<row r="${rn}">`;
+    cells.forEach((c,ci)=>{
+      if(c==null) return;
+      const ref=colL(ci)+rn; const st=c.s?` s="${c.s}"`:'';
+      if(c.t==='n' && c.v!=='' && c.v!=null && !isNaN(c.v)) rx+=`<c r="${ref}"${st}><v>${c.v}</v></c>`;
+      else rx+=`<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${xe(c.v)}</t></is></c>`;
+    });
+    rx+='</row>'; body+=rx;
+  });
+  const sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<cols><col min="1" max="1" width="34" customWidth="1"/><col min="2" max="2" width="22" customWidth="1"/><col min="3" max="7" width="14" customWidth="1"/></cols>'+
+    '<sheetData>'+body+'</sheetData></worksheet>';
+
+  const stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<fonts count="3"><font><sz val="11"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="11"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'+
+    '<fills count="3"><fill><patternFill patternType="none"/></fill>'+
+    '<fill><patternFill patternType="gray125"/></fill>'+
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF2D4A37"/><bgColor indexed="64"/></patternFill></fill></fills>'+
+    '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'+
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+    '<cellXfs count="3">'+
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+
+    '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+    '<xf numFmtId="0" fontId="2" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+
+    '</cellXfs>'+
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  const workbookXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+    '<sheets><sheet name="Forecast" sheetId="1" r:id="rId1"/></sheets></workbook>';
+  const workbookRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+    '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'+
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
+  const rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+
+  const enc = new TextEncoder();
+  const files = [
+    {name:'[Content_Types].xml', data:enc.encode(contentTypes)},
+    {name:'_rels/.rels', data:enc.encode(rootRels)},
+    {name:'xl/workbook.xml', data:enc.encode(workbookXml)},
+    {name:'xl/_rels/workbook.xml.rels', data:enc.encode(workbookRels)},
+    {name:'xl/styles.xml', data:enc.encode(stylesXml)},
+    {name:'xl/worksheets/sheet1.xml', data:enc.encode(sheetXml)}
+  ];
+
+  // ---- minimal ZIP (store, no compression) ----
+  const crcTable = (function(){ const t=[]; for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+  const crc32 = buf => { let crc=0xFFFFFFFF; for(let i=0;i<buf.length;i++) crc=(crc>>>8)^crcTable[(crc^buf[i])&0xFF]; return (crc^0xFFFFFFFF)>>>0; };
+  const u16=n=>[n&0xFF,(n>>>8)&0xFF];
+  const u32=n=>[n&0xFF,(n>>>8)&0xFF,(n>>>16)&0xFF,(n>>>24)&0xFF];
+  const parts=[], central=[]; let offset=0;
+  files.forEach(f=>{
+    const nameB=enc.encode(f.name), data=f.data, crc=crc32(data);
+    const local=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0));
+    parts.push(new Uint8Array(local), nameB, data);
+    const cen=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    central.push(new Uint8Array(cen), nameB);
+    offset += local.length + nameB.length + data.length;
+  });
+  let cenSize=0; central.forEach(c=>cenSize+=c.length);
+  const eocd=[].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cenSize),u32(offset),u16(0));
+  const all=[...parts,...central,new Uint8Array(eocd)];
+  let total=0; all.forEach(a=>total+=a.length);
+  const zip=new Uint8Array(total); let p=0; all.forEach(a=>{zip.set(a,p);p+=a.length;});
+
+  const blob = new Blob([zip], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const url = URL.createObjectURL(blob);
   const safe = s => String(s).replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'');
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'Forecast_' + safe(r.client) + '_' + safe(r.targetSku) + '_' + new Date().toISOString().split('T')[0] + '.xls';
+  a.download = 'Forecast_'+safe(r.client)+'_'+safe(r.targetSku)+'_'+new Date().toISOString().split('T')[0]+'.xlsx';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
@@ -5204,6 +5309,7 @@ function runForecast() {
     forecastWithUplift, forecastedSales, avgPerWeek, salesPerStorePerWeek, woc, productionReq,
     stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
     totalHistSales, histWeekCount, allTimeAvgWk, allTimeSalesTarget, sellThru, totalAvailable,
+    storeRatio,
     weeklyBreakdown
   };
 
@@ -5815,6 +5921,7 @@ function runTrendForecast() {
     forecastWithUplift, forecastedSales:baseForecast, avgPerWeek, salesPerStorePerWeek, woc, productionReq,
     stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
     totalHistSales:refTotalSales, histWeekCount:refWeekCount, allTimeAvgWk, allTimeSalesTarget:allTimeSales, sellThru, totalAvailable,
+    storeRatio,
     weeklyBreakdown
   };
 
