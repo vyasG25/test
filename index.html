@@ -747,17 +747,9 @@
   .ai-gauge-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);}
 
   /* CEO BRIEF — EXECUTIVE SIGNAL FLOW (connected node-track, unique to this page) */
-  .ceo-flow{position:relative;}
-  /* posture banner */
-  .ceo-posture{display:flex;align-items:center;gap:11px;margin-bottom:22px;padding:11px 16px;border-radius:var(--r);
+  .ceo-flow{position:relative;padding:22px 20px 20px;border-radius:var(--r);
     background:linear-gradient(100deg,color-mix(in srgb,var(--pc) 14%,var(--surface)),var(--surface) 70%);
     border:1px solid color-mix(in srgb,var(--pc) 26%,var(--border));box-shadow:var(--shadow);}
-  .ceo-posture-dot{position:relative;width:12px;height:12px;flex:0 0 auto;border-radius:50%;background:var(--pc);
-    box-shadow:0 0 0 0 var(--pc);animation:ceoPulse 2.2s ease-out infinite;}
-  @keyframes ceoPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pc) 65%,transparent);}70%{box-shadow:0 0 0 11px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
-  .ceo-posture-k{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);}
-  .ceo-posture-v{font-size:15px;font-weight:800;color:var(--pc);letter-spacing:-.2px;}
-  .ceo-posture-meta{margin-left:auto;font-size:11.5px;color:var(--text3);font-weight:500;}
   /* the connecting track that runs through every node */
   .ceo-flow-track{position:absolute;left:9%;right:9%;top:23px;height:4px;border-radius:4px;z-index:0;
     background:linear-gradient(90deg,var(--blue),var(--green),var(--warm),var(--red),var(--accent2));
@@ -6669,12 +6661,6 @@ function getISOWeek(d) {
         </div>
       </div>`).join('');
     H+=sec(2,'CEO Brief','30-second read',`<div class="ceo-flow" style="--pc:${posture.c}">
-      <div class="ceo-posture">
-        <span class="ceo-posture-dot"></span>
-        <span class="ceo-posture-k">Executive posture</span>
-        <span class="ceo-posture-v">${posture.v}</span>
-        <span class="ceo-posture-meta">${fmt(M.n)} records · ${M.nClient} accounts · ${M.nSku} SKUs · ${M.nWeeks} weeks</span>
-      </div>
       <div class="ceo-flow-row"><div class="ceo-flow-track"></div>${ceoStageHtml}</div>
     </div>`);
 
