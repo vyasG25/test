@@ -302,12 +302,12 @@
   .fc-mode-btn:not(.active):hover{background:var(--accent-light);color:var(--accent);}
   .fc-reset-btn{
     display:flex;align-items:center;gap:7px;
-    padding:8px 16px;background:transparent;color:var(--text2);
-    border:1.5px solid var(--border2);border-radius:var(--rs);
+    padding:8px 16px;background:var(--warm-light);color:var(--warm);
+    border:1.5px solid var(--warm);border-radius:var(--rs);
     cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;
     transition:all .18s;
   }
-  .fc-reset-btn:hover{background:var(--warm-light);color:var(--warm);border-color:var(--warm);}
+  .fc-reset-btn:hover{background:var(--warm);color:#fff;border-color:var(--warm);}
 
   /* ── Configuration Panel ── */
   .fcb-config{
@@ -903,6 +903,7 @@
   .gd-nav a{font-size:12.5px;font-weight:600;color:var(--text2);text-decoration:none;background:var(--surface);
     border:1px solid var(--border);padding:8px 14px;border-radius:30px;transition:all .15s;}
   .gd-nav a:hover{color:var(--accent);border-color:var(--accent);transform:translateY(-1px);}
+  .gd-nav a.gd-active{color:var(--accent2);border-color:var(--accent2);background:var(--accent2-light);font-weight:700;box-shadow:0 2px 10px -4px var(--accent2);}
 
   .gd-section{margin-top:34px;scroll-margin-top:72px;}
   .gd-h2{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.3px;
@@ -2311,6 +2312,23 @@ function setup() {
     });
   });
 
+  // Guide tab: highlight the in-page nav link for the section currently in view
+  (function(){
+    const nav=document.querySelector('.gd-nav'); if(!nav) return;
+    const links=[...nav.querySelectorAll('a')];
+    const map=links.map(a=>({a, sec:document.getElementById(a.getAttribute('href').slice(1))})).filter(x=>x.sec);
+    if(!map.length) return;
+    gdSpyUpdate=function(){
+      if(activeTab!=='guide') return;
+      const threshold=175;
+      let cur=map[0];
+      for(const m of map){ if(m.sec.getBoundingClientRect().top <= threshold) cur=m; }
+      links.forEach(a=>a.classList.toggle('gd-active', a===cur.a));
+    };
+    window.addEventListener('scroll', gdSpyUpdate, {passive:true});
+    window.addEventListener('resize', gdSpyUpdate, {passive:true});
+  })();
+
 }
 
 function switchTab(tabName) {
@@ -2434,6 +2452,7 @@ function applyFilters() {
 
 // Track active tab for lazy rendering
 let activeTab = 'sales';
+let gdSpyUpdate = null; // Guide tab scroll-spy updater
 let tabDirty = { sales: true, salesdetail: true, inventory: true, replenish: true, forecast: true, ai: true };
 
 function renderAll() {
@@ -2450,6 +2469,7 @@ function renderAll() {
 
 function renderActiveTab() {
   document.body.classList.toggle('no-filterbar', activeTab==='guide' || activeTab==='forecast');
+  if(activeTab==='guide' && gdSpyUpdate) gdSpyUpdate();
   if (!tabDirty[activeTab]) return;
   tabDirty[activeTab] = false;
 
