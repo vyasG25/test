@@ -868,6 +868,20 @@
 
   .ai-note{font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5;}
 
+  /* Business Health Radar (CEO Brief) */
+  .ai-radar-panel{margin-bottom:14px;}
+  .ai-radar-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:center;margin-top:6px;}
+  .ai-radar-svg{min-width:0;}
+  .ai-radar-legend{display:flex;flex-direction:column;gap:3px;}
+  .ai-radar-leg{display:grid;grid-template-columns:11px 96px 1fr 30px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--border);}
+  .ai-radar-leg:last-child{border-bottom:none;}
+  .ai-radar-sw{width:11px;height:11px;border-radius:3px;}
+  .ai-radar-lbl{font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;}
+  .ai-radar-bar{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;}
+  .ai-radar-bar>span{display:block;height:100%;border-radius:6px;}
+  .ai-radar-val{font-size:13px;font-weight:800;color:var(--text);text-align:right;font-variant-numeric:tabular-nums;}
+  @media(max-width:760px){.ai-radar-grid{grid-template-columns:1fr;gap:10px;}}
+
   /* ═══════════════════════════════════════════════════════════
      GUIDE / USER MANUAL TAB  (namespaced .gd-*)
      ═══════════════════════════════════════════════════════════ */
@@ -6099,6 +6113,37 @@ function getISOWeek(d) {
   }
   function bar(pct,color){ return `<div class="ai-driver-bar"><div class="ai-driver-fill" style="width:${clamp(pct,2,100)}%;background:${color}"></div></div>`; }
 
+  // radar / spider chart — used for the Business Health Radar (CEO Brief)
+  function radarChart(dims){
+    const n=dims.length; if(n<3) return '';
+    const W=560,H=470,cx=280,cy=240,R=148,LR=R+24;
+    const ang=i=>(-Math.PI/2)+i*(2*Math.PI/n);
+    const pt=(i,r)=>[cx+Math.cos(ang(i))*r, cy+Math.sin(ang(i))*r];
+    const col=s=>s>=60?C.good:s>=40?C.warn:C.crit;
+    let rings='';
+    [0.25,0.5,0.75,1].forEach(f=>{
+      const p=dims.map((_,i)=>pt(i,R*f).map(v=>v.toFixed(1)).join(',')).join(' ');
+      rings+=`<polygon points="${p}" fill="none" stroke="var(--border)" stroke-width="1"/>`;
+    });
+    let spokes='';
+    dims.forEach((_,i)=>{ const [x,y]=pt(i,R); spokes+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`; });
+    const dpts=dims.map((d,i)=>pt(i,R*clamp(d.score,0,100)/100).map(v=>v.toFixed(1)).join(',')).join(' ');
+    let dots='',labels='';
+    dims.forEach((d,i)=>{
+      const [dx,dy]=pt(i,R*clamp(d.score,0,100)/100);
+      dots+=`<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="4.5" fill="${C.accent2}" stroke="var(--surface)" stroke-width="2"/>`;
+      const [lx,ly]=pt(i,LR);
+      const anchor=Math.abs(lx-cx)<8?'middle':(lx>cx?'start':'end');
+      labels+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" font-size="13" font-weight="600" fill="var(--text2)">${esc(d.label)}</text>`+
+              `<text x="${lx.toFixed(1)}" y="${(ly+17).toFixed(1)}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="${col(d.score)}">${Math.round(d.score)}</text>`;
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px;height:auto;display:block;margin:0 auto" preserveAspectRatio="xMidYMid meet">
+      ${rings}${spokes}
+      <polygon points="${dpts}" fill="${C.accent2}" fill-opacity="0.18" stroke="${C.accent2}" stroke-width="2.5" stroke-linejoin="round"/>
+      ${dots}${labels}
+    </svg>`;
+  }
+
   // client roll-up (qty, value, #SKUs, momentum) from an arbitrary row set
   function cliRollup(src){
     if(!src || !src.length) return [];
@@ -6552,7 +6597,29 @@ function getISOWeek(d) {
     // 2 — CEO BRIEF
     const b=ceoBrief(M);
     const briefCol=(cls,dot,title,arr)=>`<div class="ai-brief-col ${cls}"><div class="ai-brief-h"><span class="dot" style="background:${dot}"></span>${title}</div><ul class="ai-brief-list">${arr.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
-    H+=sec(2,'CEO Brief','30-second read',`<div class="ai-brief">
+    // Business Health Radar — six dimensions, all 0–100 where higher = better
+    const radarDims=[
+      {label:'Growth', score:k.growthScore},
+      {label:'Inventory', score:k.invHealth},
+      {label:'Sell-Through', score:k.sellHealth},
+      {label:'Coverage', score:k.covScore},
+      {label:'Resilience', score:100-k.riskScore},
+      {label:'Stability', score:100-k.opPressure}
+    ];
+    const radarAvg=Math.round(radarDims.reduce((s,d)=>s+clamp(d.score,0,100),0)/radarDims.length);
+    const radarBadge=radarAvg>=60?'good':radarAvg>=40?'warn':'crit';
+    const colOf=s=>s>=60?C.good:s>=40?C.warn:C.crit;
+    const radarLegend=radarDims.map(d=>`<div class="ai-radar-leg"><span class="ai-radar-sw" style="background:${colOf(d.score)}"></span><span class="ai-radar-lbl">${d.label}</span><span class="ai-radar-bar"><span style="width:${clamp(d.score,0,100)}%;background:${colOf(d.score)}"></span></span><span class="ai-radar-val">${Math.round(d.score)}</span></div>`).join('');
+    H+=sec(2,'CEO Brief','30-second read',`
+      <div class="ai-panel ai-radar-panel">
+        <div class="ai-panel-h">Business Health Radar <span class="ai-badge ${radarBadge}">overall ${radarAvg}/100</span></div>
+        <div class="ai-radar-grid">
+          <div class="ai-radar-svg">${radarChart(radarDims)}</div>
+          <div class="ai-radar-legend">${radarLegend}</div>
+        </div>
+        <div class="ai-note">Six health dimensions scored 0–100; the further each point sits from the centre, the healthier that dimension. Resilience and Stability are inverted risk measures, so higher is always better.</div>
+      </div>
+      <div class="ai-brief">
       ${briefCol('l-now',C.info,"What’s happening",b.now)}
       ${briefCol('l-work',C.good,"What’s working",b.work)}
       ${briefCol('l-notwork',C.warn,"What’s not",b.notwork)}
