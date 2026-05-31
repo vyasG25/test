@@ -882,6 +882,12 @@
   .ai-radar-val{font-size:13px;font-weight:800;color:var(--text);text-align:right;font-variant-numeric:tabular-nums;}
   @media(max-width:760px){.ai-radar-grid{grid-template-columns:1fr;gap:10px;}}
 
+  /* Action Priority Matrix (AI Recommendations) */
+  .ai-pm-panel{margin-bottom:14px;}
+  .ai-pm-legend{display:flex;flex-wrap:wrap;gap:9px 18px;margin-top:13px;}
+  .ai-pm-key{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);font-weight:600;}
+  .ai-pm-key .sw{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
+
   /* ═══════════════════════════════════════════════════════════
      GUIDE / USER MANUAL TAB  (namespaced .gd-*)
      ═══════════════════════════════════════════════════════════ */
@@ -6144,6 +6150,48 @@ function getISOWeek(d) {
     </svg>`;
   }
 
+  // action priority matrix — impact (y) vs effort (x), four quadrants with numbered bubbles
+  function priorityMatrix(recs){
+    if(!recs||!recs.length) return '';
+    const W=760,H=470,padL=66,padR=22,padT=24,padB=50;
+    const plotW=W-padL-padR, plotH=H-padT-padB;
+    const midX=padL+plotW/2, midY=padT+plotH/2;
+    const colFor=(imp,eff)=> imp>=5 ? (eff<5?C.good:C.info) : (eff<5?C.neutral:C.crit);
+    const q=(x,y,w,h,c)=>`<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${c}" fill-opacity="0.07"/>`;
+    const tints=q(padL,padT,plotW/2,plotH/2,C.good)+q(midX,padT,plotW/2,plotH/2,C.info)+q(padL,midY,plotW/2,plotH/2,C.neutral)+q(midX,midY,plotW/2,plotH/2,C.crit);
+    const frame=`<rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="none" stroke="var(--border)" stroke-width="1.5" rx="12"/>`+
+      `<line x1="${midX}" y1="${padT}" x2="${midX}" y2="${padT+plotH}" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 5"/>`+
+      `<line x1="${padL}" y1="${midY}" x2="${padL+plotW}" y2="${midY}" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 5"/>`;
+    const ql=(x,y,a,c,t)=>`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" text-anchor="${a}" font-size="12" font-weight="800" letter-spacing="0.5" fill="${c}" opacity="0.9">${t}</text>`;
+    const qlabels=ql(padL+13,padT+22,'start',C.good,'QUICK WINS')+ql(padL+plotW-13,padT+22,'end',C.info,'MAJOR BETS')+
+      ql(padL+13,padT+plotH-13,'start',C.neutral,'FILL-INS')+ql(padL+plotW-13,padT+plotH-13,'end',C.crit,'DEPRIORITISE');
+    const axes=`<text x="${midX}" y="${H-15}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text2)">EFFORT  →</text>`+
+      `<text x="20" y="${midY}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text2)" transform="rotate(-90 20 ${midY})">IMPACT  →</text>`+
+      `<text x="${padL-8}" y="${padT+13}" text-anchor="end" font-size="10.5" fill="var(--text3)">High</text>`+
+      `<text x="${padL-8}" y="${padT+plotH-2}" text-anchor="end" font-size="10.5" fill="var(--text3)">Low</text>`+
+      `<text x="${padL}" y="${padT+plotH+19}" text-anchor="middle" font-size="10.5" fill="var(--text3)">Low</text>`+
+      `<text x="${padL+plotW}" y="${padT+plotH+19}" text-anchor="middle" font-size="10.5" fill="var(--text3)">High</text>`;
+    const r=15, placed=[];
+    const X=eff=>padL+(clamp(eff,0,10)/10)*plotW, Y=imp=>padT+(1-clamp(imp,0,10)/10)*plotH;
+    let bubbles='';
+    recs.forEach((rec,i)=>{
+      const imp=rec.imp!=null?rec.imp:5, eff=rec.eff!=null?rec.eff:5;
+      const ox=X(eff), oy=Y(imp);
+      let bx=clamp(ox,padL+r+2,padL+plotW-r-2), by=clamp(oy,padT+r+2,padT+plotH-r-2);
+      let a=0,step=0;
+      while(placed.some(p=>Math.hypot(p.x-bx,p.y-by)<2*r+3) && step<70){
+        step++; a+=0.9; const rad=(2*r+5)*0.18*(1+step*0.06);
+        bx=clamp(ox+Math.cos(a)*rad,padL+r+2,padL+plotW-r-2);
+        by=clamp(oy+Math.sin(a)*rad,padT+r+2,padT+plotH-r-2);
+      }
+      placed.push({x:bx,y:by});
+      const c=colFor(imp,eff);
+      bubbles+=`<g><circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="${r}" fill="${c}" stroke="var(--surface)" stroke-width="2"><title>${esc(rec.t)}</title></circle>`+
+        `<text x="${bx.toFixed(1)}" y="${(by+4.6).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">${i+1}</text></g>`;
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">${tints}${frame}${qlabels}${axes}${bubbles}</svg>`;
+  }
+
   // client roll-up (qty, value, #SKUs, momentum) from an arbitrary row set
   function cliRollup(src){
     if(!src || !src.length) return [];
@@ -6475,6 +6523,24 @@ function getISOWeek(d) {
       ['Re-confirm the forecast',`Run-rate momentum is ${k.momDir} (${sPct(k.momHalf)}).`,`Plans should track the live trend.`,`Mis-set targets misallocate stock.`,`Reset forecast to current velocity in the Forecast tab.`,`Better-aligned buying and targets.`]
     ];
     let fi=0; while(recs.length<10 && fi<fillers.length){ const f=fillers[fi++]; push(...f); }
+    // estimated impact (1–10) & effort (1–10) for the priority matrix, keyed by recommendation title
+    const SCORES={
+      'Reallocate / clear excess inventory':[8,5],
+      'Dead-stock cleanup':[6,3],
+      'Correct replenishment on fast movers':[9,4],
+      'Reduce SKU concentration':[7,8],
+      'Diversify account base':[8,9],
+      'Sales-recovery plan on decliners':[8,6],
+      'Expand distribution on winners':[8,5],
+      'Press the accelerating SKUs':[7,3],
+      'Rebalance instead of re-buy':[8,5],
+      'Reduce rush-order reliance':[5,6],
+      'Stabilise demand planning':[6,8],
+      'Protect the volume anchor':[7,4],
+      'Refine assortment':[5,5],
+      'Re-confirm the forecast':[5,2]
+    };
+    recs.forEach(r=>{ const s=SCORES[r.t]||[6,5]; r.imp=s[0]; r.eff=s[1]; });
     return recs.slice(0,Math.max(10,recs.length));
   }
 
@@ -6659,7 +6725,19 @@ function getISOWeek(d) {
 
     // 7 — AI RECOMMENDATIONS
     const recs=recommendations(M);
-    H+=sec(7,'AI Recommendations',`${recs.length} prioritised actions`,`<div class="ai-grid-3">${recs.map((r,i)=>`
+    H+=sec(7,'AI Recommendations',`${recs.length} prioritised actions`,`
+      <div class="ai-panel ai-pm-panel">
+        <div class="ai-panel-h">Action Priority Matrix <span class="ai-badge neutral">${recs.length} actions plotted</span></div>
+        ${priorityMatrix(recs)}
+        <div class="ai-pm-legend">
+          <span class="ai-pm-key"><span class="sw" style="background:var(--green)"></span>Quick wins — high impact, low effort</span>
+          <span class="ai-pm-key"><span class="sw" style="background:var(--blue)"></span>Major bets — high impact, high effort</span>
+          <span class="ai-pm-key"><span class="sw" style="background:var(--text3)"></span>Fill-ins — low impact, low effort</span>
+          <span class="ai-pm-key"><span class="sw" style="background:var(--red)"></span>Deprioritise — low impact, high effort</span>
+        </div>
+        <div class="ai-note">Each numbered bubble is a recommendation listed below; its position reflects estimated business impact versus effort to implement. Work top-left to bottom-right.</div>
+      </div>
+      <div class="ai-grid-3">${recs.map((r,i)=>`
       <div class="ai-reco"><div class="ai-reco-head"><span class="ai-reco-idx">${i+1}</span><span class="ai-reco-title">${r.t}</span></div>
       <div class="ai-reco-rows">
         <div class="ai-reco-row"><span class="ai-reco-k">Issue</span><span class="ai-reco-v">${r.issue}</span></div>
