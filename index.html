@@ -746,21 +746,62 @@
   .ai-gauge-val{font-size:16px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
   .ai-gauge-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);}
 
-  /* CEO BRIEF */
-  .ai-brief{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
-  @media(max-width:1100px){.ai-brief{grid-template-columns:repeat(2,1fr);}}
-  @media(max-width:600px){.ai-brief{grid-template-columns:1fr;}}
-  .ai-brief-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);}
-  .ai-brief-col.l-now{border-top:3px solid var(--blue);}
-  .ai-brief-col.l-work{border-top:3px solid var(--green);}
-  .ai-brief-col.l-notwork{border-top:3px solid var(--warm);}
-  .ai-brief-col.l-risk{border-top:3px solid var(--red);}
-  .ai-brief-col.l-next{border-top:3px solid var(--accent2);}
-  .ai-brief-h{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
-  .ai-brief-h .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
-  .ai-brief-list{list-style:none;display:flex;flex-direction:column;gap:9px;}
-  .ai-brief-list li{font-size:13px;line-height:1.5;color:var(--text);padding-left:16px;position:relative;}
-  .ai-brief-list li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--text3);}
+  /* CEO BRIEF — EXECUTIVE SIGNAL FLOW (connected node-track, unique to this page) */
+  .ceo-flow{position:relative;}
+  /* posture banner */
+  .ceo-posture{display:flex;align-items:center;gap:11px;margin-bottom:22px;padding:11px 16px;border-radius:var(--r);
+    background:linear-gradient(100deg,color-mix(in srgb,var(--pc) 14%,var(--surface)),var(--surface) 70%);
+    border:1px solid color-mix(in srgb,var(--pc) 26%,var(--border));box-shadow:var(--shadow);}
+  .ceo-posture-dot{position:relative;width:12px;height:12px;flex:0 0 auto;border-radius:50%;background:var(--pc);
+    box-shadow:0 0 0 0 var(--pc);animation:ceoPulse 2.2s ease-out infinite;}
+  @keyframes ceoPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pc) 65%,transparent);}70%{box-shadow:0 0 0 11px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
+  .ceo-posture-k{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);}
+  .ceo-posture-v{font-size:15px;font-weight:800;color:var(--pc);letter-spacing:-.2px;}
+  .ceo-posture-meta{margin-left:auto;font-size:11.5px;color:var(--text3);font-weight:500;}
+  /* the connecting track that runs through every node */
+  .ceo-flow-track{position:absolute;left:9%;right:9%;top:23px;height:4px;border-radius:4px;z-index:0;
+    background:linear-gradient(90deg,var(--blue),var(--green),var(--warm),var(--red),var(--accent2));
+    box-shadow:0 1px 6px rgba(44,42,37,.12);
+    transform:scaleX(0);transform-origin:left;animation:ceoTrack 1s .15s cubic-bezier(.2,.8,.25,1) forwards;}
+  @keyframes ceoTrack{to{transform:scaleX(1);}}
+  .ceo-flow-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;position:relative;}
+  .ceo-stage{--sc:var(--blue);display:flex;flex-direction:column;align-items:stretch;
+    opacity:0;transform:translateY(14px);animation:ceoRise .55s forwards;animation-delay:calc(.25s + var(--si) * .12s);}
+  @keyframes ceoRise{to{opacity:1;transform:translateY(0);}}
+  /* glowing category node sitting on the track */
+  .ceo-node{position:relative;width:46px;height:46px;margin:0 auto 14px;border-radius:50%;z-index:2;
+    display:flex;align-items:center;justify-content:center;background:var(--surface);
+    border:3px solid var(--sc);color:var(--sc);font-size:18px;font-weight:800;
+    box-shadow:0 0 0 5px color-mix(in srgb,var(--sc) 12%,transparent),0 0 14px color-mix(in srgb,var(--sc) 45%,transparent);}
+  .ceo-node-count{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:11px;
+    background:var(--sc);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--surface);font-variant-numeric:tabular-nums;}
+  /* signal panel (color-tinted, glassy — deliberately not the old top-border card) */
+  .ceo-panel{flex:1;background:linear-gradient(180deg,color-mix(in srgb,var(--sc) 7%,var(--surface)),var(--surface) 55%);
+    border:1px solid color-mix(in srgb,var(--sc) 20%,var(--border));border-radius:var(--r);padding:14px 14px 15px;
+    box-shadow:0 2px 10px color-mix(in srgb,var(--sc) 9%,transparent);transition:transform .16s ease,box-shadow .16s ease;}
+  .ceo-stage:hover .ceo-panel{transform:translateY(-3px);box-shadow:0 8px 20px color-mix(in srgb,var(--sc) 16%,transparent);}
+  .ceo-panel-h{display:flex;align-items:baseline;justify-content:space-between;gap:6px;margin-bottom:11px;
+    padding-bottom:9px;border-bottom:1px dashed color-mix(in srgb,var(--sc) 28%,var(--border));}
+  .ceo-panel-label{font-size:13px;font-weight:800;color:var(--text);letter-spacing:-.2px;}
+  .ceo-panel-note{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--sc);white-space:nowrap;}
+  .ceo-points{list-style:none;display:flex;flex-direction:column;gap:10px;}
+  .ceo-points li{position:relative;font-size:12.5px;line-height:1.5;color:var(--text2);padding-left:18px;
+    opacity:0;transform:translateX(-6px);animation:ceoPoint .4s forwards;animation-delay:calc(.5s + var(--si)*.12s + var(--pj)*.07s);}
+  .ceo-points li::before{content:"";position:absolute;left:2px;top:6px;width:7px;height:7px;border-radius:2px;
+    transform:rotate(45deg);background:var(--sc);box-shadow:0 0 5px color-mix(in srgb,var(--sc) 50%,transparent);}
+  .ceo-points li b{color:var(--text);font-weight:700;}
+  @keyframes ceoPoint{to{opacity:1;transform:translateX(0);}}
+  @media(max-width:1100px){
+    .ceo-flow-track{display:none;}
+    .ceo-flow-row{grid-template-columns:repeat(2,1fr);}
+    .ceo-node{margin-left:0;}
+  }
+  @media(max-width:600px){.ceo-flow-row{grid-template-columns:1fr;}}
+  @media(prefers-reduced-motion:reduce){
+    .ceo-flow-track,.ceo-stage,.ceo-points li,.ceo-posture-dot{animation:none!important;opacity:1!important;transform:none!important;}
+    .ceo-flow-track{transform:scaleX(1)!important;}
+  }
 
   /* KPI COCKPIT */
   .ai-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
@@ -6605,15 +6646,36 @@ function getISOWeek(d) {
       </div></div>`;
     H+=`<div class="ai-section">${hero}</div>`;
 
-    // 2 — CEO BRIEF
+    // 2 — CEO BRIEF  (Executive Signal Flow)
     const b=ceoBrief(M);
-    const briefCol=(cls,dot,title,arr)=>`<div class="ai-brief-col ${cls}"><div class="ai-brief-h"><span class="dot" style="background:${dot}"></span>${title}</div><ul class="ai-brief-list">${arr.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
-    H+=sec(2,'CEO Brief','30-second read',`<div class="ai-brief">
-      ${briefCol('l-now',C.info,"What’s happening",b.now)}
-      ${briefCol('l-work',C.good,"What’s working",b.work)}
-      ${briefCol('l-notwork',C.warn,"What’s not",b.notwork)}
-      ${briefCol('l-risk',C.crit,'Biggest risks',b.risk)}
-      ${briefCol('l-next',C.accent2,'Do next',b.next)}
+    const posture = k.riskLevel==='high'
+        ? {v:'Action needed', c:'var(--red)'}
+        : k.riskLevel==='moderate'
+        ? {v:'Monitor closely', c:'var(--warm)'}
+        : {v:'On track', c:'var(--green)'};
+    const ceoStages=[
+      {label:"What’s happening", note:'current state', glyph:'◉', col:'var(--blue)',    items:b.now},
+      {label:"What’s working",   note:'strengths',     glyph:'✓', col:'var(--green)',   items:b.work},
+      {label:"What’s not",       note:'weak spots',    glyph:'!', col:'var(--warm)',    items:b.notwork},
+      {label:'Biggest risks',    note:'watch',         glyph:'▲', col:'var(--red)',     items:b.risk},
+      {label:'Do next',          note:'actions',       glyph:'→', col:'var(--accent2)', items:b.next}
+    ];
+    const ceoStageHtml = ceoStages.map((s,i)=>`
+      <div class="ceo-stage" style="--sc:${s.col};--si:${i}">
+        <div class="ceo-node"><span class="ceo-node-glyph">${s.glyph}</span><span class="ceo-node-count">${s.items.length}</span></div>
+        <div class="ceo-panel">
+          <div class="ceo-panel-h"><span class="ceo-panel-label">${s.label}</span><span class="ceo-panel-note">${s.note}</span></div>
+          <ul class="ceo-points">${s.items.map((x,j)=>`<li style="--pj:${j}">${x}</li>`).join('')}</ul>
+        </div>
+      </div>`).join('');
+    H+=sec(2,'CEO Brief','30-second read',`<div class="ceo-flow" style="--pc:${posture.c}">
+      <div class="ceo-posture">
+        <span class="ceo-posture-dot"></span>
+        <span class="ceo-posture-k">Executive posture</span>
+        <span class="ceo-posture-v">${posture.v}</span>
+        <span class="ceo-posture-meta">${fmt(M.n)} records · ${M.nClient} accounts · ${M.nSku} SKUs · ${M.nWeeks} weeks</span>
+      </div>
+      <div class="ceo-flow-row"><div class="ceo-flow-track"></div>${ceoStageHtml}</div>
     </div>`);
 
     // 3 — KPI COCKPIT
