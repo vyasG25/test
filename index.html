@@ -308,6 +308,15 @@
     transition:all .18s;
   }
   .fc-reset-btn:hover{background:var(--warm);color:#fff;border-color:var(--warm);}
+  .fc-download-btn{
+    display:flex;align-items:center;gap:7px;
+    padding:8px 16px;background:var(--accent);color:#fff;
+    border:1.5px solid var(--accent);border-radius:var(--rs);
+    cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;
+    transition:all .18s;
+  }
+  .fc-download-btn:hover{background:var(--accent-dark,#2f6f49);border-color:var(--accent-dark,#2f6f49);}
+  .fcb-command-actions{display:flex;align-items:center;gap:10px;}
 
   /* ── Configuration Panel ── */
   .fcb-config{
@@ -1436,10 +1445,16 @@
         </div>
         <span style="font-size:10px;color:var(--text3);max-width:360px;line-height:1.4;" id="fcModeHint">Uses last year's same-period sales. Best for products with 12+ months of history.</span>
       </div>
-      <button class="fc-reset-btn" id="fcResetBtn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
-        Reset Forecast
-      </button>
+      <div class="fcb-command-actions">
+        <button class="fc-download-btn" id="fcDownloadBtn" title="Download the current forecast as an Excel file">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Excel
+        </button>
+        <button class="fc-reset-btn" id="fcResetBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+          Reset Forecast
+        </button>
+      </div>
     </div>
 
     <!-- ② CONFIGURATION PANEL -->
@@ -2412,11 +2427,6 @@ function setup() {
       const threshold=175;
       let cur=map[0];
       for(const m of map){ if(m.sec.getBoundingClientRect().top <= threshold) cur=m; }
-      // The last section often can't scroll its top above the threshold (not enough
-      // content below it), so when we reach the bottom of the page force-select it.
-      const scrollBottom=window.scrollY+window.innerHeight;
-      const docHeight=document.documentElement.scrollHeight;
-      if(scrollBottom>=docHeight-2) cur=map[map.length-1];
       links.forEach(a=>a.classList.toggle('gd-active', a===cur.a));
     };
     window.addEventListener('scroll', gdSpyUpdate, {passive:true});
@@ -4705,6 +4715,7 @@ let fcInitialized = false;
 let fcProductSkus = [];
 let fcIncludeRush = false;
 let fcLastAutoStoreSku = '';
+let fcLastResult = null; // normalized snapshot of the current forecast for Excel export
 
 // Latest Store Count = store count on the most recent (latest) sale date of the
 // selected client + SKU. If multiple rows share that date, their store counts are summed.
@@ -4863,6 +4874,9 @@ function initForecastTab() {
     // Reset button
     document.getElementById('fcResetBtn').addEventListener('click', fcResetForecast);
 
+    // Download Excel button
+    document.getElementById('fcDownloadBtn').addEventListener('click', fcDownloadExcel);
+
     // Rush order select
     document.getElementById('fcRushOrder').addEventListener('change', () => {
       fcIncludeRush = document.getElementById('fcRushOrder').value === 'yes';
@@ -4879,7 +4893,82 @@ function initForecastTab() {
   }
 }
 
+function fcDownloadExcel() {
+  const r = fcLastResult;
+  if (!r) { alert('Please generate a forecast first — select a client, product and date range.'); return; }
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const num = n => fmt(Math.round(Number(n)||0));
+  const sect = t => `<tr><td colspan="2" style="background:#2d4a37;color:#ffffff;font-weight:bold;font-size:12pt;padding:6px 10px;">${esc(t)}</td></tr>`;
+  const row = (k,v) => `<tr><td style="font-weight:bold;background:#f0ede6;border:1px solid #d9d4cc;padding:5px 10px;white-space:nowrap;">${esc(k)}</td><td style="border:1px solid #d9d4cc;padding:5px 10px;">${esc(v)}</td></tr>`;
+  const gap = `<tr><td colspan="2" style="height:6px;border:none;"></td></tr>`;
+
+  let t = `<table border="0" cellspacing="0" cellpadding="0" style="font-family:Calibri,Arial,sans-serif;font-size:11pt;border-collapse:collapse;">`;
+  t += `<tr><td colspan="2" style="font-size:15pt;font-weight:bold;color:#2d4a37;padding:4px 10px;">Sales Forecast — ${esc(r.targetSku)} · ${esc(r.targetName)}</td></tr>`;
+  t += `<tr><td colspan="2" style="font-size:9pt;color:#888;padding:0 10px 6px;">Generated ${esc(new Date().toLocaleString('en-GB'))}</td></tr>`;
+  t += gap;
+
+  t += sect('Forecast Configuration');
+  t += row('Forecast Method', r.methodLabel);
+  t += row('Method Basis', r.methodHint);
+  t += gap;
+
+  t += sect('Target Selection');
+  t += row('Client / Account', r.client);
+  t += row('Product Code', r.targetSku);
+  t += row('Product Name', r.targetName);
+  t += row('Forecast From', r.fcFromDisp + ' (Wk ' + r.fcFromWk + ')');
+  t += row('Forecast To', r.fcToDisp + ' (Wk ' + r.fcToWk + ')');
+  t += row('Forecast Window (weeks)', r.fcWeeks);
+  t += row(r.periodLabel, r.periodRange);
+  t += gap;
+
+  t += sect('Forecast Parameters');
+  t += row('Store Basis', r.storeBasisLabel);
+  t += row('Expected Stores', num(r.expectedStores));
+  t += row('Uplift %', (r.upliftPct>=0?'+':'') + r.upliftPct + '%');
+  t += row('Lead Time (weeks)', r.leadWeeks);
+  t += row('In-Transit Qty', num(r.inTransitQty));
+  t += row('Min Reserve Stock', num(r.minStock));
+  t += row('Rush-Order Stock', r.includeRush ? 'Included' : 'Excluded');
+  t += gap;
+
+  t += sect('Forecast Numbers');
+  t += row('Forecasted Sales (with uplift)', num(r.forecastWithUplift));
+  t += row('Base Forecast (pre-uplift)', num(r.forecastedSales));
+  t += row('Forecasted Avg Units / Week', r.avgPerWeek.toFixed(1));
+  t += row('Sales per Store / Week', r.salesPerStorePerWeek.toFixed(3));
+  t += row('Weeks of Cover', r.woc>=999 ? 'Infinite' : r.woc.toFixed(1));
+  t += row('Production Required', num(r.productionReq));
+  t += row('Stock Lasts Until', r.stockLastTillDisp);
+  t += row('Tentative PO Date', r.poDateDisp);
+  t += row(r.periodLabel + ' Sales', num(r.totalHistSales));
+  t += row('Weeks With Data', r.histWeekCount + ' of ' + r.fcWeeks);
+  t += row('All-Time Avg / Week', r.allTimeAvgWk.toFixed(1));
+  t += row('Historical Sales — All Time', num(r.allTimeSalesTarget));
+  t += row('Sell-Through %', (r.sellThru*100).toFixed(1) + '%');
+  t += row('Total Available Stock', num(r.totalAvailable));
+  t += gap;
+
+  t += `<tr><td colspan="2" style="background:#2d4a37;color:#ffffff;font-weight:bold;font-size:12pt;padding:6px 10px;">Weekly Breakdown</td></tr>`;
+  t += `<tr><td style="font-weight:bold;background:#f0ede6;border:1px solid #d9d4cc;padding:5px 10px;">Week</td><td style="font-weight:bold;background:#f0ede6;border:1px solid #d9d4cc;padding:5px 10px;">Forecast Qty</td></tr>`;
+  (r.weeklyBreakdown||[]).forEach(w => {
+    t += `<tr><td style="border:1px solid #d9d4cc;padding:4px 10px;">Wk ${w.weekNum} '${String(w.yr).slice(2)}</td><td style="border:1px solid #d9d4cc;padding:4px 10px;">${num(w.scaledSales)}${w.isEstimated?' (est)':''}</td></tr>`;
+  });
+  t += `</table>`;
+
+  const wb = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Forecast</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>' + t + '</body></html>';
+  const blob = new Blob(['\ufeff' + wb], { type:'application/vnd.ms-excel;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const safe = s => String(s).replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Forecast_' + safe(r.client) + '_' + safe(r.targetSku) + '_' + new Date().toISOString().split('T')[0] + '.xls';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 function fcResetForecast() {
+  fcLastResult = null;
   document.getElementById('fcClient').value = '';
   document.getElementById('fcProduct').value = '';
   document.getElementById('fcProductTrigger').querySelector('.fc-sdrop-text').textContent = '— Select Product —';
@@ -5101,6 +5190,22 @@ function runForecast() {
 
   // All-time sales display
   const allTimeSalesRow = `<div class="fc-detail-row"><span class="fc-dl">Historical Sales Qty — All Time</span><span class="fc-dv">${fmt(allTimeSalesTarget)}</span></div>`;
+
+  // Snapshot for Excel export
+  fcLastResult = {
+    methodLabel:'Year-over-Year',
+    methodHint:"Uses last year's same-period sales. Best for products with 12+ months of history.",
+    client, targetSku, targetName,
+    fcFromDisp:fmtDate(fcFrom), fcToDisp:fmtDate(fcTo),
+    fcFromWk:fcGetSundayWeekNum(fcFrom), fcToWk:fcGetSundayWeekNum(fcTo), fcWeeks,
+    periodLabel:'Historical Period', periodRange:fmtDate(histFrom)+' → '+fmtDate(histTo),
+    storeBasisLabel: fcStoreBasisMode==='latest'?'Latest Store Count':'Average Store Count',
+    expectedStores, upliftPct, leadWeeks, inTransitQty, minStock, includeRush:fcIncludeRush,
+    forecastWithUplift, forecastedSales, avgPerWeek, salesPerStorePerWeek, woc, productionReq,
+    stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
+    totalHistSales, histWeekCount, allTimeAvgWk, allTimeSalesTarget, sellThru, totalAvailable,
+    weeklyBreakdown
+  };
 
   el.innerHTML = `
     <div class="fcb-results">
@@ -5696,6 +5801,22 @@ function runTrendForecast() {
   const fmtDate = d => d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   const daysTillPO = Math.round((poDate - today) / (24*60*60*1000));
   const poUrgencyText = daysTillPO < 0 ? `Delayed by ${Math.abs(daysTillPO)} days` : daysTillPO === 0 ? 'PO needed today' : `PO needed within ${daysTillPO} days`;
+
+  // Snapshot for Excel export
+  fcLastResult = {
+    methodLabel:'Recent Trend',
+    methodHint:'Uses recent sales velocity. Best for new launches.',
+    client, targetSku, targetName,
+    fcFromDisp:fmtDate(fcStartDate), fcToDisp:fmtDate(fcEndDate),
+    fcFromWk:fcGetSundayWeekNum(fcStartDate), fcToWk:fcGetSundayWeekNum(fcEndDate), fcWeeks,
+    periodLabel:'Reference Period', periodRange:fmtDate(saleFrom)+' → '+fmtDate(saleTo),
+    storeBasisLabel: ftStoreBasisMode==='latest'?'Latest Store Count':'Average Store Count',
+    expectedStores, upliftPct, leadWeeks, inTransitQty, minStock, includeRush:ftIncludeRush,
+    forecastWithUplift, forecastedSales:baseForecast, avgPerWeek, salesPerStorePerWeek, woc, productionReq,
+    stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
+    totalHistSales:refTotalSales, histWeekCount:refWeekCount, allTimeAvgWk, allTimeSalesTarget:allTimeSales, sellThru, totalAvailable,
+    weeklyBreakdown
+  };
 
   el.innerHTML = `
     <div class="fcb-results">
