@@ -818,6 +818,62 @@
   .ai-issue-line b{color:var(--text);font-weight:600;}
   .ai-issue-tag{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text3);margin-bottom:2px;}
 
+  /* PROBLEM AREAS — DIAGNOSTIC CONSOLE CARDS (eye-catching, unique to this page) */
+  .ai-prob{--pc:var(--red);--pcl:var(--red-light);position:relative;display:flex;gap:0;background:
+      linear-gradient(180deg,color-mix(in srgb,var(--pc) 5%,var(--surface)),var(--surface) 42%);
+    border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
+    transition:transform .18s ease,box-shadow .18s ease;}
+  .ai-prob:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+  /* glowing severity rail */
+  .ai-prob-rail{flex:0 0 6px;position:relative;background:linear-gradient(180deg,var(--pc),color-mix(in srgb,var(--pc) 40%,transparent));}
+  .ai-prob-rail::after{content:"";position:absolute;inset:0;background:var(--pc);filter:blur(6px);opacity:.55;}
+  .ai-prob-pulse{position:absolute;top:14px;left:50%;width:9px;height:9px;border-radius:50%;background:var(--pc);
+    transform:translateX(-50%);box-shadow:0 0 0 0 var(--pc);animation:probPulse 2.1s ease-out infinite;z-index:2;}
+  @keyframes probPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pc) 70%,transparent);}70%{box-shadow:0 0 0 10px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
+  .ai-prob-body{flex:1;min-width:0;padding:15px 17px 16px;}
+  /* header: signal-bar meter + title */
+  .ai-prob-head{display:flex;align-items:center;gap:12px;margin-bottom:13px;}
+  .ai-prob-meter{flex:0 0 auto;display:flex;align-items:flex-end;gap:3px;height:30px;padding:4px 6px;border-radius:8px;
+    background:color-mix(in srgb,var(--pc) 9%,var(--surface2));border:1px solid color-mix(in srgb,var(--pc) 18%,var(--border));}
+  .ai-prob-meter span{width:5px;border-radius:2px;background:color-mix(in srgb,var(--pc) 22%,var(--border));height:var(--h);
+    transform-origin:bottom;transform:scaleY(0);animation:probBar .5s cubic-bezier(.2,.8,.25,1) forwards;}
+  .ai-prob-meter span.on{background:var(--pc);box-shadow:0 0 5px color-mix(in srgb,var(--pc) 55%,transparent);}
+  .ai-prob-meter span:nth-child(1){animation-delay:.04s;} .ai-prob-meter span:nth-child(2){animation-delay:.12s;}
+  .ai-prob-meter span:nth-child(3){animation-delay:.20s;} .ai-prob-meter span:nth-child(4){animation-delay:.28s;}
+  .ai-prob-meter span:nth-child(5){animation-delay:.36s;}
+  @keyframes probBar{to{transform:scaleY(1);}}
+  .ai-prob-titlewrap{min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .ai-prob-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.28;}
+  .ai-prob-tone{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--pc);}
+  /* sweeping urgency heat-bar */
+  .ai-prob-gauge{display:flex;align-items:center;gap:9px;margin-bottom:14px;}
+  .ai-prob-gauge-track{flex:1;height:7px;border-radius:20px;background:color-mix(in srgb,var(--pc) 10%,var(--border));overflow:hidden;position:relative;}
+  .ai-prob-gauge-fill{height:100%;width:0;border-radius:20px;
+    background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 55%,#fff),var(--pc));
+    box-shadow:0 0 8px color-mix(in srgb,var(--pc) 50%,transparent);
+    animation:probFill 1.1s .25s cubic-bezier(.2,.8,.25,1) forwards;}
+  @keyframes probFill{to{width:var(--w);}}
+  .ai-prob-gauge-val{flex:0 0 auto;font-size:11px;font-weight:800;color:var(--pc);font-variant-numeric:tabular-nums;}
+  .ai-prob-gauge-val::after{content:" intensity";font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text3);}
+  /* content rows with glyph chips */
+  .ai-prob-rows{display:flex;flex-direction:column;gap:9px;}
+  .ai-prob-row{display:flex;gap:9px;align-items:flex-start;}
+  .ai-prob-ic{flex:0 0 22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    font-size:12px;background:color-mix(in srgb,var(--pc) 12%,var(--surface2));color:var(--pc);font-weight:700;}
+  .ai-prob-rtext{min-width:0;}
+  .ai-prob-k{display:block;font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);}
+  .ai-prob-v{display:block;font-size:12.5px;line-height:1.5;color:var(--text2);}
+  .ai-prob-v b{color:var(--text);font-weight:700;}
+  .ai-prob-v.impact{color:var(--text);font-weight:600;}
+  /* example pills */
+  .ai-prob-ex{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:11px;border-top:1px dashed var(--border2);}
+  .ai-prob-pill{font-size:11px;font-weight:600;color:var(--text2);background:color-mix(in srgb,var(--pc) 8%,var(--surface2));
+    border:1px solid color-mix(in srgb,var(--pc) 20%,var(--border));border-radius:20px;padding:3px 10px;white-space:nowrap;}
+  @media(prefers-reduced-motion:reduce){
+    .ai-prob-pulse,.ai-prob-meter span,.ai-prob-gauge-fill{animation:none!important;}
+    .ai-prob-meter span{transform:scaleY(1);} .ai-prob-gauge-fill{width:var(--w);}
+  }
+
   /* RECOMMENDATIONS */
   .ai-reco{border:1px solid var(--border);border-radius:var(--r);padding:16px;background:var(--surface);box-shadow:var(--shadow);}
   .ai-reco-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
@@ -867,26 +923,6 @@
   .ai-heat-cell{flex:1;height:22px;border-radius:4px;min-width:6px;}
 
   .ai-note{font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5;}
-
-  /* Business Health Radar (CEO Brief) */
-  .ai-radar-panel{margin-bottom:14px;}
-  .ai-radar-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:center;margin-top:6px;}
-  .ai-radar-svg{min-width:0;}
-  .ai-radar-legend{display:flex;flex-direction:column;gap:3px;}
-  .ai-radar-leg{display:grid;grid-template-columns:11px 96px 1fr 30px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--border);}
-  .ai-radar-leg:last-child{border-bottom:none;}
-  .ai-radar-sw{width:11px;height:11px;border-radius:3px;}
-  .ai-radar-lbl{font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;}
-  .ai-radar-bar{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;}
-  .ai-radar-bar>span{display:block;height:100%;border-radius:6px;}
-  .ai-radar-val{font-size:13px;font-weight:800;color:var(--text);text-align:right;font-variant-numeric:tabular-nums;}
-  @media(max-width:760px){.ai-radar-grid{grid-template-columns:1fr;gap:10px;}}
-
-  /* Action Priority Matrix (AI Recommendations) */
-  .ai-pm-panel{margin-bottom:14px;}
-  .ai-pm-legend{display:flex;flex-wrap:wrap;gap:9px 18px;margin-top:13px;}
-  .ai-pm-key{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);font-weight:600;}
-  .ai-pm-key .sw{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
 
   /* ═══════════════════════════════════════════════════════════
      GUIDE / USER MANUAL TAB  (namespaced .gd-*)
@@ -6119,79 +6155,6 @@ function getISOWeek(d) {
   }
   function bar(pct,color){ return `<div class="ai-driver-bar"><div class="ai-driver-fill" style="width:${clamp(pct,2,100)}%;background:${color}"></div></div>`; }
 
-  // radar / spider chart — used for the Business Health Radar (CEO Brief)
-  function radarChart(dims){
-    const n=dims.length; if(n<3) return '';
-    const W=560,H=470,cx=280,cy=240,R=148,LR=R+24;
-    const ang=i=>(-Math.PI/2)+i*(2*Math.PI/n);
-    const pt=(i,r)=>[cx+Math.cos(ang(i))*r, cy+Math.sin(ang(i))*r];
-    const col=s=>s>=60?C.good:s>=40?C.warn:C.crit;
-    let rings='';
-    [0.25,0.5,0.75,1].forEach(f=>{
-      const p=dims.map((_,i)=>pt(i,R*f).map(v=>v.toFixed(1)).join(',')).join(' ');
-      rings+=`<polygon points="${p}" fill="none" stroke="var(--border)" stroke-width="1"/>`;
-    });
-    let spokes='';
-    dims.forEach((_,i)=>{ const [x,y]=pt(i,R); spokes+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`; });
-    const dpts=dims.map((d,i)=>pt(i,R*clamp(d.score,0,100)/100).map(v=>v.toFixed(1)).join(',')).join(' ');
-    let dots='',labels='';
-    dims.forEach((d,i)=>{
-      const [dx,dy]=pt(i,R*clamp(d.score,0,100)/100);
-      dots+=`<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="4.5" fill="${C.accent2}" stroke="var(--surface)" stroke-width="2"/>`;
-      const [lx,ly]=pt(i,LR);
-      const anchor=Math.abs(lx-cx)<8?'middle':(lx>cx?'start':'end');
-      labels+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" font-size="13" font-weight="600" fill="var(--text2)">${esc(d.label)}</text>`+
-              `<text x="${lx.toFixed(1)}" y="${(ly+17).toFixed(1)}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="${col(d.score)}">${Math.round(d.score)}</text>`;
-    });
-    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px;height:auto;display:block;margin:0 auto" preserveAspectRatio="xMidYMid meet">
-      ${rings}${spokes}
-      <polygon points="${dpts}" fill="${C.accent2}" fill-opacity="0.18" stroke="${C.accent2}" stroke-width="2.5" stroke-linejoin="round"/>
-      ${dots}${labels}
-    </svg>`;
-  }
-
-  // action priority matrix — impact (y) vs effort (x), four quadrants with numbered bubbles
-  function priorityMatrix(recs){
-    if(!recs||!recs.length) return '';
-    const W=760,H=470,padL=66,padR=22,padT=24,padB=50;
-    const plotW=W-padL-padR, plotH=H-padT-padB;
-    const midX=padL+plotW/2, midY=padT+plotH/2;
-    const colFor=(imp,eff)=> imp>=5 ? (eff<5?C.good:C.info) : (eff<5?C.neutral:C.crit);
-    const q=(x,y,w,h,c)=>`<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${c}" fill-opacity="0.07"/>`;
-    const tints=q(padL,padT,plotW/2,plotH/2,C.good)+q(midX,padT,plotW/2,plotH/2,C.info)+q(padL,midY,plotW/2,plotH/2,C.neutral)+q(midX,midY,plotW/2,plotH/2,C.crit);
-    const frame=`<rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="none" stroke="var(--border)" stroke-width="1.5" rx="12"/>`+
-      `<line x1="${midX}" y1="${padT}" x2="${midX}" y2="${padT+plotH}" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 5"/>`+
-      `<line x1="${padL}" y1="${midY}" x2="${padL+plotW}" y2="${midY}" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 5"/>`;
-    const ql=(x,y,a,c,t)=>`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" text-anchor="${a}" font-size="12" font-weight="800" letter-spacing="0.5" fill="${c}" opacity="0.9">${t}</text>`;
-    const qlabels=ql(padL+13,padT+22,'start',C.good,'QUICK WINS')+ql(padL+plotW-13,padT+22,'end',C.info,'MAJOR BETS')+
-      ql(padL+13,padT+plotH-13,'start',C.neutral,'FILL-INS')+ql(padL+plotW-13,padT+plotH-13,'end',C.crit,'DEPRIORITISE');
-    const axes=`<text x="${midX}" y="${H-15}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text2)">EFFORT  →</text>`+
-      `<text x="20" y="${midY}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text2)" transform="rotate(-90 20 ${midY})">IMPACT  →</text>`+
-      `<text x="${padL-8}" y="${padT+13}" text-anchor="end" font-size="10.5" fill="var(--text3)">High</text>`+
-      `<text x="${padL-8}" y="${padT+plotH-2}" text-anchor="end" font-size="10.5" fill="var(--text3)">Low</text>`+
-      `<text x="${padL}" y="${padT+plotH+19}" text-anchor="middle" font-size="10.5" fill="var(--text3)">Low</text>`+
-      `<text x="${padL+plotW}" y="${padT+plotH+19}" text-anchor="middle" font-size="10.5" fill="var(--text3)">High</text>`;
-    const r=15, placed=[];
-    const X=eff=>padL+(clamp(eff,0,10)/10)*plotW, Y=imp=>padT+(1-clamp(imp,0,10)/10)*plotH;
-    let bubbles='';
-    recs.forEach((rec,i)=>{
-      const imp=rec.imp!=null?rec.imp:5, eff=rec.eff!=null?rec.eff:5;
-      const ox=X(eff), oy=Y(imp);
-      let bx=clamp(ox,padL+r+2,padL+plotW-r-2), by=clamp(oy,padT+r+2,padT+plotH-r-2);
-      let a=0,step=0;
-      while(placed.some(p=>Math.hypot(p.x-bx,p.y-by)<2*r+3) && step<70){
-        step++; a+=0.9; const rad=(2*r+5)*0.18*(1+step*0.06);
-        bx=clamp(ox+Math.cos(a)*rad,padL+r+2,padL+plotW-r-2);
-        by=clamp(oy+Math.sin(a)*rad,padT+r+2,padT+plotH-r-2);
-      }
-      placed.push({x:bx,y:by});
-      const c=colFor(imp,eff);
-      bubbles+=`<g><circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="${r}" fill="${c}" stroke="var(--surface)" stroke-width="2"><title>${esc(rec.t)}</title></circle>`+
-        `<text x="${bx.toFixed(1)}" y="${(by+4.6).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">${i+1}</text></g>`;
-    });
-    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">${tints}${frame}${qlabels}${axes}${bubbles}</svg>`;
-  }
-
   // client roll-up (qty, value, #SKUs, momentum) from an arbitrary row set
   function cliRollup(src){
     if(!src || !src.length) return [];
@@ -6523,24 +6486,6 @@ function getISOWeek(d) {
       ['Re-confirm the forecast',`Run-rate momentum is ${k.momDir} (${sPct(k.momHalf)}).`,`Plans should track the live trend.`,`Mis-set targets misallocate stock.`,`Reset forecast to current velocity in the Forecast tab.`,`Better-aligned buying and targets.`]
     ];
     let fi=0; while(recs.length<10 && fi<fillers.length){ const f=fillers[fi++]; push(...f); }
-    // estimated impact (1–10) & effort (1–10) for the priority matrix, keyed by recommendation title
-    const SCORES={
-      'Reallocate / clear excess inventory':[8,5],
-      'Dead-stock cleanup':[6,3],
-      'Correct replenishment on fast movers':[9,4],
-      'Reduce SKU concentration':[7,8],
-      'Diversify account base':[8,9],
-      'Sales-recovery plan on decliners':[8,6],
-      'Expand distribution on winners':[8,5],
-      'Press the accelerating SKUs':[7,3],
-      'Rebalance instead of re-buy':[8,5],
-      'Reduce rush-order reliance':[5,6],
-      'Stabilise demand planning':[6,8],
-      'Protect the volume anchor':[7,4],
-      'Refine assortment':[5,5],
-      'Re-confirm the forecast':[5,2]
-    };
-    recs.forEach(r=>{ const s=SCORES[r.t]||[6,5]; r.imp=s[0]; r.eff=s[1]; });
     return recs.slice(0,Math.max(10,recs.length));
   }
 
@@ -6663,29 +6608,7 @@ function getISOWeek(d) {
     // 2 — CEO BRIEF
     const b=ceoBrief(M);
     const briefCol=(cls,dot,title,arr)=>`<div class="ai-brief-col ${cls}"><div class="ai-brief-h"><span class="dot" style="background:${dot}"></span>${title}</div><ul class="ai-brief-list">${arr.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
-    // Business Health Radar — six dimensions, all 0–100 where higher = better
-    const radarDims=[
-      {label:'Growth', score:k.growthScore},
-      {label:'Inventory', score:k.invHealth},
-      {label:'Sell-Through', score:k.sellHealth},
-      {label:'Coverage', score:k.covScore},
-      {label:'Resilience', score:100-k.riskScore},
-      {label:'Stability', score:100-k.opPressure}
-    ];
-    const radarAvg=Math.round(radarDims.reduce((s,d)=>s+clamp(d.score,0,100),0)/radarDims.length);
-    const radarBadge=radarAvg>=60?'good':radarAvg>=40?'warn':'crit';
-    const colOf=s=>s>=60?C.good:s>=40?C.warn:C.crit;
-    const radarLegend=radarDims.map(d=>`<div class="ai-radar-leg"><span class="ai-radar-sw" style="background:${colOf(d.score)}"></span><span class="ai-radar-lbl">${d.label}</span><span class="ai-radar-bar"><span style="width:${clamp(d.score,0,100)}%;background:${colOf(d.score)}"></span></span><span class="ai-radar-val">${Math.round(d.score)}</span></div>`).join('');
-    H+=sec(2,'CEO Brief','30-second read',`
-      <div class="ai-panel ai-radar-panel">
-        <div class="ai-panel-h">Business Health Radar <span class="ai-badge ${radarBadge}">overall ${radarAvg}/100</span></div>
-        <div class="ai-radar-grid">
-          <div class="ai-radar-svg">${radarChart(radarDims)}</div>
-          <div class="ai-radar-legend">${radarLegend}</div>
-        </div>
-        <div class="ai-note">Six health dimensions scored 0–100; the further each point sits from the centre, the healthier that dimension. Resilience and Stability are inverted risk measures, so higher is always better.</div>
-      </div>
-      <div class="ai-brief">
+    H+=sec(2,'CEO Brief','30-second read',`<div class="ai-brief">
       ${briefCol('l-now',C.info,"What’s happening",b.now)}
       ${briefCol('l-work',C.good,"What’s working",b.work)}
       ${briefCol('l-notwork',C.warn,"What’s not",b.notwork)}
@@ -6717,7 +6640,7 @@ function getISOWeek(d) {
 
     // 5 — PROBLEM AREAS
     const probs=problems(M);
-    H+=sec(5,'Problem Areas',`${probs.filter(p=>p.sev!=='good').length} detected`,`<div class="ai-grid-2">${probs.length?probs.map(p=>issueCard(p,true)).join(''):'<div class="ai-panel">No problem areas detected for the current filters.</div>'}</div>`);
+    H+=sec(5,'Problem Areas',`${probs.filter(p=>p.sev!=='good').length} detected`,`<div class="ai-grid-2">${probs.length?probs.map(p=>problemCard(p)).join(''):'<div class="ai-panel">No problem areas detected for the current filters.</div>'}</div>`);
 
     // 6 — OPPORTUNITY AREAS
     const opps=opportunities(M);
@@ -6725,19 +6648,7 @@ function getISOWeek(d) {
 
     // 7 — AI RECOMMENDATIONS
     const recs=recommendations(M);
-    H+=sec(7,'AI Recommendations',`${recs.length} prioritised actions`,`
-      <div class="ai-panel ai-pm-panel">
-        <div class="ai-panel-h">Action Priority Matrix <span class="ai-badge neutral">${recs.length} actions plotted</span></div>
-        ${priorityMatrix(recs)}
-        <div class="ai-pm-legend">
-          <span class="ai-pm-key"><span class="sw" style="background:var(--green)"></span>Quick wins — high impact, low effort</span>
-          <span class="ai-pm-key"><span class="sw" style="background:var(--blue)"></span>Major bets — high impact, high effort</span>
-          <span class="ai-pm-key"><span class="sw" style="background:var(--text3)"></span>Fill-ins — low impact, low effort</span>
-          <span class="ai-pm-key"><span class="sw" style="background:var(--red)"></span>Deprioritise — low impact, high effort</span>
-        </div>
-        <div class="ai-note">Each numbered bubble is a recommendation listed below; its position reflects estimated business impact versus effort to implement. Work top-left to bottom-right.</div>
-      </div>
-      <div class="ai-grid-3">${recs.map((r,i)=>`
+    H+=sec(7,'AI Recommendations',`${recs.length} prioritised actions`,`<div class="ai-grid-3">${recs.map((r,i)=>`
       <div class="ai-reco"><div class="ai-reco-head"><span class="ai-reco-idx">${i+1}</span><span class="ai-reco-title">${r.t}</span></div>
       <div class="ai-reco-rows">
         <div class="ai-reco-row"><span class="ai-reco-k">Issue</span><span class="ai-reco-v">${r.issue}</span></div>
@@ -6778,6 +6689,42 @@ function getISOWeek(d) {
       <div class="ai-issue-tag">Why it matters</div><div class="ai-issue-line">${p.why}</div>
       <div class="ai-issue-tag">${isProblem?'Business impact':'Upside'}</div><div class="ai-issue-line"><b>${p.impact}</b></div>
       ${exHtml}</div>`;
+  }
+
+  // PROBLEM AREAS — diagnostic-console renderer (severity rail + signal meter + heat-bar)
+  function problemCard(p){
+    const meta = {
+      crit:{lvl:5, col:'var(--red)',  cl:'var(--red-light)',  tone:'Critical'},
+      warn:{lvl:4, col:'var(--warm)', cl:'var(--warm-light)', tone:'Elevated'},
+      info:{lvl:2, col:'var(--blue)', cl:'var(--blue-light)', tone:'Notice'},
+      good:{lvl:1, col:'var(--green)',cl:'var(--green-light)',tone:'Stable'}
+    }[p.sev] || {lvl:3, col:'var(--warm)', cl:'var(--warm-light)', tone:'Watch'};
+    const urg = p.urgency || '—';
+    const intensity = ({High:92, Medium:64, Low:34}[urg]) || (p.sev==='crit'?90:p.sev==='warn'?60:35);
+    const bars = [1,2,3,4,5].map(n=>`<span class="${n<=meta.lvl?'on':''}" style="--h:${34+n*13}%"></span>`).join('');
+    const exHtml = p.ex && p.ex.length
+      ? `<div class="ai-prob-ex">${p.ex.map(e=>`<span class="ai-prob-pill">${e}</span>`).join('')}</div>` : '';
+    return `<div class="ai-prob ${p.sev}" style="--pc:${meta.col};--pcl:${meta.cl}">
+      <div class="ai-prob-rail"><span class="ai-prob-pulse"></span></div>
+      <div class="ai-prob-body">
+        <div class="ai-prob-head">
+          <div class="ai-prob-meter" aria-hidden="true">${bars}</div>
+          <div class="ai-prob-titlewrap">
+            <span class="ai-prob-title">${p.title}</span>
+            <span class="ai-prob-tone">${meta.tone} · ${urg} urgency</span>
+          </div>
+        </div>
+        <div class="ai-prob-gauge">
+          <div class="ai-prob-gauge-track"><div class="ai-prob-gauge-fill" style="--w:${intensity}%"></div></div>
+          <span class="ai-prob-gauge-val">${intensity}</span>
+        </div>
+        <div class="ai-prob-rows">
+          <div class="ai-prob-row"><span class="ai-prob-ic">⌕</span><div class="ai-prob-rtext"><span class="ai-prob-k">Detected</span><span class="ai-prob-v">${p.detected}</span></div></div>
+          <div class="ai-prob-row"><span class="ai-prob-ic">!</span><div class="ai-prob-rtext"><span class="ai-prob-k">Why it matters</span><span class="ai-prob-v">${p.why}</span></div></div>
+          <div class="ai-prob-row"><span class="ai-prob-ic">≈</span><div class="ai-prob-rtext"><span class="ai-prob-k">Business impact</span><span class="ai-prob-v impact"><b>${p.impact}</b></span></div></div>
+        </div>
+        ${exHtml}
+      </div></div>`;
   }
 
   function storyLayer(M){
