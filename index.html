@@ -2412,6 +2412,11 @@ function setup() {
       const threshold=175;
       let cur=map[0];
       for(const m of map){ if(m.sec.getBoundingClientRect().top <= threshold) cur=m; }
+      // The last section often can't scroll its top above the threshold (not enough
+      // content below it), so when we reach the bottom of the page force-select it.
+      const scrollBottom=window.scrollY+window.innerHeight;
+      const docHeight=document.documentElement.scrollHeight;
+      if(scrollBottom>=docHeight-2) cur=map[map.length-1];
       links.forEach(a=>a.classList.toggle('gd-active', a===cur.a));
     };
     window.addEventListener('scroll', gdSpyUpdate, {passive:true});
@@ -6820,7 +6825,7 @@ function getISOWeek(d) {
       const dirWord=growth>=0?'grown':'declined';
       const trendCol=growth>=0?C.good:C.crit;
       trajPanel=`<div class="ai-panel"><div class="ai-panel-h">Monthly sales trajectory <span class="ai-badge neutral">${mon.length} periods</span></div>
-        ${trendChart(mVals, mLabels, {color:trendCol, maxLabels:40, maxXLabels:10, yTitle:'Units sold / month', xTitle:'Month (MMM-YY)'})}
+        ${trendChart(mVals, mLabels, {color:trendCol, maxLabels:40, maxXLabels:10, yTitle:'Units sold / month', xTitle:'Months'})}
         <div class="ai-note">📈 <b>Trajectory:</b> Sales have ${dirWord} ${Math.abs(growth*100).toFixed(0)}% comparing the most recent ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(recentAvg))} units/mo) to the earliest ${w} month${w!==1?'s':''} (avg ${fmt(Math.round(earlyAvg))} units/mo) in the selected period.</div></div>`;
     } else {
       trajPanel=`<div class="ai-panel"><div class="ai-panel-h">Monthly sales trajectory</div><div class="ai-note">Not enough monthly history in the selected period to plot a trajectory.</div></div>`;
@@ -6843,7 +6848,7 @@ function getISOWeek(d) {
     // weekly sales pulse — full-width line/area chart with on-point numbers & dated x-axis
     const wkLabels=(M.weekLabels||[]).map(d=>d&&d.length>=10?d.slice(2):d);
     const ribbon=`<div class="ai-panel"><div class="ai-panel-h">Weekly sales pulse <span class="ai-badge ${k.momDir==='improving'?'good':k.momDir==='declining'?'crit':'neutral'}">${k.momDir}</span></div>
-      ${trendChart(M.series, wkLabels.length===M.series.length?wkLabels:null, {color:k.momDir==='declining'?C.crit:C.good, maxLabels:22, maxXLabels:13, yTitle:'Units sold / week', xTitle:'Week ending (YY-MM-DD)'})}
+      ${trendChart(M.series, wkLabels.length===M.series.length?wkLabels:null, {color:k.momDir==='declining'?C.crit:C.good, maxLabels:22, maxXLabels:13, yTitle:'Units sold / week', xTitle:'Weeks'})}
       <div class="ai-note">${M.nWeeks} weeks shown, oldest → newest. Recent-half avg ${fmt(Math.round(k.recentAvg))} vs prior-half avg ${fmt(Math.round(k.priorAvg))} units/week.</div></div>`;
 
     return `<div class="ai-grid-2" style="margin-bottom:14px">${pareto}${invPanel}</div>
