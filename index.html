@@ -1619,6 +1619,19 @@
 
             <div class="ftc-field">
               <div class="ftc-field-label">
+                (Store + DC) Stock
+                <small>Count in available stock?</small>
+              </div>
+              <div class="ftc-field-input">
+                <select id="fcStoreDC" class="fcb-input-alert">
+                  <option value="yes" selected>Yes — Include</option>
+                  <option value="no">No — Exclude</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="ftc-field">
+              <div class="ftc-field-label">
                 Rush-Order Stock
                 <small>Count in available stock?</small>
               </div>
@@ -1809,6 +1822,19 @@
               </div>
               <div class="ftc-field-input">
                 <input type="number" id="ftMinStock" value="0" min="0" class="fcb-input-alert">
+              </div>
+            </div>
+
+            <div class="ftc-field">
+              <div class="ftc-field-label">
+                (Store + DC) Stock
+                <small>Count in available stock?</small>
+              </div>
+              <div class="ftc-field-input">
+                <select id="ftStoreDC" class="fcb-input-alert">
+                  <option value="yes" selected>Yes — Include</option>
+                  <option value="no">No — Exclude</option>
+                </select>
               </div>
             </div>
 
@@ -3581,6 +3607,7 @@ let repSortCol = null, repSortDir = 'desc';
 let repStockFilter = 'all'; // 'all', 'no_stock', 'has_stock'
 let repStockColumn = 'all'; // 'all', 'soh_qty', 'stock_dc', 'soh_rushorder'
 let repReplenishable = 'all'; // 'all', 'yes', 'no'
+let repLastExport = null; // snapshot of last generated plan for Excel export
 let yoyClientSortCol = null, yoyClientSortDir = 'desc';
 let yoySkuSortCol = null, yoySkuSortDir = 'desc';
 
@@ -4312,6 +4339,10 @@ function renderRepConfig() {
     <div class="rep-apply-row" style="border-top:none;border-bottom:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;">
       <button class="rep-apply-btn" id="repApplyBtn">▶ Generate Replenishment Plan</button>
       <span class="rep-note">Configure lead times per client, then click to generate the backward schedule below.</span>
+      <button class="fc-download-btn" id="repDownloadBtn" style="margin-left:auto;" title="Download the lead configuration and replenishment plan as an Excel file">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Excel
+      </button>
     </div>
     <div class="rep-config-wrap" style="border-radius:0 0 var(--r) var(--r);">
       <table>
@@ -4343,6 +4374,10 @@ function renderRepConfig() {
     });
     renderRepPlan();
   });
+
+  // Bind download excel button
+  const repDlBtn = document.getElementById('repDownloadBtn');
+  if (repDlBtn) repDlBtn.addEventListener('click', repDownloadExcel);
 }
 
 function renderRepPlan() {
@@ -4504,6 +4539,22 @@ function renderRepPlan() {
   }
 
   const display = filtered_rows.slice(0, 500);
+
+  // Snapshot for Excel export
+  {
+    const stockSourceLabel = repStockColumn==='soh_qty'?'Store':repStockColumn==='stock_dc'?'DC':repStockColumn==='soh_rushorder'?'Rush Order':'All (Store + DC + Rush)';
+    repLastExport = {
+      rows: filtered_rows,
+      client: client || 'All Clients',
+      storeHead: storeHead,
+      today: new Date(today),
+      stockSourceLabel,
+      replenishable: repReplenishable,
+      stockFilter: repStockFilter,
+      config: JSON.parse(JSON.stringify(repConfig)),
+      clients: getRepClients()
+    };
+  }
 
   function dateCell(d, isKey) {
     const diff = daysDiff(d, today);
@@ -4707,6 +4758,175 @@ function renderRepPlan() {
   }
 }
 
+function repDownloadExcel() {
+  const ex = repLastExport;
+  if (!ex || !ex.rows) { alert('Please generate a replenishment plan first — click "Generate Replenishment Plan".'); return; }
+
+  // ---- helpers ----
+  const xe = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const colL = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; };
+  const round = (x,d) => { const p=Math.pow(10,d); return Math.round((Number(x)||0)*p)/p; };
+  const fmtDate = d => (d instanceof Date) ? d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : String(d||'');
+
+  // build the worksheet XML from rows ({v,t,s} cells)
+  const sheetXmlFromRows = (rows, colsXml) => {
+    let body='';
+    rows.forEach((cells,ri)=>{
+      const rn=ri+1; let rx=`<row r="${rn}">`;
+      cells.forEach((c,ci)=>{
+        if(c==null) return;
+        const ref=colL(ci)+rn; const st=c.s?` s="${c.s}"`:'';
+        if(c.t==='n' && c.v!=='' && c.v!=null && !isNaN(c.v)) rx+=`<c r="${ref}"${st}><v>${c.v}</v></c>`;
+        else rx+=`<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${xe(c.v)}</t></is></c>`;
+      });
+      rx+='</row>'; body+=rx;
+    });
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+      (colsXml||'')+'<sheetData>'+body+'</sheetData></worksheet>';
+  };
+
+  // ───────────── Sheet 1: Lead Configuration ─────────────
+  const cfgRows = [];
+  cfgRows.push([{v:'Lead Time Configuration', t:'s', s:1}]);
+  cfgRows.push([{v:'Generated '+new Date().toLocaleString('en-GB'), t:'s', s:0}]);
+  cfgRows.push([]);
+  cfgRows.push(['Client Name','Replenishment Arrival Buffer (Weeks)','Transit Lead Time (Weeks)','Production Lead Time (Weeks)','PO Processing Lead Time (Weeks)'].map(h=>({v:h,t:'s',s:2})));
+  (ex.clients||[]).forEach(c => {
+    const cfg = (ex.config && ex.config[c]) || {buffer:0,transit:0,production:0,po:0};
+    cfgRows.push([
+      {v:c, t:'s', s:0},
+      {v:Number(cfg.buffer)||0, t:'n', s:0},
+      {v:Number(cfg.transit)||0, t:'n', s:0},
+      {v:Number(cfg.production)||0, t:'n', s:0},
+      {v:Number(cfg.po)||0, t:'n', s:0}
+    ]);
+  });
+  const cfgColsXml = '<cols><col min="1" max="1" width="26" customWidth="1"/><col min="2" max="5" width="26" customWidth="1"/></cols>';
+
+  // ───────────── Sheet 2: Replenishment Planning Report ─────────────
+  const repRows = [];
+  repRows.push([{v:'Replenishment Planning Report', t:'s', s:1}]);
+  repRows.push([{v:'Generated '+new Date().toLocaleString('en-GB'), t:'s', s:0}]);
+  repRows.push([{v:'Client Scope: '+ex.client, t:'s', s:0}]);
+  repRows.push([{v:'Stock Source: '+ex.stockSourceLabel, t:'s', s:0}]);
+  repRows.push([{v:'Replenishable Filter: '+(ex.replenishable==='all'?'All':ex.replenishable==='yes'?'Yes':'No')+'   ·   Stock Filter: '+(ex.stockFilter==='no_stock'?'No Stock':ex.stockFilter==='has_stock'?'Has Stock':'All'), t:'s', s:0}]);
+  repRows.push([{v:'Schedule based on today: '+fmtDate(ex.today), t:'s', s:0}]);
+  repRows.push([]);
+  repRows.push(['Client','SKU Code','SKU Name','Total Stock','Stores ('+ex.storeHead+')','Avg/Wk','Units/Stores','Sell-Thru %','WOC (wks)','Stock Lasts Till','Replenishment Arrival','Expected Dispatch','Production Start','PO Receive By','Remark'].map(h=>({v:h,t:'s',s:2})));
+
+  const remarkText = r => {
+    if (r.totalStock === 0) return 'No stock, re-plan today';
+    if (r.woc === 999) return 'No sales — schedule N/A';
+    if (r.daysFromNow < 0) return 'Delayed by '+Math.abs(r.daysFromNow)+' days';
+    if (r.daysFromNow === 0) return 'PO needed today';
+    return 'PO needed within '+r.daysFromNow+' days';
+  };
+
+  (ex.rows||[]).forEach(r => {
+    const noSchedule = (r.totalStock === 0 || r.woc === 999);
+    const dash = {v:'—', t:'s', s:0};
+    repRows.push([
+      {v:r.client, t:'s', s:0},
+      {v:r.sku_code, t:'s', s:0},
+      {v:r.sku_name, t:'s', s:0},
+      {v:Math.round(r.totalStock||0), t:'n', s:0},
+      {v:Math.round(r.avgStores||0), t:'n', s:0},
+      {v:round(r.avgWk,1), t:'n', s:0},
+      (r.unitsPerStore>0 ? {v:round(r.unitsPerStore,3), t:'n', s:0} : dash),
+      {v:round((r.sellThru||0)*100,1)+'%', t:'s', s:0},
+      (r.woc===999 ? {v:'No Sales', t:'s', s:0} : {v:round(r.woc,1), t:'n', s:0}),
+      (noSchedule ? dash : {v:fmtDate(r.stockLastTill), t:'s', s:0}),
+      (noSchedule ? dash : {v:fmtDate(r.repArrival), t:'s', s:0}),
+      (noSchedule ? dash : {v:fmtDate(r.dispatch), t:'s', s:0}),
+      (noSchedule ? dash : {v:fmtDate(r.prodStart), t:'s', s:0}),
+      (noSchedule ? dash : {v:fmtDate(r.poReceive), t:'s', s:0}),
+      {v:remarkText(r), t:'s', s:0}
+    ]);
+  });
+  const repColsXml = '<cols><col min="1" max="1" width="18" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/>'+
+    '<col min="3" max="3" width="30" customWidth="1"/><col min="4" max="9" width="13" customWidth="1"/>'+
+    '<col min="10" max="14" width="16" customWidth="1"/><col min="15" max="15" width="26" customWidth="1"/></cols>';
+
+  // ---- shared styles ----
+  const stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<fonts count="3"><font><sz val="11"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="11"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'+
+    '<fills count="3"><fill><patternFill patternType="none"/></fill>'+
+    '<fill><patternFill patternType="gray125"/></fill>'+
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF2D4A37"/><bgColor indexed="64"/></patternFill></fill></fills>'+
+    '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'+
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+    '<cellXfs count="3">'+
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+
+    '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+    '<xf numFmtId="0" fontId="2" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+
+    '</cellXfs>'+
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  const workbookXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+    '<sheets><sheet name="Lead Configuration" sheetId="1" r:id="rId1"/><sheet name="Replenishment Report" sheetId="2" r:id="rId2"/></sheets></workbook>';
+  const workbookRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'+
+    '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+    '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'+
+    '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'+
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
+  const rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+
+  const enc = new TextEncoder();
+  const files = [
+    {name:'[Content_Types].xml', data:enc.encode(contentTypes)},
+    {name:'_rels/.rels', data:enc.encode(rootRels)},
+    {name:'xl/workbook.xml', data:enc.encode(workbookXml)},
+    {name:'xl/_rels/workbook.xml.rels', data:enc.encode(workbookRels)},
+    {name:'xl/styles.xml', data:enc.encode(stylesXml)},
+    {name:'xl/worksheets/sheet1.xml', data:enc.encode(sheetXmlFromRows(cfgRows, cfgColsXml))},
+    {name:'xl/worksheets/sheet2.xml', data:enc.encode(sheetXmlFromRows(repRows, repColsXml))}
+  ];
+
+  // ---- minimal ZIP (store, no compression) ----
+  const crcTable = (function(){ const t=[]; for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+  const crc32 = buf => { let crc=0xFFFFFFFF; for(let i=0;i<buf.length;i++) crc=(crc>>>8)^crcTable[(crc^buf[i])&0xFF]; return (crc^0xFFFFFFFF)>>>0; };
+  const u16=n=>[n&0xFF,(n>>>8)&0xFF];
+  const u32=n=>[n&0xFF,(n>>>8)&0xFF,(n>>>16)&0xFF,(n>>>24)&0xFF];
+  const parts=[], central=[]; let offset=0;
+  files.forEach(f=>{
+    const nameB=enc.encode(f.name), data=f.data, crc=crc32(data);
+    const local=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0));
+    parts.push(new Uint8Array(local), nameB, data);
+    const cen=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    central.push(new Uint8Array(cen), nameB);
+    offset += local.length + nameB.length + data.length;
+  });
+  let cenSize=0; central.forEach(c=>cenSize+=c.length);
+  const eocd=[].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cenSize),u32(offset),u16(0));
+  const all=[...parts,...central,new Uint8Array(eocd)];
+  let total=0; all.forEach(a=>total+=a.length);
+  const zip=new Uint8Array(total); let p=0; all.forEach(a=>{zip.set(a,p);p+=a.length;});
+
+  const blob = new Blob([zip], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const safe = s => String(s).replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Replenishment_'+safe(ex.client)+'_'+new Date().toISOString().split('T')[0]+'.xlsx';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // FORECAST MODULE — Phase 2
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4715,6 +4935,7 @@ let fcMode = 'same';
 let fcInitialized = false;
 let fcProductSkus = [];
 let fcIncludeRush = false;
+let fcIncludeStoreDC = true;
 let fcLastAutoStoreSku = '';
 let fcLastResult = null; // normalized snapshot of the current forecast for Excel export
 
@@ -4884,6 +5105,12 @@ function initForecastTab() {
       runForecast();
     });
 
+    // (Store + DC) stock select
+    document.getElementById('fcStoreDC').addEventListener('change', () => {
+      fcIncludeStoreDC = document.getElementById('fcStoreDC').value === 'yes';
+      runForecast();
+    });
+
     // Initialize trend forecast module
     initTrendForecast();
   }
@@ -4935,6 +5162,7 @@ function fcDownloadExcel() {
   KV('Lead Time (weeks)', r.leadWeeks, true);
   KV('In-Transit Qty', r.inTransitQty, true);
   KV('Min Reserve Stock', r.minStock, true);
+  KV('(Store + DC) Stock', r.includeStoreDC===false?'Excluded':'Included');
   KV('Rush-Order Stock', r.includeRush?'Included':'Excluded');
   BLANK();
 
@@ -5093,6 +5321,8 @@ function fcResetForecast() {
   document.getElementById('fcMinStock').value = '0';
   fcIncludeRush = false;
   document.getElementById('fcRushOrder').value = 'no';
+  fcIncludeStoreDC = true;
+  { const e = document.getElementById('fcStoreDC'); if (e) e.value = 'yes'; }
   fcProductSkus = [];
   document.getElementById('fcProductList').innerHTML = '';
   document.getElementById('fcResults').innerHTML = '<div class="fcb-results"><div class="fc-empty"><div class="fc-empty-icon">🔮</div><div class="fc-empty-title">No Forecast Yet</div><div class="fc-empty-sub">Select a client, choose a product, and set a forecast date range above to generate your forecast.</div></div></div>';
@@ -5124,6 +5354,8 @@ function fcResetForecast() {
   document.getElementById('ftMinStock').value = '0';
   document.getElementById('ftRushOrder').value = 'no';
   ftIncludeRush = false;
+  { const e = document.getElementById('ftStoreDC'); if (e) e.value = 'yes'; }
+  ftIncludeStoreDC = true;
   ftProductSkus = [];
   ftLastAutoStoreSku = '';
   // Reset seasonality to 1.0
@@ -5254,7 +5486,7 @@ function runForecast() {
   const targetLatest = allTargetData.length > 0 ? allTargetData.reduce((a, b) => a.date > b.date ? a : b) : null;
   const sohStoreDC = targetLatest ? (targetLatest.soh_qty + targetLatest.stock_dc) : 0;
   const sohRush = targetLatest ? (targetLatest.soh_rushorder || 0) : 0;
-  const totalAvailable = sohStoreDC + (fcIncludeRush ? sohRush : 0) + inTransitQty;
+  const totalAvailable = (fcIncludeStoreDC ? sohStoreDC : 0) + (fcIncludeRush ? sohRush : 0) + inTransitQty;
   const effectiveStock = Math.max(0, totalAvailable - minStock);
   // If Historical Period Sales = 0, use All-Time Avg/Week for WOC & base stockLastTill from last sale date
   const useAllTimeAvg = totalHistSales === 0;
@@ -5306,7 +5538,7 @@ function runForecast() {
     fcFromWk:fcGetSundayWeekNum(fcFrom), fcToWk:fcGetSundayWeekNum(fcTo), fcWeeks,
     periodLabel:'Historical Period', periodRange:fmtDate(histFrom)+' → '+fmtDate(histTo),
     storeBasisLabel: fcStoreBasisMode==='latest'?'Latest Store Count':'Average Store Count',
-    expectedStores, upliftPct, leadWeeks, inTransitQty, minStock, includeRush:fcIncludeRush,
+    expectedStores, upliftPct, leadWeeks, inTransitQty, minStock, includeRush:fcIncludeRush, includeStoreDC:fcIncludeStoreDC,
     forecastWithUplift, forecastedSales, avgPerWeek, salesPerStorePerWeek, woc, productionReq,
     stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
     totalHistSales, histWeekCount, allTimeAvgWk, allTimeSalesTarget, sellThru, totalAvailable,
@@ -5400,7 +5632,7 @@ function runForecast() {
             <span class="fcb-panel-title">Inventory &amp; Stock Health</span>
           </div>
           <div class="fcb-panel-body">
-            <div class="fcb-row"><span class="fcb-dl">Stock on Hand (Store + DC)</span><span class="fcb-dv">${fmt(sohStoreDC)}</span></div>
+            <div class="fcb-row"><span class="fcb-dl">Stock on Hand (Store + DC)</span><span class="fcb-dv" style="${fcIncludeStoreDC?'':'color:var(--text3);text-decoration:line-through;'}">${fmt(sohStoreDC)}${fcIncludeStoreDC?'':' <span style="font-size:10px;text-decoration:none;color:var(--text3);">(excl.)</span>'}</span></div>
             <div class="fcb-row"><span class="fcb-dl">Stock on Hand (Rush Order)</span><span class="fcb-dv" style="${fcIncludeRush?'':'color:var(--text3);text-decoration:line-through;'}">${fmt(sohRush)}${fcIncludeRush?'':' <span style="font-size:10px;text-decoration:none;color:var(--text3);">(excl.)</span>'}</span></div>
             <div class="fcb-row"><span class="fcb-dl">In-Transit Order Qty</span><span class="fcb-dv" style="color:var(--red);">${fmt(inTransitQty)}</span></div>
             <div class="fcb-row fcb-row-strong"><span class="fcb-dl">Total Available Stock</span><span class="fcb-dv c-blue">${fmt(totalAvailable)}</span></div>
@@ -5502,6 +5734,7 @@ function runForecast() {
 let ftInitialized = false;
 let ftProductSkus = [];
 let ftIncludeRush = false;
+let ftIncludeStoreDC = true;
 let ftLastAutoStoreSku = '';
 let ftFirstSaleDate = null;
 let ftLastSaleDate = null;
@@ -5607,6 +5840,10 @@ function initTrendForecast() {
     document.getElementById('ftMinStock').addEventListener('input', runTrendForecast);
     document.getElementById('ftRushOrder').addEventListener('change', () => {
       ftIncludeRush = document.getElementById('ftRushOrder').value === 'yes';
+      runTrendForecast();
+    });
+    document.getElementById('ftStoreDC').addEventListener('change', () => {
+      ftIncludeStoreDC = document.getElementById('ftStoreDC').value === 'yes';
       runTrendForecast();
     });
 
@@ -5889,7 +6126,7 @@ function runTrendForecast() {
   const targetLatest = allTargetData.length > 0 ? allTargetData.reduce((a,b) => a.date > b.date ? a : b) : null;
   const sohStoreDC = targetLatest ? (targetLatest.soh_qty + targetLatest.stock_dc) : 0;
   const sohRush = targetLatest ? (targetLatest.soh_rushorder || 0) : 0;
-  const totalAvailable = sohStoreDC + (ftIncludeRush ? sohRush : 0) + inTransitQty;
+  const totalAvailable = (ftIncludeStoreDC ? sohStoreDC : 0) + (ftIncludeRush ? sohRush : 0) + inTransitQty;
   const effectiveStock = Math.max(0, totalAvailable - minStock);
   const wocDivisor = avgPerWeek > 0 ? avgPerWeek : (allTimeAvgWk > 0 ? allTimeAvgWk : 0);
   const woc = wocDivisor > 0 ? effectiveStock / wocDivisor : 999;
@@ -5918,7 +6155,7 @@ function runTrendForecast() {
     fcFromWk:fcGetSundayWeekNum(fcStartDate), fcToWk:fcGetSundayWeekNum(fcEndDate), fcWeeks,
     periodLabel:'Reference Period', periodRange:fmtDate(saleFrom)+' → '+fmtDate(saleTo),
     storeBasisLabel: ftStoreBasisMode==='latest'?'Latest Store Count':'Average Store Count',
-    expectedStores, upliftPct, leadWeeks, inTransitQty, minStock, includeRush:ftIncludeRush,
+    expectedStores, upliftPct, leadWeeks, inTransitQty, minStock, includeRush:ftIncludeRush, includeStoreDC:ftIncludeStoreDC,
     forecastWithUplift, forecastedSales:baseForecast, avgPerWeek, salesPerStorePerWeek, woc, productionReq,
     stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
     totalHistSales:refTotalSales, histWeekCount:refWeekCount, allTimeAvgWk, allTimeSalesTarget:allTimeSales, sellThru, totalAvailable,
@@ -6020,7 +6257,7 @@ function runTrendForecast() {
             <span class="fcb-panel-title">Inventory &amp; Stock Health</span>
           </div>
           <div class="fcb-panel-body">
-            <div class="fcb-row"><span class="fcb-dl">Stock on Hand (Store + DC)</span><span class="fcb-dv">${fmt(sohStoreDC)}</span></div>
+            <div class="fcb-row"><span class="fcb-dl">Stock on Hand (Store + DC)</span><span class="fcb-dv" style="${ftIncludeStoreDC?'':'color:var(--text3);text-decoration:line-through;'}">${fmt(sohStoreDC)}${ftIncludeStoreDC?'':' <span style="font-size:10px;text-decoration:none;color:var(--text3);">(excl.)</span>'}</span></div>
             <div class="fcb-row"><span class="fcb-dl">Stock on Hand (Rush Order)</span><span class="fcb-dv" style="${ftIncludeRush?'':'color:var(--text3);text-decoration:line-through;'}">${fmt(sohRush)}${ftIncludeRush?'':' <span style="font-size:10px;text-decoration:none;color:var(--text3);">(excl.)</span>'}</span></div>
             <div class="fcb-row"><span class="fcb-dl">In-Transit Order Qty</span><span class="fcb-dv" style="color:var(--red);">${fmt(inTransitQty)}</span></div>
             <div class="fcb-row fcb-row-strong"><span class="fcb-dl">Total Available Stock</span><span class="fcb-dv c-blue">${fmt(totalAvailable)}</span></div>
