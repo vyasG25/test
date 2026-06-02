@@ -1903,12 +1903,6 @@
       <span class="gd-eyebrow">📖 User Guide</span>
       <h1>A practical guide to <em>every report and filter</em>.</h1>
       <p>This guide explains how the portal is organised, what each report contains, which filters apply to which reports, and how to interpret the results. It is written for business users and requires no technical background.</p>
-      <div class="gd-hero-meta">
-        <span class="gd-pill">Approx. 6-minute read</span>
-        <span class="gd-pill">All six tabs covered</span>
-        <span class="gd-pill">Filter-to-report reference</span>
-        <span class="gd-pill">Glossary &amp; FAQ</span>
-      </div>
     </div>
 
     <!-- NAV -->
@@ -3727,15 +3721,21 @@ function renderSecWOC() {
   const map={};
   all.forEach(r=>{
     const k=r.client+'|'+r.sku_code;
-    if(!map[k]) map[k]={client:r.client,sku_code:r.sku_code,sku_name:r.sku_name,qty:0,wks:new Set(),latestDate:'',soh:0,dc:0,rush:0};
+    if(!map[k]) map[k]={client:r.client,sku_code:r.sku_code,sku_name:r.sku_name,qty:0,wks:new Set(),firstSaleWk:Infinity,latestDate:'',soh:0,dc:0,rush:0};
     const m=map[k];
     m.qty+=r.sale_qty;
-    m.wks.add(r.year+'W'+r.week);
+    const wkIdx=r.year*100+r.week;
+    m.wks.add(wkIdx);
+    if(r.sale_qty>0 && wkIdx<m.firstSaleWk) m.firstSaleWk=wkIdx;
     if(r.date>m.latestDate){ m.latestDate=r.date; m.soh=r.soh_qty; m.dc=r.stock_dc; m.rush=r.soh_rushorder; }
   });
 
   let rows=Object.values(map).map(m=>{
-    const avgWk=m.wks.size?m.qty/m.wks.size:0;
+    // Velocity is measured over the product's active selling life — from its first
+    // sale week to the latest week in range — so a wider date range that begins
+    // before the product launched does not dilute avg/wk (and inflate WOC).
+    const activeWks = m.firstSaleWk===Infinity ? 0 : [...m.wks].filter(w=>w>=m.firstSaleWk).length;
+    const avgWk = activeWks ? m.qty/activeWks : 0;
     const totalStock=m.soh+m.dc+m.rush;
     const woc=avgWk>0?totalStock/avgWk:totalStock>0?999:0;
     return {...m, avgWk, totalStock, woc};
@@ -3866,7 +3866,10 @@ function renderSecRisk() {
   });
 
   const items=Object.values(map).map(m=>{
-    const avgWk=m.wks.size?m.qty/m.wks.size:0;
+    // Match the WOC report: velocity over the active selling life (first sale week → latest week)
+    const firstSaleWk = m.weekDates.reduce((mn,w)=>w.qty>0&&w.wk<mn?w.wk:mn, Infinity);
+    const activeWks = firstSaleWk===Infinity ? 0 : new Set(m.weekDates.filter(w=>w.wk>=firstSaleWk).map(w=>w.wk)).size;
+    const avgWk = activeWks ? m.qty/activeWks : 0;
     const totalStock=m.soh+m.dc+m.rush;
     const woc=avgWk>0?totalStock/avgWk:(totalStock>0?999:0);
     // Check consecutive zero-sales weeks at the tail
