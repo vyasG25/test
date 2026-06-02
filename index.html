@@ -6472,8 +6472,10 @@ function getISOWeek(d) {
       // client+sku WOC record (latest-date stock snapshot, exactly like Inventory tab)
       const k=r.client+'|'+r.sku_code;
       let m=cs[k];
-      if(!m){ m=cs[k]={client:r.client,code:r.sku_code,name:r.sku_name||r.sku_code,qty:0,wks:new Set(),latestDate:'',soh:0,dc:0,rush:0,store:0}; }
-      m.qty+=q; m.wks.add(r.year+'W'+r.week);
+      if(!m){ m=cs[k]={client:r.client,code:r.sku_code,name:r.sku_name||r.sku_code,qty:0,wks:new Set(),firstSaleWk:Infinity,latestDate:'',soh:0,dc:0,rush:0,store:0}; }
+      const wkIdx=r.year*100+r.week;
+      m.qty+=q; m.wks.add(wkIdx);
+      if(q>0 && wkIdx<m.firstSaleWk) m.firstSaleWk=wkIdx;
       if(r.date>m.latestDate){ m.latestDate=r.date; m.soh=r.soh_qty||0; m.dc=r.stock_dc||0; m.rush=r.soh_rushorder||0; m.store=r.store_count||0; }
 
       skuName[r.sku_code]=r.sku_name||r.sku_code;
@@ -6514,11 +6516,13 @@ function getISOWeek(d) {
     // ── SKU roll-up (aggregate client+sku snapshots up to SKU) ──────────────
     const skuAgg={};
     Object.values(cs).forEach(m=>{
-      const a=skuAgg[m.code]=skuAgg[m.code]||{code:m.code,name:m.name,qty:0,stock:0,wks:new Set(),store:0,accounts:0};
-      a.qty+=m.qty; a.stock+=(m.soh+m.dc+m.rush); m.wks.forEach(w=>a.wks.add(w)); a.store+=m.store; a.accounts++;
+      const a=skuAgg[m.code]=skuAgg[m.code]||{code:m.code,name:m.name,qty:0,stock:0,wks:new Set(),firstSaleWk:Infinity,store:0,accounts:0};
+      a.qty+=m.qty; a.stock+=(m.soh+m.dc+m.rush); m.wks.forEach(w=>a.wks.add(w)); if(m.firstSaleWk<a.firstSaleWk)a.firstSaleWk=m.firstSaleWk; a.store+=m.store; a.accounts++;
     });
     const skuArr = Object.values(skuAgg).map(a=>{
-      const avgWk = a.wks.size ? a.qty/a.wks.size : 0;
+      // Velocity over active selling life (first sale week → latest week in range)
+      const activeWks = a.firstSaleWk===Infinity ? 0 : [...a.wks].filter(w=>w>=a.firstSaleWk).length;
+      const avgWk = activeWks ? a.qty/activeWks : 0;
       const woc = avgWk>0 ? a.stock/avgWk : (a.stock>0?999:0);
       const rec=skuRecent[a.code]||0, pri=skuPrior[a.code]||0;
       const mom = pri>0 ? (rec-pri)/pri : (rec>0?1:0);
@@ -6540,7 +6544,8 @@ function getISOWeek(d) {
 
     // ── client+sku WOC classification ───────────────────────────────────────
     const csArr = Object.values(cs).map(m=>{
-      const avgWk=m.wks.size?m.qty/m.wks.size:0, stock=m.soh+m.dc+m.rush;
+      const activeWks = m.firstSaleWk===Infinity ? 0 : [...m.wks].filter(w=>w>=m.firstSaleWk).length;
+      const avgWk=activeWks?m.qty/activeWks:0, stock=m.soh+m.dc+m.rush;
       const woc=avgWk>0?stock/avgWk:(stock>0?999:0);
       let cls;
       if(stock<=0) cls='nostock';
@@ -6591,7 +6596,11 @@ function getISOWeek(d) {
 
     // inventory health building blocks
     const sellThrough = (tQty+curStock)>0 ? tQty/(tQty+curStock) : 0;
-    const stockToSales = avgWeekQty>0 ? curStock/avgWeekQty : (curStock>0?999:0); // overall weeks of cover
+    // Overall weeks of cover uses the combined active-life run rate (sum of each line's
+    // first-sale-week velocity), so a wide range that predates product launches does not
+    // dilute the rate and overstate cover. Falls back to the calendar average if needed.
+    const activeWeekQty = csArr.reduce((s,x)=>s+(x.avgWk||0),0) || avgWeekQty;
+    const stockToSales = activeWeekQty>0 ? curStock/activeWeekQty : (curStock>0?999:0); // overall weeks of cover
     const rushPressure = curStock>0 ? M.stock.rush/curStock : 0;
     const deadCnt = M.csStocked.filter(x=>x.cls==='dead').length;
     const overCnt = M.csStocked.filter(x=>x.cls==='overstock').length;
