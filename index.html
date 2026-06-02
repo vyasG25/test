@@ -2987,12 +2987,18 @@ function renderSecD() {
     const totalQtyClient=sumQty(cdata);
     const by={};
     cdata.forEach(r=>{
-      if(!by[r.sku_code]) by[r.sku_code]={sku_code:r.sku_code,sku_name:r.sku_name,qty:0,val:0,wks:new Set()};
-      by[r.sku_code].qty+=r.sale_qty; by[r.sku_code].val+=r.sale_value; by[r.sku_code].wks.add(r.year+'W'+r.week);
+      if(!by[r.sku_code]) by[r.sku_code]={sku_code:r.sku_code,sku_name:r.sku_name,qty:0,val:0,wks:new Set(),firstSaleWk:Infinity};
+      const b=by[r.sku_code];
+      b.qty+=r.sale_qty; b.val+=r.sale_value;
+      const wkIdx=r.year*100+r.week;
+      b.wks.add(wkIdx);
+      if(r.sale_qty>0 && wkIdx<b.firstSaleWk) b.firstSaleWk=wkIdx;
     });
     const top=Object.values(by).sort((a,b)=>b.qty-a.qty).slice(0,5);
     const rows=top.map(s=>{
-      const avgW=s.wks.size?(s.qty/s.wks.size):0;
+      // Velocity over the active selling life (first sale week → latest week in range)
+      const activeWks = s.firstSaleWk===Infinity ? 0 : [...s.wks].filter(w=>w>=s.firstSaleWk).length;
+      const avgW = activeWks ? (s.qty/activeWks) : 0;
       const pct=totalQtyClient>0?(s.qty/totalQtyClient*100):0;
       // Use sku_name; if it's same as code, show just once
       const nameDisplay = s.sku_name===s.sku_code ? s.sku_code : s.sku_name;
@@ -3829,7 +3835,7 @@ function renderSecWOC() {
           <td class="tn">${fmt(r.dc)}</td>
           <td class="tn">${fmt(r.rush)}</td>
           <td class="tn">${fmt(r.totalStock)}</td>
-          <td class="tn" style="font-weight:600">${r.woc===999?'∞':fmtD(r.woc,1)}</td>
+          <td class="tn" style="font-weight:600">${r.woc===999?'∞':fmtD(r.woc,0)}</td>
           <td class="tn">${wocBadge(r.woc)}</td>
         </tr>`).join('')}</tbody>
       </table>
@@ -4582,9 +4588,9 @@ function renderRepPlan() {
 
   function wocBadge(w) {
     if (w === 999) return '<span class="pill pg">No Sales</span>';
-    if (w < 4) return `<span class="pill pr">${fmtD(w,1)} wks</span>`;
-    if (w < 8) return `<span class="pill py">${fmtD(w,1)} wks</span>`;
-    return `<span class="pill pg">${fmtD(w,1)} wks</span>`;
+    if (w < 4) return `<span class="pill pr">${fmtD(w,0)} wks</span>`;
+    if (w < 8) return `<span class="pill py">${fmtD(w,0)} wks</span>`;
+    return `<span class="pill pg">${fmtD(w,0)} wks</span>`;
   }
 
   function noStockRow(r, hasVelocity) {
@@ -4839,7 +4845,7 @@ function repDownloadExcel() {
       {v:round(r.avgWk,1), t:'n', s:0},
       (r.unitsPerStore>0 ? {v:round(r.unitsPerStore,3), t:'n', s:0} : dash),
       {v:round((r.sellThru||0)*100,1)+'%', t:'s', s:0},
-      (r.woc===999 ? {v:'No Sales', t:'s', s:0} : {v:round(r.woc,1), t:'n', s:0}),
+      (r.woc===999 ? {v:'No Sales', t:'s', s:0} : {v:round(r.woc,0), t:'n', s:0}),
       (noSchedule ? dash : {v:fmtDate(r.stockLastTill), t:'s', s:0}),
       (noSchedule ? dash : {v:fmtDate(r.repArrival), t:'s', s:0}),
       (noSchedule ? dash : {v:fmtDate(r.dispatch), t:'s', s:0}),
