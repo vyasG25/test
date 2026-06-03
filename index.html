@@ -1456,11 +1456,29 @@ function blockComparative() {
   return { aoa, fmt, ncols: headers.length };
 }
 
-// ── SHEET 1: Dashboard (Revenue Summary stacked per year, then YoY summary below) ──
+// ── BLOCK: the 5 KPI "cards" (latest year) laid out across one row ──
+// Returns { aoa, fmt }: a title row, a row of labels, and a row of values.
+function blockKpiCards() {
+  const ly = RAW.filter(d => d.year === LATEST_YEAR);
+  const sum = (k) => ly.reduce((a, b) => a + (b[k] || 0), 0);
+  const labels = ['Total Revenue', 'YTD Shipped Value', 'On Order Value', 'Total Units', 'Order Count'];
+  const values = [sum('total_value'), sum('ytd_shipped_value'), sum('on_order_value'), sum('total_units'), sum('order_count')];
+  const valFmt = [XLS_FMT.val, XLS_FMT.val, XLS_FMT.val, XLS_FMT.num, XLS_FMT.num];
+  return {
+    aoa: [[LATEST_YEAR + ' Revenue Summary'], labels, values],
+    fmt: [[null], labels.map(() => null), valFmt]
+  };
+}
+
+// ── SHEET 1: Dashboard (KPI cards row, then per-year summaries stacked, then YoY summary) ──
 function composeDashboardSheet() {
   const aoa = [], fmt = [];
   const push = (b) => b.aoa.forEach((r, i) => { aoa.push(r); fmt.push(b.fmt[i] || []); });
   const blank = (n = 1) => { for (let i = 0; i < n; i++) { aoa.push([]); fmt.push([]); } };
+
+  // KPI cards row first (no YoY here)
+  push(blockKpiCards());
+  blank(2);
 
   YEARS.slice().reverse().forEach((y, idx) => {
     if (idx > 0) blank(2);
