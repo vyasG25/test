@@ -1485,10 +1485,6 @@ function composeDashboardSheet() {
     push(blockYearSummary(y));
   });
 
-  blank(2);
-  aoa.push(['Year-over-Year Summary']); fmt.push([null]);
-  push(blockComparative());
-
   const maxCols = aoa.reduce((m, r) => Math.max(m, r.length), 0);
   const widths = Array.from({ length: maxCols }, (_, i) => ({ wch: i === 0 ? 26 : 16 }));
   return { name: 'Dashboard', ws: aoaToSheetGrid(aoa, fmt, widths) };
