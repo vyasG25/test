@@ -1299,6 +1299,10 @@ async function refreshData() {
 }
 
 // ── EXCEL EXPORT ──────────────────────────────────────────────────────────────
+// The button always exports a complete workbook snapshot (all data, unfiltered):
+//   Sheet 1 "Dashboard"    → per-year Revenue Summary tables, then the YoY summary below
+//   Sheet 2 "Comparative"  → the year-over-year comparative table
+//   Sheet 3+ "<year>"      → each year's party-level detail on its own sheet
 const XLS_FMT = { num: '#,##0', val: '$#,##0.00', pct: '0.0%', text: null };
 
 // Convert a growth fraction into a cell value (blank when not meaningful — mirrors fmtGrowth)
@@ -1309,8 +1313,9 @@ function gCell(v) {
   return n;
 }
 
-// Build a worksheet from an array-of-arrays. fmtFn(row, col) returns an Excel number-format code (or null).
-function aoaToSheet(aoa, fmtFn, colWidths) {
+// Build a worksheet from an array-of-arrays + a parallel grid of Excel number-format codes.
+// fmtGrid[r][c] is a format code (or null/undefined). Only applied to numeric cells.
+function aoaToSheetGrid(aoa, fmtGrid, colWidths) {
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   const range = XLSX.utils.decode_range(ws['!ref']);
   for (let R = range.s.r; R <= range.e.r; R++) {
@@ -1318,7 +1323,7 @@ function aoaToSheet(aoa, fmtFn, colWidths) {
       const addr = XLSX.utils.encode_cell({ r: R, c: C });
       const cell = ws[addr];
       if (!cell || typeof cell.v !== 'number') continue;
-      const z = fmtFn ? fmtFn(R, C) : null;
+      const z = (fmtGrid[R] && fmtGrid[R][C]) || null;
       if (z) cell.z = z;
     }
   }
@@ -1326,115 +1331,79 @@ function aoaToSheet(aoa, fmtFn, colWidths) {
   return ws;
 }
 
-function colWidthsFromHeaders(headers) {
-  return headers.map(h => ({ wch: Math.max(12, String(h).length + 2) }));
-}
+// ── BLOCK: one year's Revenue Summary (by account type) ──
+// Returns { aoa, fmt } so it can be stacked onto the Dashboard sheet.
+function blockYearSummary(year) {
+  const isLatest = year === LATEST_YEAR;
+  const yearData = RAW.filter(d => d.year === year);
+  const totalYTDShippedValue = yearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
+  const prevYearData = RAW.filter(d => d.year === year - 1);
 
-// ── Dashboard export (KPIs + one summary sheet per year) ──
-function buildDashboardSheets() {
-  const sheets = [];
+  const headers = ['Account Type', 'On Order Units', 'YTD Shipped', 'Total Units',
+    'On Order Value', 'YTD Shipped Value', 'Total Value', 'Order Count'];
+  const colFmt = ['text', 'num', 'num', 'num', 'val', 'val', 'val', 'num'];
+  if (isLatest) { headers.push('LYTD Shipped Qty', 'LYTD Shipped Value'); colFmt.push('num', 'val'); }
+  headers.push('LY Growth Qty', 'LY Growth Value', 'Share');
+  colFmt.push('pct', 'pct', 'pct');
 
-  // KPI overview sheet (latest year)
-  const ly  = RAW.filter(d => d.year === LATEST_YEAR);
-  const sum = (arr, key) => arr.reduce((a, b) => a + (b[key] || 0), 0);
-  const curTotal = sum(ly, 'total_value'), curShipped = sum(ly, 'ytd_shipped_value');
-  const curLYTD = sum(ly, 'lytd_shipped_value'), curUnits = sum(ly, 'total_units');
-  const curOrders = sum(ly, 'order_count'), curOnOrder = sum(ly, 'on_order_value');
-  const ytdGrowth = curLYTD ? (curShipped - curLYTD) / curLYTD : '';
-  const kpiAoa = [
-    ['Metric', 'Value (' + LATEST_YEAR + ')'],
-    ['Total Revenue', curTotal],
-    ['YTD Shipped Value', curShipped],
-    ['On Order Value', curOnOrder],
-    ['Total Units', curUnits],
-    ['Order Count', curOrders],
-    ['YTD vs LYTD Growth', ytdGrowth === '' ? '' : ytdGrowth],
-  ];
-  const kpiRowFmt = [null, 'val', 'val', 'val', 'num', 'num', 'pct'];
-  sheets.push({
-    name: LATEST_YEAR + ' KPIs',
-    ws: aoaToSheet(kpiAoa, (R, C) => (C === 1 ? XLS_FMT[kpiRowFmt[R]] : null), [{ wch: 22 }, { wch: 18 }])
-  });
+  const fmtRow = colFmt.map(t => XLS_FMT[t]);
+  const aoa = [[year + ' Revenue Summary'], headers];
+  const fmt = [[null], headers.map(() => null)];
+  const grand = initTotals();
 
-  // One summary sheet per year (by account type)
-  YEARS.slice().reverse().forEach(year => {
-    const isLatest = year === LATEST_YEAR;
-    const yearData = RAW.filter(d => d.year === year);
-    const totalYTDShippedValue = yearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
-    const prevYearData = RAW.filter(d => d.year === year - 1);
+  SHEETS.forEach(sheet => {
+    const rows = yearData.filter(d => d.sheet === sheet);
+    if (!rows.length) return;
+    const t = totalise(rows);
+    accumulateTotals(grand, t);
+    const share = totalYTDShippedValue ? t.ytd_shipped_value / totalYTDShippedValue : 0;
 
-    const headers = ['Account Type', 'On Order Units', 'YTD Shipped', 'Total Units',
-      'On Order Value', 'YTD Shipped Value', 'Total Value', 'Order Count'];
-    const colFmt = ['text', 'num', 'num', 'num', 'val', 'val', 'val', 'num'];
-    if (isLatest) { headers.push('LYTD Shipped Qty', 'LYTD Shipped Value'); colFmt.push('num', 'val'); }
-    headers.push('LY Growth Qty', 'LY Growth Value', 'Share');
-    colFmt.push('pct', 'pct', 'pct');
-
-    const aoa = [headers];
-    const grand = initTotals();
-
-    SHEETS.forEach(sheet => {
-      const rows = yearData.filter(d => d.sheet === sheet);
-      if (!rows.length) return;
-      const t = totalise(rows);
-      accumulateTotals(grand, t);
-      const share = totalYTDShippedValue ? t.ytd_shipped_value / totalYTDShippedValue : 0;
-
-      let gQty = null, gVal = null;
-      if (isLatest) {
-        if (t.lytd_shipped_qty > 0)   gQty = (t.ytd_shipped - t.lytd_shipped_qty) / t.lytd_shipped_qty;
-        if (t.lytd_shipped_value > 0) gVal = (t.ytd_shipped_value - t.lytd_shipped_value) / t.lytd_shipped_value;
-      } else {
-        const prevRows = prevYearData.filter(d => d.sheet === sheet);
-        if (prevRows.length) {
-          const p = totalise(prevRows);
-          if (p.ytd_shipped > 0)       gQty = (t.ytd_shipped - p.ytd_shipped) / p.ytd_shipped;
-          if (p.ytd_shipped_value > 0) gVal = (t.ytd_shipped_value - p.ytd_shipped_value) / p.ytd_shipped_value;
-        }
-      }
-
-      const row = [sheet, t.on_order_units, t.ytd_shipped, t.total_units,
-        t.on_order_value, t.ytd_shipped_value, t.total_value, t.order_count];
-      if (isLatest) row.push(t.lytd_shipped_qty, t.lytd_shipped_value);
-      row.push(gCell(gQty), gCell(gVal), share);
-      aoa.push(row);
-    });
-
-    // Grand total
-    let gtQty = null, gtVal = null;
+    let gQty = null, gVal = null;
     if (isLatest) {
-      if (grand.lytd_shipped_qty > 0)   gtQty = (grand.ytd_shipped - grand.lytd_shipped_qty) / grand.lytd_shipped_qty;
-      if (grand.lytd_shipped_value > 0) gtVal = (grand.ytd_shipped_value - grand.lytd_shipped_value) / grand.lytd_shipped_value;
+      if (t.lytd_shipped_qty > 0)   gQty = (t.ytd_shipped - t.lytd_shipped_qty) / t.lytd_shipped_qty;
+      if (t.lytd_shipped_value > 0) gVal = (t.ytd_shipped_value - t.lytd_shipped_value) / t.lytd_shipped_value;
     } else {
-      const pQty = prevYearData.reduce((a, b) => a + (b.ytd_shipped || 0), 0);
-      const pVal = prevYearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
-      if (pQty > 0) gtQty = (grand.ytd_shipped - pQty) / pQty;
-      if (pVal > 0) gtVal = (grand.ytd_shipped_value - pVal) / pVal;
+      const prevRows = prevYearData.filter(d => d.sheet === sheet);
+      if (prevRows.length) {
+        const p = totalise(prevRows);
+        if (p.ytd_shipped > 0)       gQty = (t.ytd_shipped - p.ytd_shipped) / p.ytd_shipped;
+        if (p.ytd_shipped_value > 0) gVal = (t.ytd_shipped_value - p.ytd_shipped_value) / p.ytd_shipped_value;
+      }
     }
-    const gtRow = ['TOTAL', grand.on_order_units, grand.ytd_shipped, grand.total_units,
-      grand.on_order_value, grand.ytd_shipped_value, grand.total_value, grand.order_count];
-    if (isLatest) gtRow.push(grand.lytd_shipped_qty, grand.lytd_shipped_value);
-    gtRow.push(gCell(gtQty), gCell(gtVal), 1);
-    aoa.push(gtRow);
 
-    sheets.push({
-      name: (year + ' Summary').slice(0, 31),
-      ws: aoaToSheet(aoa, (R, C) => XLS_FMT[colFmt[C]], colWidthsFromHeaders(headers))
-    });
+    const row = [sheet, t.on_order_units, t.ytd_shipped, t.total_units,
+      t.on_order_value, t.ytd_shipped_value, t.total_value, t.order_count];
+    if (isLatest) row.push(t.lytd_shipped_qty, t.lytd_shipped_value);
+    row.push(gCell(gQty), gCell(gVal), share);
+    aoa.push(row);
+    fmt.push(fmtRow);
   });
 
-  return sheets;
+  // Grand total
+  let gtQty = null, gtVal = null;
+  if (isLatest) {
+    if (grand.lytd_shipped_qty > 0)   gtQty = (grand.ytd_shipped - grand.lytd_shipped_qty) / grand.lytd_shipped_qty;
+    if (grand.lytd_shipped_value > 0) gtVal = (grand.ytd_shipped_value - grand.lytd_shipped_value) / grand.lytd_shipped_value;
+  } else {
+    const pQty = prevYearData.reduce((a, b) => a + (b.ytd_shipped || 0), 0);
+    const pVal = prevYearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
+    if (pQty > 0) gtQty = (grand.ytd_shipped - pQty) / pQty;
+    if (pVal > 0) gtVal = (grand.ytd_shipped_value - pVal) / pVal;
+  }
+  const gtRow = ['TOTAL', grand.on_order_units, grand.ytd_shipped, grand.total_units,
+    grand.on_order_value, grand.ytd_shipped_value, grand.total_value, grand.order_count];
+  if (isLatest) gtRow.push(grand.lytd_shipped_qty, grand.lytd_shipped_value);
+  gtRow.push(gCell(gtQty), gCell(gtVal), 1);
+  aoa.push(gtRow);
+  fmt.push(fmtRow);
+
+  return { aoa, fmt };
 }
 
-// ── Comparatives export (metric rows × year columns, respects current filters) ──
-function buildComparativesSheet(filters) {
-  let data = RAW;
-  if (filters.accountType) data = data.filter(d => d.sheet === filters.accountType);
-  const allVisible = [...document.querySelectorAll('#partyList input[type=checkbox]')].map(cb => cb.value);
-  if (filters.parties && filters.parties.length < allVisible.length) {
-    data = data.filter(d => filters.parties.includes(d.retailer));
-  }
-
+// ── BLOCK: the year-over-year comparative table (all accounts, all data) ──
+// Returns { aoa, fmt }.
+function blockComparative() {
+  const data = RAW;
   const yearsDesc = YEARS.slice().reverse();
   const yearTotals = {};
   yearsDesc.forEach(y => { yearTotals[y] = totalise(data.filter(d => d.year === y)); });
@@ -1462,49 +1431,63 @@ function buildComparativesSheet(filters) {
 
   const headers = ['Metric', ...yearsDesc.map(String)];
   const aoa = [headers];
-  const rowFmt = [];   // format type for each data row's year columns ('' = none)
+  const fmt = [headers.map(() => null)];
 
   sections.forEach(sec => {
     aoa.push([sec.section]);            // section header row
-    rowFmt.push('');
-    sec.metrics.forEach(([key, label, fmt]) => {
+    fmt.push([null]);
+    sec.metrics.forEach(([key, label, mf]) => {
+      const code = XLS_FMT[mf === 'growth' ? 'pct' : mf] || null;
       const row = [label];
+      const frow = [null];
       yearsDesc.forEach(year => {
         const t = yearTotals[year];
         if (key === 'ly_growth_qty')        row.push(gCell(calcGrowth(year).gQty));
         else if (key === 'ly_growth_value') row.push(gCell(calcGrowth(year).gVal));
         else if (key === 'share')           row.push(1);
         else                                row.push(t[key] || 0);
+        frow.push(code);
       });
       aoa.push(row);
-      rowFmt.push(fmt === 'growth' ? 'pct' : fmt);
+      fmt.push(frow);
     });
   });
 
-  const fmtFn = (R, C) => {
-    if (R === 0 || C === 0) return null;
-    return XLS_FMT[rowFmt[R - 1]] || null;
-  };
-  const widths = [{ wch: 22 }, ...yearsDesc.map(() => ({ wch: 16 }))];
-
-  return { name: 'Comparatives', ws: aoaToSheet(aoa, fmtFn, widths) };
+  return { aoa, fmt, ncols: headers.length };
 }
 
-// ── Year-tab export (party-level detail with subtotals, respects current filters) ──
-function buildYearSheet(year, filters) {
-  const isLatest = year === LATEST_YEAR;
-  const allVisible = [...document.querySelectorAll('#partyList input[type=checkbox]')];
+// ── SHEET 1: Dashboard (Revenue Summary stacked per year, then YoY summary below) ──
+function composeDashboardSheet() {
+  const aoa = [], fmt = [];
+  const push = (b) => b.aoa.forEach((r, i) => { aoa.push(r); fmt.push(b.fmt[i] || []); });
+  const blank = (n = 1) => { for (let i = 0; i < n; i++) { aoa.push([]); fmt.push([]); } };
 
-  let data = RAW.filter(d => d.year === year);
-  if (filters.accountType) data = data.filter(d => d.sheet === filters.accountType);
-  if (filters.parties && filters.parties.length < allVisible.length) {
-    data = data.filter(d => filters.parties.includes(d.retailer));
-  }
-  let prevData = RAW.filter(d => d.year === year - 1);
-  if (filters.accountType) prevData = prevData.filter(d => d.sheet === filters.accountType);
-  if (filters.parties && filters.parties.length < allVisible.length) {
-    prevData = prevData.filter(d => filters.parties.includes(d.retailer));
-  }
+  YEARS.slice().reverse().forEach((y, idx) => {
+    if (idx > 0) blank(2);
+    push(blockYearSummary(y));
+  });
+
+  blank(2);
+  aoa.push(['Year-over-Year Summary']); fmt.push([null]);
+  push(blockComparative());
+
+  const maxCols = aoa.reduce((m, r) => Math.max(m, r.length), 0);
+  const widths = Array.from({ length: maxCols }, (_, i) => ({ wch: i === 0 ? 26 : 16 }));
+  return { name: 'Dashboard', ws: aoaToSheetGrid(aoa, fmt, widths) };
+}
+
+// ── SHEET 2: Comparative ──
+function composeComparativeSheet() {
+  const b = blockComparative();
+  const widths = Array.from({ length: b.ncols }, (_, i) => ({ wch: i === 0 ? 22 : 16 }));
+  return { name: 'Comparative', ws: aoaToSheetGrid(b.aoa, b.fmt, widths) };
+}
+
+// ── SHEET 3+: one sheet per year (party-level detail, all data) ──
+function composeYearSheet(year) {
+  const isLatest = year === LATEST_YEAR;
+  const data = RAW.filter(d => d.year === year);
+  const prevData = RAW.filter(d => d.year === year - 1);
 
   const headers = ['Account Type', 'Country', 'Party / Retailer', 'On Order Units', 'YTD Shipped',
     'Total Units', 'On Order Value', 'YTD Shipped Value', 'Total Value', 'Order Count'];
@@ -1513,17 +1496,16 @@ function buildYearSheet(year, filters) {
   headers.push('LY Growth Qty', 'LY Growth Value', 'Share');
   colFmt.push('pct', 'pct', 'pct');
 
+  const fmtRow = colFmt.map(t => XLS_FMT[t]);
   const aoa = [headers];
-  const padCols = headers.length;
-  const pad = (arr) => { while (arr.length < padCols) arr.push(''); return arr; };
+  const fmt = [headers.map(() => null)];
+  const pad = (arr) => { while (arr.length < headers.length) arr.push(''); return arr; };
 
-  const sheetsToShow = filters.accountType ? [filters.accountType] : SHEETS;
-
-  sheetsToShow.forEach(sheet => {
+  SHEETS.forEach(sheet => {
     const sheetRows = data.filter(d => d.sheet === sheet);
     if (!sheetRows.length) return;
 
-    aoa.push(pad(['▸ ' + sheet]));   // account-type header row
+    aoa.push(pad(['▸ ' + sheet])); fmt.push([]);   // account-type header row
 
     const st = initTotals();
     sheetRows.forEach(r => {
@@ -1532,7 +1514,7 @@ function buildYearSheet(year, filters) {
         r.total_units, r.on_order_value, r.ytd_shipped_value, r.total_value, r.order_count];
       if (isLatest) row.push(r.lytd_shipped_qty, r.lytd_shipped_value);
       row.push(gCell(r.ly_growth_qty), gCell(r.ly_growth_value), (r.share || 0));
-      aoa.push(row);
+      aoa.push(row); fmt.push(fmtRow);
     });
 
     let sQty = null, sVal = null;
@@ -1551,7 +1533,7 @@ function buildYearSheet(year, filters) {
       st.total_units, st.on_order_value, st.ytd_shipped_value, st.total_value, st.order_count];
     if (isLatest) stRow.push(st.lytd_shipped_qty, st.lytd_shipped_value);
     stRow.push(gCell(sQty), gCell(sVal), st.share_sum);
-    aoa.push(stRow);
+    aoa.push(stRow); fmt.push(fmtRow);
   });
 
   // Grand total
@@ -1571,18 +1553,17 @@ function buildYearSheet(year, filters) {
       gt.total_units, gt.on_order_value, gt.ytd_shipped_value, gt.total_value, gt.order_count];
     if (isLatest) gtRow.push(gt.lytd_shipped_qty, gt.lytd_shipped_value);
     gtRow.push(gCell(gQty), gCell(gVal), 1);
-    aoa.push(gtRow);
-  } else {
-    aoa.push(pad(['No data matches the selected filters.']));
+    aoa.push(gtRow); fmt.push(fmtRow);
   }
 
-  return {
-    name: (year + ' Detail').slice(0, 31),
-    ws: aoaToSheet(aoa, (R, C) => XLS_FMT[colFmt[C]], colWidthsFromHeaders(headers))
-  };
+  return { name: String(year).slice(0, 31), ws: aoaToSheetGrid(aoa, fmt, colWidthsFromHeaders(headers)) };
 }
 
-// ── Main download handler — exports the currently active tab ──
+function colWidthsFromHeaders(headers) {
+  return headers.map(h => ({ wch: Math.max(12, String(h).length + 2) }));
+}
+
+// ── Main download handler — builds the complete workbook ──
 function downloadExcel() {
   if (typeof XLSX === 'undefined') {
     alert('The Excel library could not be loaded. Please check your internet connection and try again.');
@@ -1593,26 +1574,17 @@ function downloadExcel() {
     return;
   }
 
-  const wb = XLSX.utils.book_new();
-  let fileTag = 'Export';
-
   try {
-    if (currentTab === 'dashboard') {
-      buildDashboardSheets().forEach(s => XLSX.utils.book_append_sheet(wb, s.ws, s.name));
-      fileTag = 'Dashboard';
-    } else if (currentTab === 'comparatives') {
-      const s = buildComparativesSheet(getFilters());
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, composeDashboardSheet().ws, 'Dashboard');
+    XLSX.utils.book_append_sheet(wb, composeComparativeSheet().ws, 'Comparative');
+    YEARS.slice().reverse().forEach(year => {
+      const s = composeYearSheet(year);
       XLSX.utils.book_append_sheet(wb, s.ws, s.name);
-      fileTag = 'Comparatives';
-    } else if (currentTab.startsWith('year-')) {
-      const year = parseInt(currentTab.replace('year-', ''), 10);
-      const s = buildYearSheet(year, getFilters());
-      XLSX.utils.book_append_sheet(wb, s.ws, s.name);
-      fileTag = String(year);
-    }
+    });
 
     const today = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `Skillmatics_Revenue_${fileTag}_${today}.xlsx`);
+    XLSX.writeFile(wb, `Skillmatics_Revenue_${today}.xlsx`);
   } catch (err) {
     console.error('Excel export error:', err);
     alert('Sorry, something went wrong while building the Excel file.');
