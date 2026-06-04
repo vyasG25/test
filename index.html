@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skillmatics — US Revenue Dashboard</title>
+<title>Skillmatics — Inventory Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --bg:#f5f4f0; --surface:#fff; --surface2:#faf9f6; --border:#e8e4dc; --border2:#d8d3c8;
@@ -15,8 +14,11 @@
     --warm:#d4845a; --warm-light:#fdf0e8;
     --blue:#4a7fa5; --blue-light:#e8f1f8;
     --gold:#c4973a; --gold-light:#fdf5e6;
-    --red:#c0444a; --red-light:#fdeced; --dark-red:#7b1a2a; --dark-red-light:#f5e0e3;
+    --red:#c0444a; --red-light:#fdeced;
     --green:#3a8a5c; --green-light:#e6f5ed;
+    --teal:#2a8a7a; --teal-light:#e6f5f2;
+    --purple:#7b5ea7; --purple-light:#f0ebf7;
+    --orange:#d4845a; --orange-light:#fdf0e8;
     --shadow:0 1px 3px rgba(44,42,37,.08),0 4px 12px rgba(44,42,37,.05);
     --shadow-md:0 4px 16px rgba(44,42,37,.12);
     --r:12px; --rs:8px;
@@ -24,68 +26,96 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
+  /* ANIMATIONS */
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes loadLogoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(78,124,89,.3);}50%{transform:scale(1.05);box-shadow:0 0 0 14px rgba(78,124,89,0);}}
+  @keyframes loadSpin{to{transform:rotate(360deg);}}
+  @keyframes loadDot{0%,80%,100%{opacity:.25;transform:scale(.8);}40%{opacity:1;transform:scale(1.1);}}
+  @keyframes liveRing{0%{transform:scale(1);opacity:.6;}70%{transform:scale(2.4);opacity:0;}100%{transform:scale(2.4);opacity:0;}}
+
+  /* LOGIN */
+  #loginOverlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+  .login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 44px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(44,42,37,.14);display:flex;flex-direction:column;align-items:center;}
+  .login-logo{width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:700;margin-bottom:16px;}
+  .login-title{font-family:'Fraunces',serif;font-size:22px;letter-spacing:-.3px;margin-bottom:4px;}
+  .login-sub{font-size:13px;color:var(--text3);margin-bottom:30px;}
+  .login-field{display:flex;flex-direction:column;gap:5px;width:100%;}
+  .login-label{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.4px;text-transform:uppercase;}
+  .login-input{padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;background:var(--surface2);}
+  .login-input:focus{border-color:var(--accent);}
+  .login-fields{display:flex;flex-direction:column;gap:14px;width:100%;}
+  #loginError{display:none;font-size:13px;color:var(--red);background:var(--red-light);border:1px solid var(--red);border-radius:var(--rs);padding:9px 13px;text-align:center;}
+  .login-btn{margin-top:4px;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .2s;width:100%;}
+  .login-btn:hover{background:#3d6347;}
+
+  /* LOADING */
+  #loadingOverlay{position:fixed;inset:0;z-index:9998;background:var(--bg);display:none;align-items:center;justify-content:center;flex-direction:column;}
+
   /* TOP BAR */
   .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06);}
   .brand{display:flex;align-items:center;gap:12px;}
-  .brand-logo{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;}
-  .brand-name{font-family:'Fraunces',serif;font-size:18px;letter-spacing:-.3px;}
-  .brand-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+  .brand-img{height:32px;width:auto;display:block;}
+  .brand-sub{font-size:18px;color:#2c2a27;}
   .header-right{display:flex;align-items:center;gap:0;}
   .hdr-status{display:flex;align-items:center;gap:12px;padding-right:16px;border-right:1px solid var(--border);margin-right:12px;}
   .hdr-actions{display:flex;align-items:center;gap:8px;}
-  .last-updated{font-size:12px;color:var(--text3);}
-  .logout-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:none;color:var(--text2);border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .2s;white-space:nowrap;}
-  .logout-btn:hover{background:var(--red-light);color:var(--red);border-color:var(--red);}
-  .logout-btn svg{flex-shrink:0;}
-
-  /* REFRESH BUTTON */
-  .excel-btn{display:flex;align-items:center;gap:7px;padding:8px 15px;background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .2s;white-space:nowrap;}
-  .excel-btn:hover:not(:disabled){background:var(--accent);color:#fff;}
-  .excel-btn:disabled{opacity:.55;cursor:not-allowed;}
-  .excel-btn svg{flex-shrink:0;}
-  .refresh-btn{display:flex;align-items:center;gap:7px;padding:8px 15px;background:#e0f2f1;color:#004d40;border:1px solid #80cbc4;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .2s;white-space:nowrap;}
-  .refresh-btn:hover:not(:disabled){background:#b2dfdb;border-color:#4db6ac;}
-  .refresh-btn:disabled{opacity:.55;cursor:not-allowed;}
-  .refresh-icon{display:inline-block;transition:transform .3s;}
-  .refresh-btn.spinning .refresh-icon{animation:spin .7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-
-  /* LIVE INDICATOR */
   .live-indicator{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--accent-light);border:1px solid var(--accent);border-radius:20px;opacity:0;transition:opacity .4s;}
   .live-indicator.visible{opacity:1;}
   .live-dot-wrap{position:relative;width:10px;height:10px;flex-shrink:0;}
   .live-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);position:absolute;top:0;left:0;}
   .live-ring{width:10px;height:10px;border-radius:50%;background:var(--accent);position:absolute;top:0;left:0;opacity:.6;animation:liveRing 2s ease-out infinite;}
-  @keyframes liveRing{0%{transform:scale(1);opacity:.6;}70%{transform:scale(2.4);opacity:0;}100%{transform:scale(2.4);opacity:0;}}
   .live-text{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;}
+  .refresh-btn{display:flex;align-items:center;gap:7px;padding:8px 15px;background:#e0f2f1;color:#004d40;border:1px solid #80cbc4;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .2s;white-space:nowrap;}
+  .refresh-btn:hover:not(:disabled){background:#b2dfdb;border-color:#4db6ac;}
+  .refresh-btn:disabled{opacity:.55;cursor:not-allowed;}
+  .refresh-icon{display:inline-block;transition:transform .3s;}
+  .refresh-btn.spinning .refresh-icon{animation:spin .7s linear infinite;}
+  .logout-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:none;color:var(--text2);border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .2s;}
+  .logout-btn:hover{background:var(--red-light);color:var(--red);border-color:var(--red);}
 
   /* FILTER BAR */
-  .filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:60px;z-index:90;}
+  .filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
   .filter-group{display:flex;align-items:center;gap:7px;}
   .filter-label{font-size:12px;font-weight:500;color:var(--text2);white-space:nowrap;}
-  .filter-select{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none;transition:border-color .2s;min-width:140px;}
+  .filter-select{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none;transition:border-color .2s;min-width:130px;}
   .filter-select:focus{border-color:var(--accent);}
-  .filter-sep{width:1px;height:22px;background:var(--border2);}
-
-  /* MULTI-SELECT PARTY DROPDOWN */
-  .party-dropdown-wrap{position:relative;}
-  .party-trigger{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none;min-width:200px;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;transition:border-color .2s;}
-  .party-trigger.open{border-color:var(--accent);}
-  .party-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow-md);min-width:260px;max-width:340px;}
-  .party-panel.open{display:block;}
-  .party-search{width:100%;padding:10px 12px;border:none;border-bottom:1px solid var(--border);font-size:13px;font-family:inherit;outline:none;background:var(--surface2);border-radius:var(--r) var(--r) 0 0;}
-  .party-list{max-height:240px;overflow-y:auto;padding:5px 0;}
-  .party-item{display:flex;align-items:center;gap:10px;padding:7px 13px;cursor:pointer;transition:background .15s;font-size:13px;}
-  .party-item:hover{background:var(--bg);}
-  .party-item input{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0;}
-  .party-actions{padding:8px 11px;border-top:1px solid var(--border);display:flex;gap:7px;}
-  .party-action-btn{padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);transition:all .15s;font-family:inherit;}
-  .party-action-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
-  .btn-reset{padding:7px 13px;background:var(--warm-light);color:var(--warm);border:1px solid var(--warm);border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all .2s;}
+  .btn-reset{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--warm-light);color:var(--warm);border:1px solid var(--warm);border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all .2s;}
+  .btn-reset svg{flex-shrink:0;}
   .btn-reset:hover{background:var(--warm);color:#fff;}
+  .filter-wide{min-width:220px;flex:1 1 220px;}
+  .filter-brands{order:1;}
+  .filter-categories{order:2;}
+  .filter-platforms{order:3;}
+  .filter-products{order:4;}
+  .filter-status{order:5;}
+  .btn-reset{order:6;}
+  .ms-wrap{position:relative;min-width:220px;flex:1 1 220px;}
+  .ms-trigger{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none;min-width:220px;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;transition:border-color .2s,box-shadow .2s;}
+  .ms-trigger.open{border-color:var(--accent);box-shadow:0 0 0 3px rgba(78,124,89,.08);}
+  .ms-trigger-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+  .ms-arrow{font-size:10px;color:var(--text3);flex-shrink:0;transition:transform .2s;}
+  .ms-trigger.open .ms-arrow{transform:rotate(180deg);}
+  .ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:220;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow-md);min-width:320px;max-width:420px;width:max-content;overflow:hidden;}
+  .ms-panel.open{display:block;}
+  .ms-search-wrap{padding:9px 10px 7px;border-bottom:1px solid var(--border);background:var(--surface2);}
+  .ms-search{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;width:100%;}
+  .ms-search:focus{border-color:var(--accent);}
+  .ms-list{max-height:260px;overflow-y:auto;padding:6px 0;}
+  .ms-item{display:flex;align-items:flex-start;gap:10px;padding:8px 13px;cursor:default;transition:background .15s;font-size:13px;line-height:1.35;}
+  .ms-item:hover{background:var(--bg);}
+  .ms-item input{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0;margin-top:2px;}
+  .ms-item-main{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;}
+  .ms-item-title{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ms-item-sub{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ms-item-meta{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ms-actions{padding:8px 11px;border-top:1px solid var(--border);display:flex;gap:7px;background:var(--surface2);}
+  .ms-action-btn{padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);transition:all .15s;font-family:inherit;}
+  .ms-action-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .ms-empty{padding:16px 14px;font-size:12px;color:var(--text3);text-align:center;}
 
   /* TABS */
-  .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;overflow-x:auto;position:sticky;top:108px;z-index:80;}
+  .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;overflow-x:auto;position:sticky;top:60px;z-index:80;}
   .tab-btn{padding:13px 20px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;transition:all .2s;font-family:inherit;white-space:nowrap;}
   .tab-btn:hover{color:var(--text);}
   .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
@@ -102,163 +132,185 @@
   .sec-badge{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;letter-spacing:.4px;text-transform:uppercase;}
 
   /* KPI CARDS */
-  .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
   @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
   @media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:17px 19px;display:flex;flex-direction:column;justify-content:center;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:17px 19px;display:flex;flex-direction:column;justify-content:center;transition:box-shadow .2s;}
   .kpi-card:hover{box-shadow:var(--shadow);}
-  .kpi-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;}
-  .kpi-value{font-size:24px;font-weight:600;color:var(--text);line-height:1;}
-  .kpi-sub{font-size:12px;color:var(--text3);margin-top:4px;}
-  .kpi-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600;margin-top:6px;}
-  .up{background:var(--green-light);color:var(--green);}
-  .dn{background:var(--red-light);color:var(--red);}
-  .na{background:var(--bg);color:var(--text3);}
+  .kpi-icon{font-size:20px;}
+  .kpi-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .kpi-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;}
+  .kpi-value{font-size:26px;font-weight:600;color:var(--text);line-height:1;}
+  .kpi-sub{font-size:12px;color:var(--text3);margin-top:5px;}
+  .kpi-bar-bg{height:3px;background:var(--border);border-radius:2px;margin-top:10px;}
+  .kpi-bar{height:3px;border-radius:2px;background:var(--accent);}
 
-  /* SUMMARY TABLE */
+  /* WAREHOUSE LOCATION CARDS */
+  .wh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+  .wh-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;transition:box-shadow .15s;}
+  .wh-card:hover{box-shadow:var(--shadow);}
+  .wh-name{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .wh-qty{font-size:22px;font-weight:700;color:var(--text);}
+  .wh-skus{font-size:11px;color:var(--text3);margin-top:3px;}
+  .wh-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;}
+
+  /* TABLE */
   .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;}
-  .table-wrap-sticky{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:75vh;}
-  .table-wrap-sticky thead th{position:sticky;top:0;z-index:10;}
+  .table-wrap-sticky{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:70vh;}
+  .top20-table-wrap{max-height:min(520px,70vh);}
+  .report-table-wrap{max-height:calc(100vh - 240px);min-height:280px;}
+  .erp-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
+  .erp-toolbar{padding:14px 17px;background:linear-gradient(90deg,#334b56,#426776);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .erp-heading{font-size:15px;font-weight:600;letter-spacing:.2px;}
+  .erp-sub{font-size:12px;opacity:.75;margin-top:3px;}
+  .erp-summary{display:flex;align-items:center;gap:18px;font-size:12px;white-space:nowrap;}
+  .erp-summary strong{display:block;font-size:18px;line-height:1.1;color:#fff;}
+  .erp-table-wrap{border:none;border-radius:0;box-shadow:none;max-height:calc(100vh - 260px);min-height:280px;}
+  .erp-table thead th{background:#edf2f3;color:#42545b;border-bottom:1px solid #d2dcdf;}
+  .erp-table tbody tr:nth-child(even){background:#fbfcfb;}
+  .erp-table tbody td{padding-top:10px;padding-bottom:10px;}
+  .erp-table tbody tr:hover{background:#edf5f1;}
+  .report-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .report-control{display:flex;align-items:center;gap:7px;}
+  .report-control .filter-select{min-width:230px;background:var(--surface);}
+  .sort-active{color:var(--accent)!important;}
+  .sort-indicator{font-size:11px;margin-left:3px;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
+  .top20-table thead tr.top20-summary-row th{position:sticky;top:0;z-index:13;background:#eaf3fb;border-bottom:1px solid #cfe1f5;padding:7px 13px;font-size:12px;font-weight:700;color:#1f2937;text-transform:none;letter-spacing:0;white-space:nowrap;}
+  .top20-table thead tr.top20-header-row th{position:sticky;top:34px;z-index:12;}
+  .top20-table thead tr.top20-summary-row th.td-right{text-align:right;font-variant-numeric:tabular-nums;}
+  .top20-table thead tr.top20-summary-row th.summary-label{text-align:left;color:#1f2937;}
+  .top20-table thead tr.top20-summary-row:hover th{background:#eaf3fb;}
+
+
   thead th{padding:9px 13px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10;}
   thead th.th-right{text-align:right;}
+  thead th.sortable{cursor:pointer;user-select:none;}
+  thead th.sortable:hover{color:var(--accent);}
   tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
   tbody tr:last-child{border-bottom:none;}
   tbody tr:hover{background:var(--bg);}
   tbody td{padding:8px 13px;color:var(--text);white-space:nowrap;}
   .td-right{text-align:right;font-variant-numeric:tabular-nums;}
-  .td-accent{color:var(--accent);font-weight:600;}
-  .td-green{color:#5aa279;font-weight:600;}
-  .td-red{color:var(--red);font-weight:500;}
   .td-muted{color:var(--text3);}
   .td-bold{font-weight:600;}
+  .td-code{font-family:monospace;font-size:12px;color:var(--text2);}
 
-  /* ACCOUNT SUBTOTAL ROW */
-  .tr-subtotal td{background:#eef6f1;font-weight:700;border-top:2px solid var(--border2);color:var(--accent);}
-  .tr-subtotal:hover td{background:#e4f0e8;}
-  /* GRAND TOTAL ROW */
-  .tr-grandtotal td{background:#3b4a54;color:#fff;font-weight:700;border-top:3px solid #2e3b43;}
-  .tr-grandtotal:hover td{background:#4a5d68;}
-  .tr-grandtotal .td-green{color:#7edba2;}
-  .tr-grandtotal .td-red{color:#f09090;}
-
-  /* PILL */
+  /* STATUS PILLS */
   .pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
-  .pg{background:var(--green-light);color:#5aa279;}
-  .py{background:var(--gold-light);color:var(--gold);}
-  .pr{background:var(--red-light);color:var(--red);}
+  .pill-active{background:var(--green-light);color:var(--green);}
+  .pill-inactive{background:var(--red-light);color:var(--red);}
 
-  /* ACCOUNT TYPE HEADER ROW */
-  .tr-account-header td{background:var(--accent);color:#fff;font-weight:700;font-size:12px;letter-spacing:.4px;}
-  .tr-account-header:hover td{background:#3d6347;}
+  /* LOCATION PILLS / BADGES */
+  .loc-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;}
+  .loc-amazon{background:#fff3e0;color:#e65100;}
+  .loc-3pl{background:var(--blue-light);color:var(--blue);}
+  .loc-intransit{background:var(--gold-light);color:var(--gold);}
+  .loc-china{background:#fce4ec;color:#c62828;}
+  .loc-india{background:#e8f5e9;color:#2e7d32;}
+  .loc-openorder{background:var(--purple-light);color:var(--purple);}
+  .loc-other{background:var(--bg);color:var(--text3);}
 
-  /* COMPARATIVES PLACEHOLDER */
-  .phase2-ph{background:var(--surface2);border:2px dashed var(--border2);border-radius:var(--r);padding:60px;text-align:center;color:var(--text3);}
-  .phase2-icon{font-size:48px;margin-bottom:16px;}
-  .phase2-title{font-family:'Fraunces',serif;font-size:22px;color:var(--text2);margin-bottom:8px;}
-  .phase2-desc{font-size:14px;line-height:1.6;max-width:440px;margin:0 auto;}
+  /* SKU DETAIL TABLE ROWS */
+  .tr-sku-group td{background:var(--surface2);font-weight:700;border-top:2px solid var(--border2);color:var(--text);}
+  .tr-sku-group:hover td{background:var(--bg);}
 
-  /* COMPARATIVE YOY TABLE */
-  .yoy-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-  .yoy-table{width:100%;border-collapse:collapse;font-size:13px;}
-  .yoy-table thead th{padding:12px 16px;text-align:right;font-size:12px;font-weight:700;color:var(--surface);background:var(--accent);letter-spacing:.4px;border-bottom:2px solid #3d6347;white-space:nowrap;}
-  .yoy-table thead th:first-child{text-align:left;min-width:180px;}
-  .yoy-table tbody td{padding:10px 16px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--border);}
-  .yoy-table tbody td:first-child{text-align:left;font-weight:600;color:var(--text);background:var(--surface2);border-right:1px solid var(--border);}
-  .yoy-table tbody tr:hover{background:var(--accent-light);}
-  .yoy-table tbody tr:last-child td{border-bottom:none;}
-  .yoy-section-row td{background:var(--bg) !important;font-size:10px !important;font-weight:700 !important;text-transform:uppercase;letter-spacing:.8px;color:var(--text3) !important;padding:6px 16px !important;border-bottom:1px solid var(--border2) !important;}
-  .yoy-section-row td:first-child{background:var(--bg) !important;}
-  .yoy-section-row:hover td{background:var(--bg) !important;}
-  .yoy-highlight td{background:rgba(78,124,89,.04);}
-  .yoy-highlight td:first-child{color:var(--accent) !important;}
-  .yoy-growth-row td{font-weight:600;}
-  .yoy-filter-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--accent-light);border:1px solid var(--accent);border-radius:20px;font-size:12px;font-weight:600;color:var(--accent);margin-left:10px;}
+  /* BRAND GROUP HEADER */
+  .tr-brand-hdr td{background:var(--accent);color:#fff;font-weight:700;font-size:12px;letter-spacing:.4px;}
+  .tr-brand-hdr:hover td{background:#3d6347;}
 
-  /* YEAR TAB FROZEN COLUMNS */
-  .year-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:75vh;}
-  .year-table-wrap table{border-collapse:separate;border-spacing:0;}
-  .year-table-wrap thead th{position:sticky;top:0;z-index:12;border-bottom:1px solid var(--border);}
-  .year-table-wrap th.sticky-col,
-  .year-table-wrap td.sticky-col{position:sticky;z-index:5;background:var(--surface);}
-  .year-table-wrap thead th.sticky-col{z-index:15;background:var(--surface2);}
-  .year-table-wrap .sticky-col-0{left:0;}
-  .year-table-wrap .sticky-col-1{left:0;}
-  .year-table-wrap .sticky-col-2{left:0;}
-  .year-table-wrap tbody tr:nth-child(even) td{background:var(--surface2);}
-  .year-table-wrap tbody tr:nth-child(even) td.sticky-col{background:var(--surface2);}
-  .year-table-wrap tbody tr:hover td{background:var(--bg);}
-  .year-table-wrap tbody tr:hover td.sticky-col{background:var(--bg);}
-  .year-table-wrap .tr-account-header td{background:var(--accent) !important;color:#fff !important;}
-  .year-table-wrap .tr-account-header:hover td{background:#3d6347 !important;}
-  .year-table-wrap .tr-subtotal td{background:#eef6f1 !important;font-weight:700;border-top:2px solid var(--border2);color:var(--accent) !important;}
-  .year-table-wrap .tr-subtotal:hover td{background:#e4f0e8 !important;}
-  .year-table-wrap .tr-grandtotal td{background:#3b4a54 !important;color:#fff !important;font-weight:700;border-top:3px solid #2e3b43;}
-  .year-table-wrap .tr-grandtotal:hover td{background:#4a5d68 !important;}
+  /* GRAND TOTAL */
+  .tr-grand td{background:#3b4a54;color:#fff;font-weight:700;border-top:3px solid #2e3b43;}
+  .tr-grand:hover td{background:#4a5d68;}
 
-  /* LOADING */
-  @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  @keyframes loadLogoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(78,124,89,.3);}50%{transform:scale(1.05);box-shadow:0 0 0 14px rgba(78,124,89,0);}}
-  @keyframes loadSpin{to{transform:rotate(360deg);}}
-  @keyframes loadDot{0%,80%,100%{opacity:.25;transform:scale(.8);}40%{opacity:1;transform:scale(1.1);}}
-  .no-data{padding:28px;text-align:center;color:var(--text3);font-size:14px;}
+  /* CATEGORY SUBTOTAL */
+  .tr-sub td{background:#eef6f1;font-weight:700;color:var(--accent);border-top:1px solid var(--border2);}
+  .tr-sub:hover td{background:#e4f0e8;}
 
-  @media(max-width:768px){
-    .top-bar,.filter-bar{padding:10px 14px;}
+  /* NO DATA */
+  .no-data{padding:32px;text-align:center;color:var(--text3);font-size:14px;}
+
+  /* TOP SKU TOGGLE */
+  .top-toggle-wrap{display:flex;align-items:center;gap:12px;}
+  .top-toggle-group{display:flex;border:1px solid var(--accent);border-radius:20px;overflow:hidden;}
+  .top-toggle-btn{padding:5px 16px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border:none;background:transparent;color:var(--accent);transition:all .2s;letter-spacing:.3px;}
+  .top-toggle-btn.active{background:var(--accent);color:#fff;}
+  .top-toggle-btn:not(.active):hover{background:var(--accent-light);}
+  .top-input-wrap{display:flex;align-items:center;gap:6px;}
+  .top-input-wrap label{font-size:12px;font-weight:500;color:var(--text2);}
+  .top-input{width:60px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:inherit;text-align:center;outline:none;transition:border-color .2s;background:var(--surface2);}
+  .top-input:focus{border-color:var(--accent);}
+
+  /* TOOLTIP */
+  [title]{cursor:default;}
+
+  @media(max-width:1100px) {
+    .top-bar{padding:0 18px;}
+    .filter-bar,.tab-bar{padding-left:18px;padding-right:18px;}
+    .main{padding:18px;}
+    .filter-wide{flex:1 1 calc(50% - 10px);min-width:280px;}
+    .report-table-wrap,.erp-table-wrap{max-height:calc(100vh - 215px);}
+  }
+  @media(max-width:720px) {
+    .top-bar{height:auto;min-height:60px;padding:10px 14px;flex-wrap:wrap;gap:10px;}
+    .brand-sub{display:none;}
+    .header-right{width:100%;justify-content:space-between;}
+    .hdr-status{padding-right:0;border-right:0;margin-right:0;}
+    .filter-bar{padding:10px 14px;display:grid;grid-template-columns:1fr;}
+    .filter-group,.filter-wide,.ms-wrap,.ms-trigger{width:100%;min-width:0;}
+    .filter-status .filter-select,.btn-reset{width:100%;}
+    .tab-bar{position:static;padding:0 14px;}
+    .tab-btn{padding:12px 14px;font-size:13px;}
     .main{padding:14px;}
-    .tab-bar{padding:0 14px;}
-    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .kpi-grid{grid-template-columns:1fr;}
+    .wh-grid{grid-template-columns:1fr;}
+    .sec-header{align-items:flex-start;flex-direction:column;gap:10px;}
+    .report-controls,.report-control{width:100%;}
+    .report-control .filter-select{width:100%;}
+    .erp-summary{width:100%;justify-content:space-between;}
+    .report-table-wrap,.erp-table-wrap{max-height:60vh;}
+    table{font-size:12px;}
+    thead th,tbody td{padding-left:9px;padding-right:9px;}
   }
 </style>
 </head>
 <body>
 
-<!-- LOGIN OVERLAY -->
-<div id="loginOverlay" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 44px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(44,42,37,.14);display:flex;flex-direction:column;align-items:center;gap:0;">
-    <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:700;margin-bottom:16px;">S</div>
-    <div style="font-family:'Fraunces',serif;font-size:22px;letter-spacing:-.3px;margin-bottom:4px;">Skillmatics</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:30px;">US Revenue Intelligence</div>
-    <div style="width:100%;display:flex;flex-direction:column;gap:14px;">
-      <div style="display:flex;flex-direction:column;gap:5px;">
-        <label style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.4px;text-transform:uppercase;">Username</label>
-        <input id="loginUser" type="text" autocomplete="username" placeholder="Enter username"
-          style="padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;background:var(--surface2);"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"
-          onkeydown="if(event.key==='Enter') attemptLogin()">
+<!-- LOGIN -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">S</div>
+    <div class="login-title">Skillmatics</div>
+    <div class="login-sub">Inventory Intelligence Dashboard</div>
+    <div class="login-fields">
+      <div class="login-field">
+        <label class="login-label">Username</label>
+        <input id="loginUser" class="login-input" type="text" placeholder="Enter username" autocomplete="username" onkeydown="if(event.key==='Enter')attemptLogin()">
       </div>
-      <div style="display:flex;flex-direction:column;gap:5px;">
-        <label style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.4px;text-transform:uppercase;">Password</label>
-        <input id="loginPass" type="password" autocomplete="current-password" placeholder="Enter password"
-          style="padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;background:var(--surface2);"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"
-          onkeydown="if(event.key==='Enter') attemptLogin()">
+      <div class="login-field">
+        <label class="login-label">Password</label>
+        <input id="loginPass" class="login-input" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')attemptLogin()">
       </div>
-      <div id="loginError" style="display:none;font-size:13px;color:var(--red);background:var(--red-light);border:1px solid var(--red);border-radius:var(--rs);padding:9px 13px;text-align:center;"></div>
-      <button id="loginBtn" onclick="attemptLogin()"
-        style="margin-top:4px;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .2s;"
-        onmouseover="this.style.background='#3d6347'" onmouseout="this.style.background='var(--accent)'">
-        Sign In
-      </button>
+      <div id="loginError"></div>
+      <button class="login-btn" onclick="attemptLogin()">Sign In</button>
     </div>
   </div>
 </div>
 
-<!-- LOADING OVERLAY -->
-<div id="loadingOverlay" style="position:fixed;inset:0;z-index:9998;background:var(--bg);display:none;align-items:center;justify-content:center;flex-direction:column;transition:opacity .5s ease;">
+<!-- LOADING -->
+<div id="loadingOverlay">
   <div style="display:flex;flex-direction:column;align-items:center;gap:0;animation:loadFadeIn .6s ease;">
     <div style="width:64px;height:64px;background:var(--accent);border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700;margin-bottom:20px;animation:loadLogoPulse 2s ease-in-out infinite;">S</div>
-    <div style="font-family:'Fraunces',serif;font-size:26px;letter-spacing:-.3px;margin-bottom:6px;color:var(--text);">Skillmatics</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:36px;">US Revenue Intelligence</div>
+    <div style="font-family:'Fraunces',serif;font-size:26px;letter-spacing:-.3px;margin-bottom:6px;">Skillmatics</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:36px;">Loading Inventory Data…</div>
     <div style="position:relative;width:48px;height:48px;margin-bottom:24px;">
       <svg width="48" height="48" viewBox="0 0 48 48" style="animation:loadSpin 1.2s linear infinite;">
         <circle cx="24" cy="24" r="20" fill="none" stroke="var(--border2)" stroke-width="3"/>
         <circle cx="24" cy="24" r="20" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="80 126" stroke-linecap="round"/>
       </svg>
     </div>
-    <div id="loadingStatus" style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:8px;">Connecting to data source…</div>
-    <div id="loadingSubStatus" style="font-size:12px;color:var(--text3);">This may take a moment</div>
-    <div style="display:flex;gap:6px;margin-top:24px;">
+    <div id="loadingStatus" style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:8px;">Processing inventory records…</div>
+    <div style="display:flex;gap:6px;margin-top:18px;">
       <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out infinite;"></div>
       <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out .2s infinite;"></div>
       <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out .4s infinite;"></div>
@@ -266,1389 +318,1316 @@
   </div>
 </div>
 
+<!-- MAIN APP (hidden until login) -->
+<div id="app" style="display:none;">
+
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="brand">
-    <div class="brand-logo">S</div>
-    <div>
-      <div class="brand-name">Skillmatics</div>
-      <div class="brand-sub">US Revenue Intelligence</div>
-    </div>
+    <img class="brand-img" src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics">
+    <div class="brand-sub">Inventory Intelligence</div>
   </div>
   <div class="header-right">
     <div class="hdr-status">
-      <div class="live-indicator" id="liveIndicator">
+      <div class="live-indicator visible" id="liveIndicator">
         <div class="live-dot-wrap"><div class="live-dot"></div><div class="live-ring"></div></div>
         <span class="live-text">Live</span>
       </div>
-      <span id="fileTimestamp" style="font-size:11px;color:var(--text3);display:none;">
-        <span style="font-weight:500;">File updated:</span> <span id="fileTimestampVal"></span>
-      </span>
+      <span id="lastUpdated" style="font-size:11px;color:var(--text3);"></span>
     </div>
     <div class="hdr-actions">
-      <button class="excel-btn" id="excelBtn" onclick="downloadExcel()" title="Download the current tab's data as an Excel file">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download Excel
-      </button>
-      <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+      <button class="refresh-btn" id="refreshBtn" onclick="doRefresh()">
         <span class="refresh-icon" id="refreshIcon">↻</span> Refresh
       </button>
-      <button class="logout-btn" onclick="logout()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <button class="logout-btn" onclick="doLogout()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
         Logout
       </button>
     </div>
   </div>
 </div>
 
+
 <!-- FILTER BAR -->
-<div class="filter-bar" id="filterBar">
-  <div class="filter-group">
-    <span class="filter-label">Account Type</span>
-    <select class="filter-select" id="accountTypeFilter" onchange="onAccountTypeChange()">
-      <option value="">All Account Types</option>
-    </select>
-  </div>
-  <div class="filter-sep"></div>
-  <div class="filter-group">
-    <span class="filter-label">Party</span>
-    <div class="party-dropdown-wrap">
-      <div class="party-trigger" id="partyTrigger" tabindex="0" onclick="togglePartyPanel()">
-        <span id="partyTriggerLabel">All Parties</span>
-        <span style="font-size:10px;color:var(--text3);">▾</span>
+<div class="filter-bar">
+  <div class="filter-group filter-wide filter-brands">
+    <span class="filter-label">Brand</span>
+    <div class="ms-wrap" data-key="brands">
+      <div class="ms-trigger" id="brandsTrigger" tabindex="0">
+        <span class="ms-trigger-text" id="brandsTriggerText">All Brands</span><span class="ms-arrow">▾</span>
       </div>
-      <div class="party-panel" id="partyPanel">
-        <input class="party-search" id="partySearch" placeholder="Search parties…" oninput="filterPartyList()" onclick="event.stopPropagation()">
-        <div class="party-list" id="partyList"></div>
-        <div class="party-actions">
-          <button class="party-action-btn" onclick="selectAllParties()">All</button>
-          <button class="party-action-btn" onclick="clearAllParties()">None</button>
+      <div class="ms-panel" id="brandsPanel">
+        <div class="ms-search-wrap"><input class="ms-search" id="brandsSearch" type="search" placeholder="Search brands..." autocomplete="off"></div>
+        <div class="ms-list" id="brandsList"></div>
+        <div class="ms-actions">
+          <button class="ms-action-btn" id="brandsSelectAll">Select All</button>
+          <button class="ms-action-btn" id="brandsClearAll">Clear All</button>
         </div>
       </div>
     </div>
   </div>
-  <div class="filter-sep"></div>
-  <button class="btn-reset" id="resetBtn" onclick="resetFilters()">↺ Reset</button>
+
+  <div class="filter-group filter-wide filter-categories">
+    <span class="filter-label">Category</span>
+    <div class="ms-wrap" data-key="categories">
+      <div class="ms-trigger" id="categoriesTrigger" tabindex="0">
+        <span class="ms-trigger-text" id="categoriesTriggerText">All Categories</span><span class="ms-arrow">▾</span>
+      </div>
+      <div class="ms-panel" id="categoriesPanel">
+        <div class="ms-search-wrap"><input class="ms-search" id="categoriesSearch" type="search" placeholder="Search categories..." autocomplete="off"></div>
+        <div class="ms-list" id="categoriesList"></div>
+        <div class="ms-actions">
+          <button class="ms-action-btn" id="categoriesSelectAll">Select All</button>
+          <button class="ms-action-btn" id="categoriesClearAll">Clear All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-group filter-wide filter-platforms">
+    <span class="filter-label">Platform</span>
+    <div class="ms-wrap" data-key="platforms">
+      <div class="ms-trigger" id="platformsTrigger" tabindex="0">
+        <span class="ms-trigger-text" id="platformsTriggerText">All Platforms</span><span class="ms-arrow">▾</span>
+      </div>
+      <div class="ms-panel" id="platformsPanel">
+        <div class="ms-search-wrap"><input class="ms-search" id="platformsSearch" type="search" placeholder="Search platforms..." autocomplete="off"></div>
+        <div class="ms-list" id="platformsList"></div>
+        <div class="ms-actions">
+          <button class="ms-action-btn" id="platformsSelectAll">Select All</button>
+          <button class="ms-action-btn" id="platformsClearAll">Clear All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-group filter-wide filter-products">
+    <span class="filter-label">Product</span>
+    <div class="ms-wrap" data-key="products">
+      <div class="ms-trigger" id="productsTrigger" tabindex="0">
+        <span class="ms-trigger-text" id="productsTriggerText">All Products</span><span class="ms-arrow">▾</span>
+      </div>
+      <div class="ms-panel" id="productsPanel">
+        <div class="ms-search-wrap"><input class="ms-search" id="productsSearch" type="search" placeholder="Search products..." autocomplete="off"></div>
+        <div class="ms-list" id="productsList"></div>
+        <div class="ms-actions">
+          <button class="ms-action-btn" id="productsSelectAll">Select All</button>
+          <button class="ms-action-btn" id="productsClearAll">Clear All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-group filter-status">
+    <span class="filter-label">Status</span>
+    <select class="filter-select" id="fStatus" onchange="applyFilters()">
+      <option value="">All Status</option>
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+    </select>
+  </div>
+
+  <button class="btn-reset" onclick="resetFilters()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 3-6.7"/>
+      <path d="M3 4v6h6"/>
+    </svg>
+    Reset
+  </button>
 </div>
 
-<!-- TAB BAR -->
-<div class="tab-bar" id="tabBar">
-  <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
-  <button class="tab-btn" data-tab="comparatives">📈 Comparatives</button>
-  <!-- Year tabs injected by JS -->
+<!-- TABS -->
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('overview', this)">&#128202; Inventory Overview</button>
+  <button class="tab-btn" onclick="switchTab('byLocation', this)">&#127970; Warehouse Breakdown</button>
+  <button class="tab-btn" onclick="switchTab('skuDetail', this)">&#128230; SKU-Level Detail</button>
 </div>
 
-<!-- MAIN -->
+<!-- MAIN CONTENT -->
 <div class="main">
 
-  <!-- DASHBOARD TAB -->
-  <div class="tab-content active" id="tab-dashboard">
-    <div class="sec-header">
-      <div class="sec-title">📊 Revenue Summary <span class="sec-badge" style="background:var(--accent-light);color:var(--accent);" id="dashSummaryBadge">Current Year</span></div>
+  <!-- OVERVIEW TAB -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="sec-header"><div class="sec-title">📊 Inventory Summary</div></div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="sec-header" style="margin-top:28px;">
+      <div class="sec-title">🏭 Stock by Location Group</div>
     </div>
+    <div class="wh-grid" id="whGrid"></div>
 
-    <!-- KPI CARDS -->
-    <div class="kpi-grid" id="dashKpiGrid" style="margin-bottom:18px;"></div>
-
-    <!-- SUMMARY TABLES (one per year, generated by JS) -->
-    <div id="dashSummaryContainer"></div>
+    <div class="sec-header" style="margin-top:4px;">
+      <div class="sec-title">📈 Top SKUs by Total Stock-on-Hand (SOH)</div>
+      <div class="top-toggle-wrap">
+        <div class="top-toggle-group">
+          <button class="top-toggle-btn" id="toggleAll" onclick="setTopMode('all')">All</button>
+          <button class="top-toggle-btn active" id="toggleTop" onclick="setTopMode('top')">Top</button>
+        </div>
+        <div class="top-input-wrap" id="topInputWrap">
+          <label for="topNInput">Show</label>
+          <input type="number" class="top-input" id="topNInput" value="10" min="1" onchange="onTopNChange()" onkeyup="onTopNChange()">
+        </div>
+      </div>
+    </div>
+    <div class="table-wrap-sticky top20-table-wrap">
+      <table id="top20Table" class="top20-table">
+        <thead>
+        <tr class="top20-summary-row" id="top20SummaryRow"></tr>
+        <tr class="top20-header-row">
+          <th class="sortable" data-sort="details" onclick="sortTop20('details')">SKU Details<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="brand" onclick="sortTop20('brand')">Brand<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="category" onclick="sortTop20('category')">Category<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="platform" onclick="sortTop20('platform')">Platform<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="status" onclick="sortTop20('status')">Status<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="india" onclick="sortTop20('india')">India<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="china" onclick="sortTop20('china')">China<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="amazon" onclick="sortTop20('amazon')">Amazon<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="threepl" onclick="sortTop20('threepl')">3PL WH<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="intransit" onclick="sortTop20('intransit')">In Transit<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="openorder" onclick="sortTop20('openorder')">All Open Orders<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="total" onclick="sortTop20('total')">Total Stock<span class="sort-indicator"></span></th>
+        </tr></thead>
+        <tbody id="top20Body"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- COMPARATIVES TAB -->
-  <div class="tab-content" id="tab-comparatives">
-    <div id="comparativesContent"></div>
+  <!-- BY LOCATION TAB -->
+  <div class="tab-content" id="tab-byLocation">
+    <div class="erp-panel">
+      <div class="erp-toolbar">
+        <div>
+          <div class="erp-heading">Inventory by Location</div>
+          <div class="erp-sub">Warehouse ledger summary by inventory type</div>
+        </div>
+        <div class="erp-summary">
+          <div><strong id="locationCount">0</strong>Locations</div>
+          <div><strong id="locationUnits">0</strong>Total Units</div>
+        </div>
+      </div>
+      <div class="table-wrap-sticky erp-table-wrap">
+      <table class="erp-table" id="locationTable">
+        <thead><tr>
+          <th class="sortable" data-sort="warehouse" onclick="sortLocations('warehouse')">Warehouse / Location<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="type" onclick="sortLocations('type')">Type<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="skus" onclick="sortLocations('skus')">SKUs Stored<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="qty" onclick="sortLocations('qty')">Total Qty<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="pct" onclick="sortLocations('pct')">% of Total<span class="sort-indicator"></span></th>
+        </tr></thead>
+        <tbody id="locationBody"></tbody>
+      </table>
+      </div>
+    </div>
   </div>
 
-  <!-- YEAR TABS: injected by JS -->
+  <!-- SKU DETAIL TAB -->
+  <div class="tab-content" id="tab-skuDetail">
+    <div class="sec-header">
+      <div class="sec-title">Full SKU Inventory Detail</div>
+      <div class="report-controls">
+        <div class="report-control">
+          <span class="filter-label">Warehouse</span>
+          <div class="ms-wrap" data-key="skuWarehouses" style="min-width:200px;flex:unset;">
+            <div class="ms-trigger" id="skuWarehousesTrigger" tabindex="0" style="min-width:200px;">
+              <span class="ms-trigger-text" id="skuWarehousesTriggerText">All Warehouses</span><span class="ms-arrow">▾</span>
+            </div>
+            <div class="ms-panel" id="skuWarehousesPanel">
+              <div class="ms-search-wrap"><input class="ms-search" id="skuWarehousesSearch" type="search" placeholder="Search warehouses..." autocomplete="off"></div>
+              <div class="ms-list" id="skuWarehousesList"></div>
+              <div class="ms-actions">
+                <button class="ms-action-btn" id="skuWarehousesSelectAll">Select All</button>
+                <button class="ms-action-btn" id="skuWarehousesClearAll">Clear All</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="report-control">
+          <span class="filter-label">Location Type</span>
+          <div class="ms-wrap" data-key="skuLocTypes" style="min-width:200px;flex:unset;">
+            <div class="ms-trigger" id="skuLocTypesTrigger" tabindex="0" style="min-width:200px;">
+              <span class="ms-trigger-text" id="skuLocTypesTriggerText">All Location Types</span><span class="ms-arrow">▾</span>
+            </div>
+            <div class="ms-panel" id="skuLocTypesPanel">
+              <div class="ms-search-wrap"><input class="ms-search" id="skuLocTypesSearch" type="search" placeholder="Search location types..." autocomplete="off"></div>
+              <div class="ms-list" id="skuLocTypesList"></div>
+              <div class="ms-actions">
+                <button class="ms-action-btn" id="skuLocTypesSelectAll">Select All</button>
+                <button class="ms-action-btn" id="skuLocTypesClearAll">Clear All</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="table-wrap-sticky report-table-wrap">
+      <table id="skuDetailTable">
+        <thead><tr>
+          <th class="sortable" data-sort="sku_code" onclick="sortSKUDetail('sku_code')">SKU Code<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="sku_name" onclick="sortSKUDetail('sku_name')">SKU Name<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="brand" onclick="sortSKUDetail('brand')">Brand<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="category" onclick="sortSKUDetail('category')">Category<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="platform" onclick="sortSKUDetail('platform')">Platform<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="status" onclick="sortSKUDetail('status')">Status<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="warehouse" onclick="sortSKUDetail('warehouse')">Warehouse<span class="sort-indicator"></span></th>
+          <th class="sortable" data-sort="_locType" onclick="sortSKUDetail('_locType')">Location Type<span class="sort-indicator"></span></th>
+          <th class="th-right sortable" data-sort="stock_on_hand" onclick="sortSKUDetail('stock_on_hand')">Qty<span class="sort-indicator"></span></th>
+        </tr></thead>
+        <tbody id="skuDetailBody"></tbody>
+      </table>
+    </div>
+  </div>
 
-</div>
+</div><!-- /main -->
+</div><!-- /app -->
 
 <script>
-'use strict';
-
+// ─── DATA ──────────────────────────────────────────────────────────────────
 const DATA_URL = './data.json';
-let RAW = [];
-let YEARS = [];
-let SHEETS = [];
-let PARTIES = [];
-let LATEST_YEAR = null;
+let RAW_DATA = [];
 
-// ── LOGIN ───────────────────────────────────────────────────────────────────
-async function attemptLogin() {
-  const userInput = document.getElementById('loginUser').value.trim();
-  const passInput = document.getElementById('loginPass').value;
-  const btn       = document.getElementById('loginBtn');
-  const errEl     = document.getElementById('loginError');
-
-  if (!userInput || !passInput) { showLoginError('Please enter both username and password.'); return; }
-
-  btn.disabled = true;
-  btn.textContent = 'Verifying…';
-  errEl.style.display = 'none';
-
-  try {
-    if (userInput === 'admin' && passInput === 'admin') {
-      sessionStorage.setItem('sk_rev_logged_in', '1');
-      document.getElementById('loginOverlay').style.display = 'none';
-      const loadOv = document.getElementById('loadingOverlay');
-      loadOv.style.display = 'flex';
-      loadOv.style.opacity = '1';
-
-      const statusEl = document.getElementById('loadingStatus');
-      const subEl    = document.getElementById('loadingSubStatus');
-      const messages = [
-        ['Connecting to data source…', 'This may take a moment'],
-        ['Fetching revenue records…', 'Pulling latest figures'],
-        ['Processing account data…', 'Crunching the numbers'],
-        ['Building your dashboard…', 'Almost there']
-      ];
-      let msgIdx = 0;
-      const msgInterval = setInterval(() => {
-        msgIdx++;
-        if (msgIdx < messages.length) {
-          statusEl.textContent = messages[msgIdx][0];
-          subEl.textContent    = messages[msgIdx][1];
-        }
-      }, 1800);
-
-      await loadData();
-
-      clearInterval(msgInterval);
-      statusEl.textContent = 'Ready!';
-      subEl.textContent = '';
-      loadOv.style.opacity = '0';
-      setTimeout(() => { loadOv.style.display = 'none'; }, 500);
-    } else {
-      showLoginError('Invalid username or password. Please try again.');
-      btn.disabled = false;
-      btn.textContent = 'Sign In';
-    }
-  } catch (err) {
-    console.error(err);
-    showLoginError('Could not load data. Check your connection and try again.');
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
-  }
-}
-
-function showLoginError(msg) {
-  const el = document.getElementById('loginError');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function logout() {
-  sessionStorage.removeItem('sk_rev_logged_in');
-  document.getElementById('loginOverlay').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginBtn').textContent = 'Sign In';
-  document.getElementById('loginError').style.display = 'none';
-}
-
-// ── DATA LOAD ───────────────────────────────────────────────────────────────
 async function loadData() {
   const response = await fetch(DATA_URL + '?_=' + Date.now());
-  // Capture file's Last-Modified timestamp from response headers
   const lastModified = response.headers.get('Last-Modified') || response.headers.get('last-modified');
   if (lastModified) {
-    const lmDate = new Date(lastModified);
-    const lmStr = lmDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
-                  ' ' + lmDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    document.getElementById('fileTimestampVal').textContent = lmStr;
-    document.getElementById('fileTimestamp').style.display = 'inline';
+    document.getElementById('lastUpdated').textContent = formatFileUpdated(new Date(lastModified));
   }
-  RAW = await response.json();
 
-  YEARS       = [...new Set(RAW.map(d => d.year))].sort((a,b) => a - b);
-  const SHEET_ORDER = ['National US', 'National Canada', 'Specialty US', 'Mid Tier'];
-  SHEETS      = [...new Set(RAW.map(d => d.sheet))].sort((a, b) => {
-    const ai = SHEET_ORDER.indexOf(a);
-    const bi = SHEET_ORDER.indexOf(b);
-    const aIdx = ai === -1 ? 999 : ai;
-    const bIdx = bi === -1 ? 999 : bi;
-    return aIdx - bIdx;
-  });
-  PARTIES     = [...new Set(RAW.map(d => d.retailer))].sort();
-  LATEST_YEAR = Math.max(...YEARS);
+  const text = await response.text();
+  const clean = text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
+  const parsed = JSON.parse(clean);
 
-  // Clear existing year tabs and content before rebuilding
-  document.querySelectorAll('.tab-btn[data-tab^="year-"]').forEach(b => b.remove());
-  document.querySelectorAll('.tab-content[id^="tab-year-"]').forEach(c => c.remove());
-
-  buildTabs();
-  buildPartyList();
-  populateAccountTypeFilter();
-  renderAll();
-  setupTabListeners();
-
-  // Show live indicator
-  const indicator = document.getElementById('liveIndicator');
-  if (indicator) indicator.classList.add('visible');
+  RAW_DATA = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.data) ? parsed.data : []);
 }
 
-// ── BUILD YEAR TABS ─────────────────────────────────────────────────────────
-function buildTabs() {
-  const tabBar  = document.getElementById('tabBar');
-  const main    = document.querySelector('.main');
+// ─── CREDENTIALS ───────────────────────────────────────────────────────────
+const USERS = { 'admin': 'admin' };
+let currentUser = '';
 
-  YEARS.slice().reverse().forEach((year, idx) => {
-    // Tab button
-    const btn = document.createElement('button');
-    btn.className = 'tab-btn';
-    btn.dataset.tab = 'year-' + year;
-    btn.textContent = '📅 ' + year;
-    tabBar.appendChild(btn);
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let filteredData = [];
+const DEFAULT_SORTS = {
+  top20: { field: 'total', direction: 'desc' },
+  locations: { field: 'type', direction: 'asc' },
+  skuDetail: { field: 'stock_on_hand', direction: 'desc' }
+};
+let top20SortState = { ...DEFAULT_SORTS.top20 };
+let locationSortState = { ...DEFAULT_SORTS.locations };
+let skuDetailSortState = { ...DEFAULT_SORTS.skuDetail };
+let topMode = 'top';
+let topN = 10;
 
-    // Tab content container
-    const div = document.createElement('div');
-    div.className = 'tab-content';
-    div.id = 'tab-year-' + year;
-    div.innerHTML = `<div id="year-${year}-content"></div>`;
-    main.appendChild(div);
-  });
-}
-
-// ── PARTY MULTI-SELECT ──────────────────────────────────────────────────────
-function buildPartyList(accountType) {
-  const list = document.getElementById('partyList');
-  list.innerHTML = '';
-  // Get parties relevant to the selected account type (or all if none selected)
-  let relevantParties;
-  if (accountType) {
-    relevantParties = [...new Set(RAW.filter(d => d.sheet === accountType).map(d => d.retailer))].sort();
-  } else {
-    relevantParties = PARTIES;
+// ─── LOCATION TYPE CLASSIFIER ──────────────────────────────────────────────
+function classifyWarehouse(row) {
+  const w = norm(row.warehouse);
+  const remark = norm(row.remark);
+  if (remark === 'open order in china warehouse') return 'Open Order China';
+  if (remark === 'open order in india') return 'Open Order India';
+  if (remark === 'china') return 'China';
+  if (remark === 'india') return 'India';
+  if (w.includes('intransit') || w.includes('in transit')) return 'In Transit';
+  if (w.includes('open order') || w.includes('open orders')) {
+    return w.includes('india') ? 'Open Order India' : 'Open Order China';
   }
-  relevantParties.forEach(party => {
-    const item = document.createElement('label');
-    item.className = 'party-item';
-    item.innerHTML = `<input type="checkbox" value="${esc(party)}" checked onchange="onPartyChange()"><span>${esc(party)}</span>`;
-    list.appendChild(item);
-  });
-  updatePartyTrigger();
+  if (w.includes('amazon under receiving')) return 'Amazon (Receiving)';
+  if (w.includes('amazon')) return 'Amazon';
+  if (w.includes('3 pl') || w.includes('3pl')) return '3PL Warehouse';
+  if (w.includes('china') || w.includes('factory') || w.includes('wenzhou') || w.includes('hardwork') || w.includes('goldhawk') || w.includes('wingart')) return 'China';
+  if (w.includes('india')) return 'India';
+  return 'Other';
 }
 
-function filterPartyList() {
-  const q = document.getElementById('partySearch').value.toLowerCase();
-  document.querySelectorAll('.party-item').forEach(item => {
-    item.style.display = item.querySelector('span').textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-}
-
-function togglePartyPanel() {
-  const trigger = document.getElementById('partyTrigger');
-  const panel   = document.getElementById('partyPanel');
-  trigger.classList.toggle('open');
-  panel.classList.toggle('open');
-}
-
-function onPartyChange() {
-  updatePartyTrigger();
-  applyFilters();
-}
-
-function updatePartyTrigger() {
-  const checked = getSelectedParties();
-  const allVisible = [...document.querySelectorAll('#partyList input[type=checkbox]')];
-  const label   = document.getElementById('partyTriggerLabel');
-  if (checked.length === 0)           label.textContent = 'No Parties';
-  else if (checked.length === allVisible.length) label.textContent = 'All Parties';
-  else                                label.textContent = checked.length + ' Selected';
-}
-
-function getSelectedParties() {
-  return [...document.querySelectorAll('#partyList input[type=checkbox]:checked')].map(cb => cb.value);
-}
-
-function selectAllParties() {
-  document.querySelectorAll('#partyList input[type=checkbox]').forEach(cb => cb.checked = true);
-  onPartyChange();
-}
-
-function clearAllParties() {
-  document.querySelectorAll('#partyList input[type=checkbox]').forEach(cb => cb.checked = false);
-  onPartyChange();
-}
-
-// Close party panel when clicking outside
-document.addEventListener('click', (e) => {
-  const wrap = document.querySelector('.party-dropdown-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById('partyTrigger').classList.remove('open');
-    document.getElementById('partyPanel').classList.remove('open');
+function whColor(type) {
+  switch(type) {
+    case 'Amazon': return 'loc-amazon';
+    case 'Amazon (Receiving)': return 'loc-amazon';
+    case '3PL Warehouse': return 'loc-3pl';
+    case 'In Transit': return 'loc-intransit';
+    case 'Open Order India':
+    case 'Open Order China': return 'loc-openorder';
+    case 'China': return 'loc-china';
+    case 'India': return 'loc-india';
+    default: return 'loc-other';
   }
-});
-
-// ── ACCOUNT TYPE FILTER ─────────────────────────────────────────────────────
-function populateAccountTypeFilter() {
-  const sel = document.getElementById('accountTypeFilter');
-  // Clear existing options except the first "All" option
-  while (sel.options.length > 1) sel.remove(1);
-  sel.value = '';
-  SHEETS.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    sel.appendChild(opt);
-  });
 }
 
-function onAccountTypeChange() {
-  const accountType = document.getElementById('accountTypeFilter').value;
-  buildPartyList(accountType);
-  applyFilters();
-}
-
-// ── TAB LISTENERS ───────────────────────────────────────────────────────────
-function setupTabListeners() {
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-  });
-}
-
-let currentTab = 'dashboard';
-function switchTab(tabName) {
-  currentTab = tabName;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabName));
-
-  // Show/hide filter bar: for year tabs and comparatives
-  const isYearTab = tabName.startsWith('year-');
-  const isComparative = tabName === 'comparatives';
-  document.getElementById('filterBar').style.display = (isYearTab || isComparative) ? 'flex' : 'none';
-  // Adjust tab bar sticky top
-  document.querySelector('.tab-bar').style.top = (isYearTab || isComparative) ? '108px' : '60px';
-
-  renderActiveTab();
-}
-
-// ── FILTERS ─────────────────────────────────────────────────────────────────
-function getFilters() {
-  return {
-    accountType: document.getElementById('accountTypeFilter').value,
-    parties:     getSelectedParties()
+function whDotColor(type) {
+  const map = {
+    'Amazon':'#e65100','Amazon (Receiving)':'#e65100','3PL Warehouse':'#4a7fa5',
+    'In Transit':'#c4973a','Open Order India':'#7b5ea7','Open Order China':'#7b5ea7','China':'#c62828','India':'#2e7d32','Other':'#9b958c'
   };
+  return map[type] || '#9b958c';
+}
+
+// ─── FORMAT ────────────────────────────────────────────────────────────────
+function fmt(n) { return n == null ? '—' : Number(n).toLocaleString(); }
+
+function formatFileUpdated(date) {
+  const value = date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }) + ' ' + date.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  return 'File updated: ' + value.replace(',', '');
+}
+
+// ─── LOGIN ─────────────────────────────────────────────────────────────────
+async function attemptLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  if (!USERS[u] || USERS[u] !== p) {
+    errEl.textContent = 'Invalid username or password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  errEl.style.display = 'none';
+  currentUser = u;
+  // Persist login so a page refresh doesn't require re-entering credentials
+  sessionStorage.setItem('sk_inv_logged_in', '1');
+  sessionStorage.setItem('sk_inv_user', u);
+  document.getElementById('loginOverlay').style.display = 'none';
+  const lo = document.getElementById('loadingOverlay');
+  lo.style.display = 'flex';
+
+  try {
+    await loadData();
+    document.getElementById('app').style.display = 'block';
+    initDashboard();
+  } catch (err) {
+    console.error(err);
+    lo.style.display = 'none';
+    document.getElementById('loginOverlay').style.display = 'flex';
+    errEl.textContent = 'Unable to load data.json. Please check the file path and try again.';
+    errEl.style.display = 'block';
+    return;
+  } finally {
+    setTimeout(() => { lo.style.display = 'none'; }, 300);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('sk_inv_logged_in');
+  sessionStorage.removeItem('sk_inv_user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginOverlay').style.display = 'flex';
+}
+
+async function doRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  btn.disabled = true;
+  try {
+    await loadData();
+    initDashboard();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setTimeout(() => {
+      btn.classList.remove('spinning');
+      btn.disabled = false;
+    }, 300);
+  }
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+const FILTER_META = {
+  products: {
+    triggerId: 'productsTrigger',
+    triggerTextId: 'productsTriggerText',
+    panelId: 'productsPanel',
+    listId: 'productsList',
+    searchId: 'productsSearch',
+    selectAllId: 'productsSelectAll',
+    clearAllId: 'productsClearAll',
+    labelAll: 'All Products',
+    labelSelected: 'Products selected'
+  },
+  brands: {
+    triggerId: 'brandsTrigger',
+    triggerTextId: 'brandsTriggerText',
+    panelId: 'brandsPanel',
+    listId: 'brandsList',
+    searchId: 'brandsSearch',
+    selectAllId: 'brandsSelectAll',
+    clearAllId: 'brandsClearAll',
+    labelAll: 'All Brands',
+    labelSelected: 'Brands selected'
+  },
+  categories: {
+    triggerId: 'categoriesTrigger',
+    triggerTextId: 'categoriesTriggerText',
+    panelId: 'categoriesPanel',
+    listId: 'categoriesList',
+    searchId: 'categoriesSearch',
+    selectAllId: 'categoriesSelectAll',
+    clearAllId: 'categoriesClearAll',
+    labelAll: 'All Categories',
+    labelSelected: 'Categories selected'
+  },
+  platforms: {
+    triggerId: 'platformsTrigger',
+    triggerTextId: 'platformsTriggerText',
+    panelId: 'platformsPanel',
+    listId: 'platformsList',
+    searchId: 'platformsSearch',
+    selectAllId: 'platformsSelectAll',
+    clearAllId: 'platformsClearAll',
+    labelAll: 'All Platforms',
+    labelSelected: 'Platforms selected'
+  }
+};
+
+let selectedProducts = new Set();
+let selectedBrands = new Set();
+let selectedCategories = new Set();
+let selectedPlatforms = new Set();
+
+function norm(v) {
+  return String(v == null ? '' : v).trim().toLowerCase();
+}
+
+function getSetForKey(key) {
+  switch (key) {
+    case 'products': return selectedProducts;
+    case 'brands': return selectedBrands;
+    case 'categories': return selectedCategories;
+    case 'platforms': return selectedPlatforms;
+    default: return new Set();
+  }
+}
+
+function getMetaForKey(key) {
+  return FILTER_META[key];
+}
+
+let selectedSkuWarehouses = new Set();
+let selectedSkuLocTypes = new Set();
+
+function getStatusValue() {
+  return document.getElementById('fStatus').value;
+}
+
+// Returns available warehouses given current filteredData (base filters already applied)
+function getAvailableSkuWarehouses() {
+  return [...new Set(filteredData.map(d => d.warehouse).filter(Boolean))].sort();
+}
+
+// Returns available location types filtered by selectedSkuWarehouses
+function getAvailableSkuLocTypes() {
+  const rows = selectedSkuWarehouses.size
+    ? filteredData.filter(d => selectedSkuWarehouses.has(d.warehouse))
+    : filteredData;
+  return [...new Set(rows.map(d => d._locType).filter(Boolean))].sort();
+}
+
+function renderSkuReportFilter(key) {
+  const isWH = key === 'skuWarehouses';
+  const listId    = isWH ? 'skuWarehousesList'    : 'skuLocTypesList';
+  const searchId  = isWH ? 'skuWarehousesSearch'  : 'skuLocTypesSearch';
+  const textId    = isWH ? 'skuWarehousesTriggerText' : 'skuLocTypesTriggerText';
+  const labelAll  = isWH ? 'All Warehouses'        : 'All Location Types';
+  const labelSel  = isWH ? 'Warehouses selected'   : 'Location Types selected';
+  const set       = isWH ? selectedSkuWarehouses   : selectedSkuLocTypes;
+  const allItems  = isWH ? getAvailableSkuWarehouses() : getAvailableSkuLocTypes();
+
+  const q = norm(document.getElementById(searchId).value);
+  const items = q ? allItems.filter(v => norm(v).includes(q)) : allItems;
+
+  const listEl = document.getElementById(listId);
+  if (!items.length) {
+    listEl.innerHTML = '<div class="ms-empty">No options found</div>';
+  } else {
+    listEl.innerHTML = items.map(item => {
+      const checked = set.has(item) ? 'checked' : '';
+      return `<label class="ms-item">
+        <input type="checkbox" ${checked} data-skukey="${key}" data-value="${item}">
+        <span class="ms-item-main"><span class="ms-item-title">${item}</span></span>
+      </label>`;
+    }).join('');
+    listEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const targetSet = cb.dataset.skukey === 'skuWarehouses' ? selectedSkuWarehouses : selectedSkuLocTypes;
+        if (cb.checked) targetSet.add(cb.dataset.value);
+        else targetSet.delete(cb.dataset.value);
+        // When warehouse changes, trim any loc types no longer available
+        if (cb.dataset.skukey === 'skuWarehouses') {
+          const available = new Set(getAvailableSkuLocTypes());
+          [...selectedSkuLocTypes].forEach(v => { if (!available.has(v)) selectedSkuLocTypes.delete(v); });
+          renderSkuReportFilter('skuLocTypes');
+        }
+        renderSKUDetail();
+        updateSkuReportTriggerText();
+      });
+    });
+  }
+
+  const totalCount = allItems.length;
+  document.getElementById(textId).textContent =
+    (!set.size || set.size >= totalCount) ? labelAll : `${set.size} ${labelSel}`;
+}
+
+function updateSkuReportTriggerText() {
+  const whAll   = getAvailableSkuWarehouses();
+  const ltAll   = getAvailableSkuLocTypes();
+  document.getElementById('skuWarehousesTriggerText').textContent =
+    (!selectedSkuWarehouses.size || selectedSkuWarehouses.size >= whAll.length)
+      ? 'All Warehouses' : `${selectedSkuWarehouses.size} Warehouses selected`;
+  document.getElementById('skuLocTypesTriggerText').textContent =
+    (!selectedSkuLocTypes.size || selectedSkuLocTypes.size >= ltAll.length)
+      ? 'All Location Types' : `${selectedSkuLocTypes.size} Location Types selected`;
+}
+
+function setupSkuReportDropdowns() {
+  const configs = [
+    { key: 'skuWarehouses', triggerId: 'skuWarehousesTrigger', panelId: 'skuWarehousesPanel', searchId: 'skuWarehousesSearch', selectAllId: 'skuWarehousesSelectAll', clearAllId: 'skuWarehousesClearAll' },
+    { key: 'skuLocTypes',   triggerId: 'skuLocTypesTrigger',   panelId: 'skuLocTypesPanel',   searchId: 'skuLocTypesSearch',   selectAllId: 'skuLocTypesSelectAll',   clearAllId: 'skuLocTypesClearAll'   }
+  ];
+  configs.forEach(({ key, triggerId, panelId, searchId, selectAllId, clearAllId }) => {
+    const trigger = document.getElementById(triggerId);
+    const panel   = document.getElementById(panelId);
+    const search  = document.getElementById(searchId);
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = panel.classList.contains('open');
+      closeAllDropdowns();
+      if (!isOpen) {
+        panel.classList.add('open');
+        trigger.classList.add('open');
+        renderSkuReportFilter(key);
+        search.focus();
+      }
+    });
+    trigger.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger.click(); }
+    });
+    search.addEventListener('input', () => renderSkuReportFilter(key));
+
+    document.getElementById(selectAllId).addEventListener('click', () => {
+      const items = key === 'skuWarehouses' ? getAvailableSkuWarehouses() : getAvailableSkuLocTypes();
+      const set   = key === 'skuWarehouses' ? selectedSkuWarehouses : selectedSkuLocTypes;
+      const q = norm(search.value);
+      (q ? items.filter(v => norm(v).includes(q)) : items).forEach(v => set.add(v));
+      if (key === 'skuWarehouses') renderSkuReportFilter('skuLocTypes');
+      renderSkuReportFilter(key);
+      renderSKUDetail();
+      updateSkuReportTriggerText();
+    });
+    document.getElementById(clearAllId).addEventListener('click', () => {
+      if (key === 'skuWarehouses') { selectedSkuWarehouses.clear(); selectedSkuLocTypes.clear(); renderSkuReportFilter('skuLocTypes'); }
+      else selectedSkuLocTypes.clear();
+      renderSkuReportFilter(key);
+      renderSKUDetail();
+      updateSkuReportTriggerText();
+    });
+  });
+}
+
+function matchesBaseFilters(row, opts = {}) {
+  const { ignoreProducts = false } = opts;
+
+  if (!ignoreProducts && selectedProducts.size && !selectedProducts.has(row.sku_code)) return false;
+  if (selectedBrands.size && !selectedBrands.has(row.brand)) return false;
+  if (selectedCategories.size && !selectedCategories.has(row.category)) return false;
+  if (selectedPlatforms.size && !selectedPlatforms.has(row.platform)) return false;
+
+  const status = getStatusValue();
+  if (status && row.status !== status) return false;
+
+  return true;
+}
+
+function getAvailableProducts() {
+  const map = new Map();
+  RAW_DATA.forEach(row => {
+    if (!matchesBaseFilters(row, { ignoreProducts: true })) return;
+    if (!row.sku_code || map.has(row.sku_code)) return;
+    map.set(row.sku_code, {
+      code: row.sku_code,
+      name: row.sku_name || row.sku_code,
+      brand: row.brand || '',
+      category: row.category || '',
+      platform: row.platform || ''
+    });
+  });
+  return [...map.values()].sort((a, b) => a.code.localeCompare(b.code));
+}
+
+function getAvailableStaticValues(key) {
+  let rows = RAW_DATA;
+  if (key === 'categories') {
+    rows = rows.filter(row => !selectedBrands.size || selectedBrands.has(row.brand));
+  }
+  if (key === 'platforms') {
+    rows = rows.filter(row =>
+      (!selectedBrands.size || selectedBrands.has(row.brand)) &&
+      (!selectedCategories.size || selectedCategories.has(row.category))
+    );
+  }
+
+  const field = { brands: 'brand', categories: 'category', platforms: 'platform' }[key];
+  return field ? [...new Set(rows.map(row => row[field]).filter(Boolean))].sort() : [];
+}
+
+function buildOptionLabel(key, item) {
+  if (key === 'products') {
+    return {
+      title: item.code + ' — ' + item.name,
+      sub: [item.brand, item.category, item.platform].filter(Boolean).join(' · ')
+    };
+  }
+  return { title: item, sub: '' };
+}
+
+function getSearchTextForItem(key, item) {
+  if (key === 'products') {
+    return [item.code, item.name, item.brand, item.category, item.platform].map(norm).join(' ');
+  }
+  return norm(item);
+}
+
+function getItemsForKey(key) {
+  return key === 'products' ? getAvailableProducts() : getAvailableStaticValues(key);
+}
+
+function getVisibleItemsForKey(key) {
+  const meta = getMetaForKey(key);
+  const q = norm(document.getElementById(meta.searchId).value);
+  const items = getItemsForKey(key);
+  return q ? items.filter(item => getSearchTextForItem(key, item).includes(q)) : items;
+}
+
+function renderMultiSelect(key) {
+  const meta = getMetaForKey(key);
+  const listEl = document.getElementById(meta.listId);
+  const triggerText = document.getElementById(meta.triggerTextId);
+  const set = getSetForKey(key);
+
+  const items = getVisibleItemsForKey(key);
+
+  if (!items.length) {
+    listEl.innerHTML = '<div class="ms-empty">No options found</div>';
+  } else {
+    listEl.innerHTML = items.map(item => {
+      const id = key === 'products' ? item.code : item;
+      const checked = set.has(id) ? 'checked' : '';
+      const label = buildOptionLabel(key, item);
+      const metaText = key === 'products' ? label.sub : '';
+      return `
+        <label class="ms-item">
+          <input type="checkbox" ${checked} data-key="${key}" data-value="${id}">
+          <span class="ms-item-main">
+            <span class="ms-item-title">${label.title}</span>
+            ${metaText ? `<span class="ms-item-sub">${metaText}</span>` : ''}
+          </span>
+        </label>`;
+    }).join('');
+
+    listEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const targetSet = getSetForKey(cb.dataset.key);
+        if (cb.checked) targetSet.add(cb.dataset.value);
+        else targetSet.delete(cb.dataset.value);
+        applyFilters();
+      });
+    });
+  }
+
+  const selectedCount = set.size;
+  const totalCount = getItemsForKey(key).length;
+  triggerText.textContent = (!selectedCount || selectedCount >= totalCount) ? meta.labelAll : `${selectedCount} ${meta.labelSelected}`;
+}
+
+function renderAllMultiSelects() {
+  renderMultiSelect('products');
+  renderMultiSelect('brands');
+  renderMultiSelect('categories');
+  renderMultiSelect('platforms');
+}
+
+function retainAvailableSelections(set, available) {
+  [...set].forEach(value => {
+    if (!available.has(value)) set.delete(value);
+  });
+}
+
+function syncDependentSelections() {
+  retainAvailableSelections(selectedCategories, new Set(getAvailableStaticValues('categories')));
+  retainAvailableSelections(selectedPlatforms, new Set(getAvailableStaticValues('platforms')));
+  retainAvailableSelections(selectedProducts, new Set(getAvailableProducts().map(p => p.code)));
+}
+
+function initDashboard() {
+  // Enrich data with location type
+  RAW_DATA.forEach(d => { d._locType = classifyWarehouse(d); });
+
+  // Initial multi-select render
+  renderAllMultiSelects();
+
+  filteredData = [...RAW_DATA];
+  applyFilters();
 }
 
 function applyFilters() {
-  renderActiveTab();
+  syncDependentSelections();
+
+  filteredData = RAW_DATA.filter(row => matchesBaseFilters(row));
+  updateSkuReportFiltersAfterBaseFilter();
+
+  renderAll();
+  renderAllMultiSelects();
+}
+
+function updateSkuReportFiltersAfterBaseFilter() {
+  // Trim any warehouse/locType selections that are no longer in filteredData
+  const availWH  = new Set(getAvailableSkuWarehouses());
+  const availLT  = new Set(getAvailableSkuLocTypes());
+  [...selectedSkuWarehouses].forEach(v => { if (!availWH.has(v)) selectedSkuWarehouses.delete(v); });
+  [...selectedSkuLocTypes].forEach(v => { if (!availLT.has(v)) selectedSkuLocTypes.delete(v); });
+  updateSkuReportTriggerText();
+}
+
+function resetSortStates() {
+  top20SortState = { ...DEFAULT_SORTS.top20 };
+  locationSortState = { ...DEFAULT_SORTS.locations };
+  skuDetailSortState = { ...DEFAULT_SORTS.skuDetail };
 }
 
 function resetFilters() {
-  document.getElementById('accountTypeFilter').value = '';
-  buildPartyList(); // Rebuild with all parties
-  document.getElementById('partySearch').value = '';
-  filterPartyList();
-  renderActiveTab();
+  selectedProducts.clear();
+  selectedBrands.clear();
+  selectedCategories.clear();
+  selectedPlatforms.clear();
+  selectedSkuWarehouses.clear();
+  selectedSkuLocTypes.clear();
+
+  document.getElementById('fStatus').value = '';
+  Object.values(FILTER_META).forEach(meta => {
+    document.getElementById(meta.searchId).value = '';
+  });
+
+  topMode = 'top';
+  topN = 10;
+  const topInput = document.getElementById('topNInput');
+  if (topInput) topInput.value = '10';
+  document.getElementById('toggleAll').classList.remove('active');
+  document.getElementById('toggleTop').classList.add('active');
+  document.getElementById('topInputWrap').style.display = 'flex';
+
+  resetSortStates();
+  renderAllMultiSelects();
+  applyFilters();
 }
 
-// ── RENDER ALL ───────────────────────────────────────────────────────────────
+
+function setupFilterDropdowns() {
+  const keys = ['products', 'brands', 'categories', 'platforms'];
+
+  keys.forEach(key => {
+    const meta = getMetaForKey(key);
+    const trigger = document.getElementById(meta.triggerId);
+    const panel = document.getElementById(meta.panelId);
+    const selectAll = document.getElementById(meta.selectAllId);
+    const clearAll = document.getElementById(meta.clearAllId);
+    const search = document.getElementById(meta.searchId);
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = panel.classList.contains('open');
+      closeAllDropdowns();
+      if (!isOpen) {
+        panel.classList.add('open');
+        trigger.classList.add('open');
+        renderMultiSelect(key);
+        search.focus();
+      }
+    });
+
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        trigger.click();
+      }
+    });
+
+    search.addEventListener('input', () => renderMultiSelect(key));
+
+    selectAll.addEventListener('click', () => {
+      const available = getVisibleItemsForKey(key).map(item => key === 'products' ? item.code : item);
+      const targetSet = getSetForKey(key);
+      available.forEach(v => targetSet.add(v));
+      applyFilters();
+    });
+
+    clearAll.addEventListener('click', () => {
+      getSetForKey(key).clear();
+      applyFilters();
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    const openPanels = document.querySelectorAll('.ms-panel.open');
+    openPanels.forEach(panel => {
+      if (!panel.contains(e.target)) {
+        panel.classList.remove('open');
+        const trigger = panel.parentElement.querySelector('.ms-trigger');
+        if (trigger) trigger.classList.remove('open');
+      }
+    });
+  });
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.ms-panel.open').forEach(panel => panel.classList.remove('open'));
+  document.querySelectorAll('.ms-trigger.open').forEach(trigger => trigger.classList.remove('open'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupFilterDropdowns();
+  setupSkuReportDropdowns();
+
+  // If already logged in this session, skip login and reload data directly
+  if (sessionStorage.getItem('sk_inv_logged_in') === '1') {
+    const savedUser = sessionStorage.getItem('sk_inv_user');
+    if (savedUser && USERS[savedUser]) {
+      currentUser = savedUser;
+      document.getElementById('loginOverlay').style.display = 'none';
+      const lo = document.getElementById('loadingOverlay');
+      lo.style.display = 'flex';
+      loadData()
+        .then(() => {
+          document.getElementById('app').style.display = 'block';
+          initDashboard();
+        })
+        .catch(err => {
+          console.error('Session restore failed:', err);
+          sessionStorage.removeItem('sk_inv_logged_in');
+          sessionStorage.removeItem('sk_inv_user');
+          lo.style.display = 'none';
+          document.getElementById('loginOverlay').style.display = 'flex';
+          const errEl = document.getElementById('loginError');
+          errEl.textContent = 'Session expired. Please sign in again.';
+          errEl.style.display = 'block';
+        })
+        .finally(() => {
+          setTimeout(() => { lo.style.display = 'none'; }, 300);
+        });
+    }
+  }
+});
+
+// ─── RENDER ALL ────────────────────────────────────────────────────────────
+
 function renderAll() {
-  renderDashboard();
-  renderComparatives({ accountType: '', parties: PARTIES });
-  YEARS.forEach(y => {
-    const el = document.getElementById('year-' + y + '-content');
-    if (el) renderYearTab(y, el, { accountType:'', parties: PARTIES });
-  });
+  renderKPIs();
+  renderWHGrid();
+  renderTop20();
+  renderLocations();
+  renderSKUDetail();
 }
 
-function renderActiveTab() {
-  if (currentTab === 'dashboard') {
-    renderDashboard(); // Dashboard ignores filters
-  } else if (currentTab === 'comparatives') {
-    renderComparatives(getFilters());
-  } else if (currentTab.startsWith('year-')) {
-    const year = parseInt(currentTab.replace('year-', ''));
-    const el   = document.getElementById('year-' + year + '-content');
-    if (el) renderYearTab(year, el, getFilters());
-  }
-}
+// ─── KPI CARDS ─────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const stockOnHand = filteredData.filter(d=>!['In Transit','Open Order India','Open Order China'].includes(d._locType)).reduce((s,d)=>s+d.stock_on_hand,0);
+  const transitQty = filteredData.filter(d=>d._locType==='In Transit').reduce((s,d)=>s+d.stock_on_hand,0);
+  const openOrderQty = filteredData.filter(d=>['Open Order India','Open Order China'].includes(d._locType)).reduce((s,d)=>s+d.stock_on_hand,0);
 
-// ── DASHBOARD TAB ─────────────────────────────────────────────────────────────
-function renderDashboard() {
-  renderDashKpis();
-  renderDashSummary();
-}
+  const summaryKpis = [
+    { icon:'&#128230;', label:'Total Stock on Hand', value: fmt(stockOnHand), sub: 'Available inventory', bar: null },
+    { icon:'&#128666;', label:'Total Stock In Transit', value: fmt(transitQty), sub: 'Inventory en route', bar: null },
+    { icon:'&#128203;', label:'Total Open Orders', value: fmt(openOrderQty), sub: 'Awaiting production/fulfillment', bar: null }
+  ];
 
-function renderDashKpis() {
-  // Latest year totals
-  const ly  = RAW.filter(d => d.year === LATEST_YEAR);
-
-  const sum = (arr, key) => arr.reduce((a,b) => a + (b[key]||0), 0);
-
-  const curTotal   = sum(ly, 'total_value');
-  const curShipped = sum(ly, 'ytd_shipped_value');
-  const curLYTD    = sum(ly, 'lytd_shipped_value');
-  const curUnits   = sum(ly, 'total_units');
-  const curOrders  = sum(ly, 'order_count');
-  const curOnOrder = sum(ly, 'on_order_value');
-
-  // YTD Shipped Value vs LYTD Shipped Value growth
-  const ytdGrowth = curLYTD ? (curShipped - curLYTD) / curLYTD : null;
-
-  // Update badge text with actual year
-  const badge = document.getElementById('dashSummaryBadge');
-  if (badge) badge.textContent = LATEST_YEAR;
-
-  const grid = document.getElementById('dashKpiGrid');
-  grid.innerHTML = `
-    ${kpiCard('💰 Total Revenue', fmtVal(curTotal), LATEST_YEAR, null, LATEST_YEAR)}
-    ${kpiCard('📦 YTD Shipped Value', fmtVal(curShipped), LATEST_YEAR, ytdGrowth, 'vs LYTD')}
-    ${kpiCard('⏳ On Order Value', fmtVal(curOnOrder), LATEST_YEAR, null, LATEST_YEAR)}
-    ${kpiCard('🔢 Total Units', fmtNum(curUnits, 0), LATEST_YEAR, null, LATEST_YEAR)}
-    ${kpiCard('📋 Order Count', fmtNum(curOrders,0), LATEST_YEAR, null, LATEST_YEAR)}
-  `;
-}
-
-function kpiCard(label, value, year, growth, sub) {
-  let badge = '';
-  if (growth !== null && growth !== undefined) {
-    const cls = growth >= 0 ? 'up' : 'dn';
-    const arrow = growth >= 0 ? '▲' : '▼';
-    badge = `<div class="kpi-badge ${cls}">${arrow} ${Math.abs(growth*100).toFixed(1)}% ${sub}</div>`;
-  }
-  return `
+  document.getElementById('kpiGrid').innerHTML = summaryKpis.map(k => `
     <div class="kpi-card">
-      <div class="kpi-label">${label}</div>
-      <div class="kpi-value">${value}</div>
-      ${badge || (sub ? `<div class="kpi-sub">${sub}</div>` : '')}
+      <div class="kpi-header">
+        <div class="kpi-icon">${k.icon}</div>
+        <div class="kpi-label">${k.label}</div>
+      </div>
+      <div class="kpi-value">${typeof k.value === 'number' ? k.value.toLocaleString() : k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      ${k.bar != null ? `<div class="kpi-bar-bg"><div class="kpi-bar" style="width:${k.bar}%"></div></div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ─── WAREHOUSE GRID ────────────────────────────────────────────────────────
+function renderWHGrid() {
+  // Aggregate by location type
+  const byType = {
+    'Open Order India': { qty: 0, skus: new Set() },
+    'Open Order China': { qty: 0, skus: new Set() }
+  };
+  filteredData.forEach(d => {
+    if (!byType[d._locType]) byType[d._locType] = { qty: 0, skus: new Set() };
+    byType[d._locType].qty += d.stock_on_hand;
+    byType[d._locType].skus.add(d.sku_code);
+  });
+
+  const order = ['Amazon','3PL Warehouse','In Transit','Open Order India','Open Order China','China','India','Amazon (Receiving)','Other'];
+  const sorted = order.filter(t => byType[t]).concat(Object.keys(byType).filter(t => !order.includes(t)));
+  const total = filteredData.reduce((s,d)=>s+d.stock_on_hand,0);
+
+  document.getElementById('whGrid').innerHTML = sorted.map(type => {
+    const d = byType[type];
+    const pct = total ? Math.round(d.qty/total*100) : 0;
+    const color = whDotColor(type);
+    return `<div class="wh-card">
+      <div class="wh-name"><span class="wh-dot" style="background:${color}"></span>${type}</div>
+      <div class="wh-qty">${fmt(d.qty)}</div>
+      <div class="wh-skus">${d.skus.size} SKUs · ${pct}% of total</div>
+      <div class="kpi-bar-bg" style="margin-top:8px;"><div class="kpi-bar" style="width:${pct}%;background:${color}"></div></div>
     </div>`;
+  }).join('');
 }
 
-function renderDashSummary() {
-  const container = document.getElementById('dashSummaryContainer');
-  let html = '';
+// ─── TOP 20 ────────────────────────────────────────────────────────────────
+function renderTop20() {
+  const skuMap = buildSKUMap(filteredData);
+  const allSkus = Object.values(skuMap).sort((a,b)=>b.total-a.total);
+  const totalCount = allSkus.length;
 
-  YEARS.slice().reverse().forEach((year, idx) => {
-    const isLatest = year === LATEST_YEAR;
-    const marginTop = idx === 0 ? '0' : '28px';
+  // Keep the user-selected Top N stable across filter changes.
+  const input = document.getElementById('topNInput');
+  if (input) input.max = Math.max(totalCount, topN, 1);
+  if (input && parseInt(input.value) !== topN) input.value = topN;
 
-    // Compute totals per sheet for this year
-    const yearData = RAW.filter(d => d.year === year);
-    const totalYTDShippedValue = yearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
+  // The visible set is always the top N rows by total (or all rows in All mode).
+  const visibleRows = topMode === 'all'
+    ? allSkus
+    : allSkus.slice(0, Math.min(topN, allSkus.length));
 
-    // For non-latest years, get previous year data for LY growth
-    const prevYear = year - 1;
-    const prevYearData = RAW.filter(d => d.year === prevYear);
+  const sorted = visibleRows.slice().sort(compareTop20Rows);
+  updateSortIndicators('top20Table', top20SortState);
 
-    html += `
-      <div style="margin-top:${marginTop};">
-        <div class="sec-header" style="margin-top:0;">
-          <div class="sec-title">📋 ${year} Revenue Summary <span class="sec-badge" style="background:var(--accent-light);color:var(--accent);">By Account Type</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Account Type</th>
-                <th class="th-right">On Order Units</th>
-                <th class="th-right">YTD Shipped</th>
-                <th class="th-right">Total Units</th>
-                <th class="th-right">On Order Value</th>
-                <th class="th-right">YTD Shipped Value</th>
-                <th class="th-right">Total Value</th>
-                <th class="th-right">Order Count</th>
-                ${isLatest ? '<th class="th-right">LYTD Shipped Qty</th><th class="th-right">LYTD Shipped Value</th>' : ''}
-                <th class="th-right">LY Growth Qty</th>
-                <th class="th-right">LY Growth Value</th>
-                <th class="th-right">Share</th>
-              </tr>
-            </thead>
-            <tbody>`;
+  const totals = visibleRows.reduce((acc, s) => {
+    acc.india += Number(s.india) || 0;
+    acc.china += Number(s.china) || 0;
+    acc.amazon += Number(s.amazon) || 0;
+    acc.threepl += Number(s.threepl) || 0;
+    acc.intransit += Number(s.intransit) || 0;
+    acc.openorder += Number(s.openorder) || 0;
+    acc.total += Number(s.total) || 0;
+    return acc;
+  }, { india:0, china:0, amazon:0, threepl:0, intransit:0, openorder:0, total:0 });
 
-    let grandTotals = initTotals();
+  const summaryRow = document.getElementById('top20SummaryRow');
+  if (summaryRow) {
+    summaryRow.innerHTML = sorted.length ? `
+      <th colspan="5" class="summary-label">Current View Total</th>
+      <th class="td-right td-bold">${fmt(totals.india)}</th>
+      <th class="td-right td-bold">${fmt(totals.china)}</th>
+      <th class="td-right td-bold">${fmt(totals.amazon)}</th>
+      <th class="td-right td-bold">${fmt(totals.threepl)}</th>
+      <th class="td-right td-bold">${fmt(totals.intransit)}</th>
+      <th class="td-right td-bold">${fmt(totals.openorder)}</th>
+      <th class="td-right td-bold">${fmt(totals.total)}</th>
+    ` : '<th colspan="12" class="summary-label">No data matching current filters.</th>';
+  }
 
-    SHEETS.forEach(sheet => {
-      const rows = yearData.filter(d => d.sheet === sheet);
-      if (!rows.length) return;
-      const t = totalise(rows);
-      accumulateTotals(grandTotals, t);
+  document.getElementById('top20Body').innerHTML = sorted.length ? sorted.map(s => `
+    <tr>
+      <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;" title="${s.sku_code} - ${s.sku_name}">
+        <span class="td-code">${s.sku_code}</span> - ${s.sku_name}
+      </td>
+      <td class="td-muted">${s.brand}</td>
+      <td class="td-muted">${s.category}</td>
+      <td class="td-muted">${s.platform}</td>
+      <td><span class="pill ${s.status==='Active'?'pill-active':'pill-inactive'}">${s.status}</span></td>
+      <td class="td-right">${fmt(s.india)}</td>
+      <td class="td-right">${fmt(s.china)}</td>
+      <td class="td-right">${fmt(s.amazon)}</td>
+      <td class="td-right">${fmt(s.threepl)}</td>
+      <td class="td-right">${fmt(s.intransit)}</td>
+      <td class="td-right">${fmt(s.openorder)}</td>
+      <td class="td-right td-bold">${fmt(s.total)}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="12" class="no-data">No data matching current filters.</td></tr>';
+}
 
-      // Correct share: this sheet's ytd_shipped_value / total ytd_shipped_value
-      const share = totalYTDShippedValue ? t.ytd_shipped_value / totalYTDShippedValue : 0;
+// ─── LOCATIONS ────────────────────────────────────────────────────────────
+function renderLocations() {
+  const byWH = {};
+  filteredData.forEach(d => {
+    if (!byWH[d.warehouse]) byWH[d.warehouse] = { type: d._locType, qty: 0, skus: new Set() };
+    byWH[d.warehouse].qty += d.stock_on_hand;
+    byWH[d.warehouse].skus.add(d.sku_code);
+  });
+  const total = filteredData.reduce((s,d)=>s+d.stock_on_hand,0);
+  const rows = Object.entries(byWH).map(([warehouse, info]) => ({
+    warehouse,
+    type: info.type,
+    skus: info.skus.size,
+    qty: info.qty,
+    pct: total ? info.qty / total * 100 : 0
+  })).sort(compareLocationRows);
 
-      // Correct LY growth
-      let lyGrowthQty = null;
-      let lyGrowthValue = null;
+  document.getElementById('locationCount').textContent = rows.length.toLocaleString();
+  document.getElementById('locationUnits').textContent = fmt(total);
+  updateSortIndicators('locationTable', locationSortState);
 
-      if (isLatest) {
-        // Current year: YTD Shipped vs LYTD Shipped Qty/Value
-        if (t.lytd_shipped_qty && t.lytd_shipped_qty > 0) {
-          lyGrowthQty = (t.ytd_shipped - t.lytd_shipped_qty) / t.lytd_shipped_qty;
-        }
-        if (t.lytd_shipped_value && t.lytd_shipped_value > 0) {
-          lyGrowthValue = (t.ytd_shipped_value - t.lytd_shipped_value) / t.lytd_shipped_value;
-        }
-      } else {
-        // Rest years: YTD Shipped vs prev year YTD Shipped
-        const prevRows = prevYearData.filter(d => d.sheet === sheet);
-        if (prevRows.length) {
-          const prevT = totalise(prevRows);
-          if (prevT.ytd_shipped && prevT.ytd_shipped > 0) {
-            lyGrowthQty = (t.ytd_shipped - prevT.ytd_shipped) / prevT.ytd_shipped;
-          }
-          if (prevT.ytd_shipped_value && prevT.ytd_shipped_value > 0) {
-            lyGrowthValue = (t.ytd_shipped_value - prevT.ytd_shipped_value) / prevT.ytd_shipped_value;
-          }
-        }
-      }
-
-      html += dashSummaryRow(sheet, t, isLatest, share, lyGrowthQty, lyGrowthValue);
-    });
-
-    // Grand total LY growth
-    let gtLyGrowthQty = null;
-    let gtLyGrowthValue = null;
-    if (isLatest) {
-      if (grandTotals.lytd_shipped_qty > 0) {
-        gtLyGrowthQty = (grandTotals.ytd_shipped - grandTotals.lytd_shipped_qty) / grandTotals.lytd_shipped_qty;
-      }
-      if (grandTotals.lytd_shipped_value > 0) {
-        gtLyGrowthValue = (grandTotals.ytd_shipped_value - grandTotals.lytd_shipped_value) / grandTotals.lytd_shipped_value;
-      }
-    } else {
-      const prevTotalYTDQty = prevYearData.reduce((a, b) => a + (b.ytd_shipped || 0), 0);
-      const prevTotalYTDVal = prevYearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
-      if (prevTotalYTDQty > 0) {
-        gtLyGrowthQty = (grandTotals.ytd_shipped - prevTotalYTDQty) / prevTotalYTDQty;
-      }
-      if (prevTotalYTDVal > 0) {
-        gtLyGrowthValue = (grandTotals.ytd_shipped_value - prevTotalYTDVal) / prevTotalYTDVal;
-      }
-    }
-
-    html += `<tr class="tr-grandtotal">
-      <td>TOTAL</td>
-      <td class="td-right">${fmtNum(grandTotals.on_order_units)}</td>
-      <td class="td-right">${fmtNum(grandTotals.ytd_shipped)}</td>
-      <td class="td-right">${fmtNum(grandTotals.total_units)}</td>
-      <td class="td-right">${fmtVal(grandTotals.on_order_value)}</td>
-      <td class="td-right">${fmtVal(grandTotals.ytd_shipped_value)}</td>
-      <td class="td-right">${fmtVal(grandTotals.total_value)}</td>
-      <td class="td-right">${fmtNum(grandTotals.order_count,0)}</td>
-      ${isLatest ? `<td class="td-right">${fmtNum(grandTotals.lytd_shipped_qty)}</td><td class="td-right">${fmtVal(grandTotals.lytd_shipped_value)}</td>` : ''}
-      <td class="td-right">${fmtGrowth(gtLyGrowthQty)}</td>
-      <td class="td-right">${fmtGrowth(gtLyGrowthValue)}</td>
+  document.getElementById('locationBody').innerHTML = rows.length ? rows.map(row => `
+    <tr>
+      <td class="td-bold">${row.warehouse}</td>
+      <td><span class="loc-badge ${whColor(row.type)}">${row.type}</span></td>
+      <td class="td-right">${row.skus.toLocaleString()}</td>
+      <td class="td-right td-bold">${fmt(row.qty)}</td>
+      <td class="td-right td-muted">${row.pct.toFixed(1)}%</td>
+    </tr>
+  `).join('') + `
+    <tr class="tr-grand">
+      <td colspan="2">TOTAL</td>
+      <td class="td-right">${new Set(filteredData.map(d=>d.sku_code)).size}</td>
+      <td class="td-right">${fmt(total)}</td>
       <td class="td-right">100%</td>
+    </tr>
+  ` : '<tr><td colspan="5" class="no-data">No data.</td></tr>';
+}
+
+function compareLocationRows(a, b) {
+  const numericFields = ['skus', 'qty', 'pct'];
+  const field = locationSortState.field;
+  let result = numericFields.includes(field)
+    ? a[field] - b[field]
+    : String(a[field] || '').localeCompare(String(b[field] || ''), undefined, { sensitivity: 'base' });
+  if (!result) result = a.warehouse.localeCompare(b.warehouse, undefined, { sensitivity: 'base' });
+  return locationSortState.direction === 'asc' ? result : -result;
+}
+
+function sortLocations(field) {
+  locationSortState = nextSortState(locationSortState, field, ['warehouse', 'type']);
+  renderLocations();
+}
+
+// ─── SKU DETAIL ────────────────────────────────────────────────────────────
+function renderSKUDetail() {
+  const detailData = filteredData
+    .filter(d => !selectedSkuWarehouses.size || selectedSkuWarehouses.has(d.warehouse))
+    .filter(d => !selectedSkuLocTypes.size   || selectedSkuLocTypes.has(d._locType))
+    .slice()
+    .sort(compareSKUDetailRows);
+  updateSortIndicators('skuDetailTable', skuDetailSortState);
+
+  document.getElementById('skuDetailBody').innerHTML = detailData.length ? detailData.map(d => {
+    return `<tr>
+      <td class="td-code">${d.sku_code}</td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;" title="${d.sku_name}">${d.sku_name}</td>
+      <td class="td-muted">${d.brand}</td>
+      <td class="td-muted">${d.category}</td>
+      <td class="td-muted">${d.platform}</td>
+      <td><span class="pill ${d.status==='Active'?'pill-active':'pill-inactive'}">${d.status}</span></td>
+      <td>${d.warehouse}</td>
+      <td><span class="loc-badge ${whColor(d._locType)}">${d._locType}</span></td>
+      <td class="td-right td-bold">${fmt(d.stock_on_hand)}</td>
     </tr>`;
-
-    html += `</tbody></table></div></div>`;
-  });
-
-  container.innerHTML = html;
+  }).join('') : '<tr><td colspan="9" class="no-data">No data matching filters.</td></tr>';
 }
 
-// Dashboard summary row with custom share and growth
-function dashSummaryRow(label, t, isLatest, share, lyGrowthQty, lyGrowthValue) {
-  return `<tr>
-    <td class="td-bold">${esc(label)}</td>
-    <td class="td-right">${fmtNum(t.on_order_units)}</td>
-    <td class="td-right">${fmtNum(t.ytd_shipped)}</td>
-    <td class="td-right td-accent">${fmtNum(t.total_units)}</td>
-    <td class="td-right">${fmtVal(t.on_order_value)}</td>
-    <td class="td-right">${fmtVal(t.ytd_shipped_value)}</td>
-    <td class="td-right td-accent">${fmtVal(t.total_value)}</td>
-    <td class="td-right">${fmtNum(t.order_count,0)}</td>
-    ${isLatest ? `<td class="td-right td-muted">${fmtNum(t.lytd_shipped_qty)}</td><td class="td-right td-muted">${fmtVal(t.lytd_shipped_value)}</td>` : ''}
-    <td class="td-right">${fmtGrowth(lyGrowthQty)}</td>
-    <td class="td-right">${fmtGrowth(lyGrowthValue)}</td>
-    <td class="td-right">${fmtPct(share)}</td>
-  </tr>`;
+function compareSKUDetailRows(a, b) {
+  const field = skuDetailSortState.field;
+  const result = field === 'stock_on_hand'
+    ? a[field] - b[field]
+    : String(a[field] || '').localeCompare(String(b[field] || ''), undefined, { sensitivity: 'base' });
+  return skuDetailSortState.direction === 'asc' ? result : -result;
 }
 
-// ── COMPARATIVES TAB ─────────────────────────────────────────────────────────
-function renderComparatives(filters) {
-  const container = document.getElementById('comparativesContent');
-
-  // Filter data based on account type and/or parties
-  let filteredData = RAW;
-  if (filters.accountType) {
-    filteredData = filteredData.filter(d => d.sheet === filters.accountType);
-  }
-  const allVisibleParties = [...document.querySelectorAll('#partyList input[type=checkbox]')].map(cb => cb.value);
-  if (filters.parties && filters.parties.length < allVisibleParties.length) {
-    filteredData = filteredData.filter(d => filters.parties.includes(d.retailer));
-  }
-
-  // Determine title based on filter state
-  let filterDesc = 'All Accounts';
-  if (filters.accountType && filters.parties && filters.parties.length < allVisibleParties.length) {
-    filterDesc = filters.accountType + ' · ' + (filters.parties.length === 1 ? filters.parties[0] : filters.parties.length + ' Parties');
-  } else if (filters.accountType) {
-    filterDesc = filters.accountType;
-  } else if (filters.parties && filters.parties.length < allVisibleParties.length) {
-    filterDesc = filters.parties.length === 1 ? filters.parties[0] : filters.parties.length + ' Parties';
-  }
-
-  // Aggregate data per year
-  const yearsDesc = YEARS.slice().reverse();
-  const yearTotals = {};
-  yearsDesc.forEach(year => {
-    const yearRows = filteredData.filter(d => d.year === year);
-    yearTotals[year] = totalise(yearRows);
-  });
-
-  // Helper to compute LY growth for a year
-  function calcGrowth(year, qtyKey, valKey) {
-    const t = yearTotals[year];
-    const isLatest = year === LATEST_YEAR;
-    let gQty = null, gVal = null;
-    if (isLatest) {
-      if (t.lytd_shipped_qty > 0) gQty = (t.ytd_shipped - t.lytd_shipped_qty) / t.lytd_shipped_qty;
-      if (t.lytd_shipped_value > 0) gVal = (t.ytd_shipped_value - t.lytd_shipped_value) / t.lytd_shipped_value;
-    } else {
-      const prevT = yearTotals[year - 1];
-      if (prevT && prevT.ytd_shipped > 0) gQty = (t.ytd_shipped - prevT.ytd_shipped) / prevT.ytd_shipped;
-      if (prevT && prevT.ytd_shipped_value > 0) gVal = (t.ytd_shipped_value - prevT.ytd_shipped_value) / prevT.ytd_shipped_value;
-    }
-    return { gQty, gVal };
-  }
-
-  // Metric groups with sections
-  const sections = [
-    { section: 'Units', metrics: [
-      { key: 'on_order_units',    label: 'On Order Units',    fmt: 'num' },
-      { key: 'ytd_shipped',       label: 'YTD Shipped',       fmt: 'num' },
-      { key: 'total_units',       label: 'Total Units',       fmt: 'num', highlight: true },
-    ]},
-    { section: 'Revenue', metrics: [
-      { key: 'on_order_value',    label: 'On Order Value',    fmt: 'val' },
-      { key: 'ytd_shipped_value', label: 'YTD Shipped Value', fmt: 'val' },
-      { key: 'total_value',       label: 'Total Value',       fmt: 'val', highlight: true },
-    ]},
-    { section: 'Operations', metrics: [
-      { key: 'order_count',       label: 'Order Count',       fmt: 'num' },
-    ]},
-    { section: 'Year-over-Year', metrics: [
-      { key: 'lytd_shipped_qty',  label: 'LYTD Shipped Qty',  fmt: 'num' },
-      { key: 'lytd_shipped_value',label: 'LYTD Shipped Value',fmt: 'val' },
-      { key: 'ly_growth_qty',     label: 'LY Growth:  Qty',   fmt: 'growth' },
-      { key: 'ly_growth_value',   label: 'LY Growth:  Value', fmt: 'growth' },
-      { key: 'share',             label: 'Share',             fmt: 'pct' },
-    ]},
-  ];
-
-  let html = `
-    <div class="sec-header" style="margin-top:0;">
-      <div class="sec-title">📈 Year-over-Year Comparative <span class="yoy-filter-badge">${esc(filterDesc)}</span></div>
-    </div>
-    <div class="yoy-wrap">
-      <table class="yoy-table">
-        <thead>
-          <tr>
-            <th>Metric</th>
-            ${yearsDesc.map(y => `<th>${y}</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>`;
-
-  sections.forEach(sec => {
-    // Section header row
-    html += `<tr class="yoy-section-row"><td colspan="${yearsDesc.length + 1}">${sec.section}</td></tr>`;
-
-    sec.metrics.forEach(m => {
-      const rowClass = m.highlight ? ' class="yoy-highlight"' : (m.fmt === 'growth' ? ' class="yoy-growth-row"' : '');
-      html += `<tr${rowClass}>
-        <td>${m.label}</td>`;
-
-      yearsDesc.forEach(year => {
-        const t = yearTotals[year];
-
-        if (m.key === 'ly_growth_qty') {
-          const g = calcGrowth(year);
-          html += `<td>${fmtGrowth(g.gQty)}</td>`;
-        } else if (m.key === 'ly_growth_value') {
-          const g = calcGrowth(year);
-          html += `<td>${fmtGrowth(g.gVal)}</td>`;
-        } else if (m.key === 'share') {
-          html += `<td>100.0%</td>`;
-        } else if (m.fmt === 'num') {
-          html += `<td>${fmtNum(t[m.key])}</td>`;
-        } else if (m.fmt === 'val') {
-          html += `<td>${fmtVal(t[m.key])}</td>`;
-        } else {
-          html += `<td>—</td>`;
-        }
-      });
-
-      html += `</tr>`;
-    });
-  });
-
-  html += `</tbody></table></div>`;
-
-  container.innerHTML = html;
+function sortSKUDetail(field) {
+  skuDetailSortState = nextSortState(skuDetailSortState, field, [
+    'sku_code', 'sku_name', 'brand', 'category', 'platform', 'status', 'warehouse', '_locType'
+  ]);
+  renderSKUDetail();
 }
 
-// ── YEAR TAB ─────────────────────────────────────────────────────────────────
-function renderYearTab(year, container, filters) {
-  const isLatest = year === LATEST_YEAR;
-
-  // Filter data
-  let data = RAW.filter(d => d.year === year);
-  if (filters.accountType) data = data.filter(d => d.sheet === filters.accountType);
-  if (filters.parties && filters.parties.length < [...document.querySelectorAll('#partyList input[type=checkbox]')].length) {
-    data = data.filter(d => filters.parties.includes(d.retailer));
-  }
-
-  // Get prev year data (same filters) for LY growth calc
-  let prevData = RAW.filter(d => d.year === year - 1);
-  if (filters.accountType) prevData = prevData.filter(d => d.sheet === filters.accountType);
-  if (filters.parties && filters.parties.length < [...document.querySelectorAll('#partyList input[type=checkbox]')].length) {
-    prevData = prevData.filter(d => filters.parties.includes(d.retailer));
-  }
-
-  // Group by sheet
-  const sheetsToShow = filters.accountType ? [filters.accountType] : SHEETS;
+// ─── BY BRAND ──────────────────────────────────────────────────────────────
+function renderByBrand() {
+  const skuMap = buildSKUMap(filteredData);
+  const byBrand = {};
+  Object.values(skuMap).forEach(s => {
+    if (!byBrand[s.brand]) byBrand[s.brand] = [];
+    byBrand[s.brand].push(s);
+  });
 
   let html = '';
-
-  // ── DATA TABLE (filterable) ──
-  html += `
-    <div class="sec-header" style="margin-top:0;">
-      <div class="sec-title">📊 ${year} Detail <span class="sec-badge" style="background:var(--blue-light);color:var(--blue);">Filtered</span></div>
-    </div>
-    <div class="year-table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th class="sticky-col sticky-col-0">Account Type</th>
-            <th class="sticky-col sticky-col-1">Country</th>
-            <th class="sticky-col sticky-col-2">Party / Retailer</th>
-            <th class="th-right">On Order Units</th>
-            <th class="th-right">YTD Shipped</th>
-            <th class="th-right">Total Units</th>
-            <th class="th-right">On Order Value</th>
-            <th class="th-right">YTD Shipped Value</th>
-            <th class="th-right">Total Value</th>
-            <th class="th-right">Order Count</th>
-            ${isLatest ? '<th class="th-right">LYTD Shipped Qty</th><th class="th-right">LYTD Shipped Value</th>' : ''}
-            <th class="th-right">LY Growth Qty</th>
-            <th class="th-right">LY Growth Value</th>
-            <th class="th-right">Share</th>
-          </tr>
-        </thead>
-        <tbody>`;
-
-  if (!data.length) {
-    const colCount = isLatest ? 15 : 13;
-    html += `<tr><td class="sticky-col sticky-col-0 no-data" colspan="1">No data matches the selected filters.</td><td class="sticky-col sticky-col-1"></td><td class="sticky-col sticky-col-2"></td><td colspan="${isLatest ? 12 : 10}"></td></tr>`;
-  } else {
-    sheetsToShow.forEach(sheet => {
-      const sheetRows = data.filter(d => d.sheet === sheet);
-      if (!sheetRows.length) return;
-
-      // Account type header row
-      html += `<tr class="tr-account-header"><td class="sticky-col sticky-col-0" style="padding:8px 13px;">▸ ${sheet}</td><td class="sticky-col sticky-col-1" style="padding:8px 13px;"></td><td class="sticky-col sticky-col-2" style="padding:8px 13px;"></td><td colspan="${isLatest ? 12 : 10}" style="padding:8px 13px;"></td></tr>`;
-
-      let sheetTotals = initTotals();
-      sheetRows.forEach(r => {
-        accumulateTotals(sheetTotals, r);
-        html += detailRow(r, isLatest);
-      });
-
-      // Compute LY growth for this account subtotal
-      let stGrowthQty = null, stGrowthVal = null;
-      if (isLatest) {
-        if (sheetTotals.lytd_shipped_qty > 0) stGrowthQty = (sheetTotals.ytd_shipped - sheetTotals.lytd_shipped_qty) / sheetTotals.lytd_shipped_qty;
-        if (sheetTotals.lytd_shipped_value > 0) stGrowthVal = (sheetTotals.ytd_shipped_value - sheetTotals.lytd_shipped_value) / sheetTotals.lytd_shipped_value;
-      } else {
-        const prevSheetRows = prevData.filter(d => d.sheet === sheet);
-        if (prevSheetRows.length) {
-          const prevT = totalise(prevSheetRows);
-          if (prevT.ytd_shipped > 0) stGrowthQty = (sheetTotals.ytd_shipped - prevT.ytd_shipped) / prevT.ytd_shipped;
-          if (prevT.ytd_shipped_value > 0) stGrowthVal = (sheetTotals.ytd_shipped_value - prevT.ytd_shipped_value) / prevT.ytd_shipped_value;
-        }
-      }
-
-      html += subTotalRow(sheet + ' Total', sheetTotals, isLatest, stGrowthQty, stGrowthVal);
+  Object.keys(byBrand).sort().forEach(brand => {
+    const skus = byBrand[brand].sort((a,b)=>b.total-a.total);
+    const totals = { amazon:0,threepl:0,intransit:0,openorder:0,other:0,total:0 };
+    skus.forEach(s => { totals.amazon+=s.amazon;totals.threepl+=s.threepl;totals.intransit+=s.intransit;totals.openorder+=s.openorder;totals.other+=s.other;totals.total+=s.total; });
+    html += `<tr class="tr-brand-hdr"><td colspan="12">🏷️ ${brand} &nbsp; <span style="font-weight:400;font-size:11px;opacity:.8;">${skus.length} SKUs · ${fmt(totals.total)} total units</span></td></tr>`;
+    skus.forEach(s => {
+      html += `<tr>
+        <td></td><td class="td-code">${s.sku_code}</td><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;" title="${s.sku_name}">${s.sku_name}</td>
+        <td class="td-muted">${s.category}</td><td class="td-muted">${s.platform}</td>
+        <td><span class="pill ${s.status==='Active'?'pill-active':'pill-inactive'}">${s.status}</span></td>
+        <td class="td-right">${fmt(s.amazon)}</td><td class="td-right">${fmt(s.threepl)}</td><td class="td-right">${fmt(s.intransit)}</td><td class="td-right">${fmt(s.openorder)}</td><td class="td-right">${fmt(s.other)}</td>
+        <td class="td-right td-bold">${fmt(s.total)}</td>
+      </tr>`;
     });
-
-    // Grand total
-    const filteredTotals = initTotals();
-    data.forEach(r => accumulateTotals(filteredTotals, r));
-
-    // Compute LY growth for grand total
-    let gtGrowthQty = null, gtGrowthVal = null;
-    if (isLatest) {
-      if (filteredTotals.lytd_shipped_qty > 0) gtGrowthQty = (filteredTotals.ytd_shipped - filteredTotals.lytd_shipped_qty) / filteredTotals.lytd_shipped_qty;
-      if (filteredTotals.lytd_shipped_value > 0) gtGrowthVal = (filteredTotals.ytd_shipped_value - filteredTotals.lytd_shipped_value) / filteredTotals.lytd_shipped_value;
-    } else if (prevData.length) {
-      const prevGT = totalise(prevData);
-      if (prevGT.ytd_shipped > 0) gtGrowthQty = (filteredTotals.ytd_shipped - prevGT.ytd_shipped) / prevGT.ytd_shipped;
-      if (prevGT.ytd_shipped_value > 0) gtGrowthVal = (filteredTotals.ytd_shipped_value - prevGT.ytd_shipped_value) / prevGT.ytd_shipped_value;
-    }
-
-    html += grandTotalRow('GRAND TOTAL', filteredTotals, isLatest, false, gtGrowthQty, gtGrowthVal);
-  }
-
-  html += `</tbody></table></div>`;
-
-  container.innerHTML = html;
-  fixStickyOffsets(container);
-}
-
-// Compute left offsets for sticky columns based on actual rendered widths
-function fixStickyOffsets(container) {
-  const table = container.querySelector('.year-table-wrap table');
-  if (!table) return;
-  const headerCells = table.querySelectorAll('thead th');
-  if (headerCells.length < 3) return;
-  const w0 = headerCells[0].getBoundingClientRect().width;
-  const w1 = headerCells[1].getBoundingClientRect().width;
-  table.querySelectorAll('.sticky-col-0').forEach(el => { el.style.left = '0px'; });
-  table.querySelectorAll('.sticky-col-1').forEach(el => { el.style.left = w0 + 'px'; });
-  table.querySelectorAll('.sticky-col-2').forEach(el => { el.style.left = (w0 + w1) + 'px'; });
-}
-
-// ── ROW RENDERERS ─────────────────────────────────────────────────────────────
-function summaryRow(label, t, isLatest) {
-  return `<tr>
-    <td class="td-bold">${esc(label)}</td>
-    <td class="td-right">${fmtNum(t.on_order_units)}</td>
-    <td class="td-right">${fmtNum(t.ytd_shipped)}</td>
-    <td class="td-right td-accent">${fmtNum(t.total_units)}</td>
-    <td class="td-right">${fmtVal(t.on_order_value)}</td>
-    <td class="td-right">${fmtVal(t.ytd_shipped_value)}</td>
-    <td class="td-right td-accent">${fmtVal(t.total_value)}</td>
-    <td class="td-right">${fmtNum(t.order_count,0)}</td>
-    ${isLatest ? `<td class="td-right td-muted">${fmtNum(t.lytd_shipped_qty)}</td><td class="td-right td-muted">${fmtVal(t.lytd_shipped_value)}</td>` : ''}
-    <td class="td-right">${fmtGrowth(t.ly_growth_qty_avg)}</td>
-    <td class="td-right">${fmtGrowth(t.ly_growth_value_avg)}</td>
-    <td class="td-right">${fmtPct(t.share_sum)}</td>
-  </tr>`;
-}
-
-function detailRow(r, isLatest) {
-  return `<tr>
-    <td class="td-muted sticky-col sticky-col-0" style="font-size:12px;">${esc(r.sheet)}</td>
-    <td class="td-muted sticky-col sticky-col-1" style="font-size:12px;">${esc(r.country)}</td>
-    <td class="sticky-col sticky-col-2">${esc(r.retailer)}</td>
-    <td class="td-right">${fmtNum(r.on_order_units)}</td>
-    <td class="td-right">${fmtNum(r.ytd_shipped)}</td>
-    <td class="td-right td-accent">${fmtNum(r.total_units)}</td>
-    <td class="td-right">${fmtVal(r.on_order_value)}</td>
-    <td class="td-right">${fmtVal(r.ytd_shipped_value)}</td>
-    <td class="td-right td-accent">${fmtVal(r.total_value)}</td>
-    <td class="td-right">${fmtNum(r.order_count,0)}</td>
-    ${isLatest ? `<td class="td-right td-muted">${fmtNum(r.lytd_shipped_qty)}</td><td class="td-right td-muted">${fmtVal(r.lytd_shipped_value)}</td>` : ''}
-    <td class="td-right">${fmtGrowth(r.ly_growth_qty)}</td>
-    <td class="td-right">${fmtGrowth(r.ly_growth_value)}</td>
-    <td class="td-right">${fmtPct(r.share)}</td>
-  </tr>`;
-}
-
-function subTotalRow(label, t, isLatest, lyGrowthQty, lyGrowthVal) {
-  return `<tr class="tr-subtotal">
-    <td class="sticky-col sticky-col-0" colspan="1">∑ ${esc(label)}</td>
-    <td class="sticky-col sticky-col-1"></td>
-    <td class="sticky-col sticky-col-2"></td>
-    <td class="td-right">${fmtNum(t.on_order_units)}</td>
-    <td class="td-right">${fmtNum(t.ytd_shipped)}</td>
-    <td class="td-right">${fmtNum(t.total_units)}</td>
-    <td class="td-right">${fmtVal(t.on_order_value)}</td>
-    <td class="td-right">${fmtVal(t.ytd_shipped_value)}</td>
-    <td class="td-right">${fmtVal(t.total_value)}</td>
-    <td class="td-right">${fmtNum(t.order_count,0)}</td>
-    ${isLatest ? `<td class="td-right">${fmtNum(t.lytd_shipped_qty)}</td><td class="td-right">${fmtVal(t.lytd_shipped_value)}</td>` : ''}
-    <td class="td-right">${fmtGrowth(lyGrowthQty)}</td>
-    <td class="td-right">${fmtGrowth(lyGrowthVal)}</td>
-    <td class="td-right">${fmtPct(t.share_sum)}</td>
-  </tr>`;
-}
-
-function grandTotalRow(label, t, isLatest, useSummaryColspan, lyGrowthQty, lyGrowthVal) {
-  const gQty = (lyGrowthQty !== undefined && lyGrowthQty !== null) ? fmtGrowth(lyGrowthQty) : '';
-  const gVal = (lyGrowthVal !== undefined && lyGrowthVal !== null) ? fmtGrowth(lyGrowthVal) : '';
-  if (useSummaryColspan) {
-    // In Dashboard summary table (no detail columns)
-    return `<tr class="tr-grandtotal">
-      <td>${label}</td>
-      <td class="td-right">${fmtNum(t.on_order_units)}</td>
-      <td class="td-right">${fmtNum(t.ytd_shipped)}</td>
-      <td class="td-right">${fmtNum(t.total_units)}</td>
-      <td class="td-right">${fmtVal(t.on_order_value)}</td>
-      <td class="td-right">${fmtVal(t.ytd_shipped_value)}</td>
-      <td class="td-right">${fmtVal(t.total_value)}</td>
-      <td class="td-right">${fmtNum(t.order_count,0)}</td>
-      ${isLatest ? `<td class="td-right">${fmtNum(t.lytd_shipped_qty)}</td><td class="td-right">${fmtVal(t.lytd_shipped_value)}</td>` : ''}
-      <td class="td-right">${gQty}</td>
-      <td class="td-right">${gVal}</td>
-      <td class="td-right">100%</td>
+    html += `<tr class="tr-sub">
+      <td></td><td colspan="5">Brand Total</td>
+      <td class="td-right">${fmt(totals.amazon)}</td><td class="td-right">${fmt(totals.threepl)}</td><td class="td-right">${fmt(totals.intransit)}</td><td class="td-right">${fmt(totals.openorder)}</td><td class="td-right">${fmt(totals.other)}</td>
+      <td class="td-right">${fmt(totals.total)}</td>
     </tr>`;
-  }
-  // Year tab (has Party + country cols)
-  return `<tr class="tr-grandtotal">
-    <td class="sticky-col sticky-col-0">${label}</td>
-    <td class="sticky-col sticky-col-1"></td>
-    <td class="sticky-col sticky-col-2"></td>
-    <td class="td-right">${fmtNum(t.on_order_units)}</td>
-    <td class="td-right">${fmtNum(t.ytd_shipped)}</td>
-    <td class="td-right">${fmtNum(t.total_units)}</td>
-    <td class="td-right">${fmtVal(t.on_order_value)}</td>
-    <td class="td-right">${fmtVal(t.ytd_shipped_value)}</td>
-    <td class="td-right">${fmtVal(t.total_value)}</td>
-    <td class="td-right">${fmtNum(t.order_count,0)}</td>
-    ${isLatest ? `<td class="td-right">${fmtNum(t.lytd_shipped_qty)}</td><td class="td-right">${fmtVal(t.lytd_shipped_value)}</td>` : ''}
-    <td class="td-right">${gQty}</td>
-    <td class="td-right">${gVal}</td>
-    <td class="td-right">100%</td>
-  </tr>`;
+  });
+  document.getElementById('brandBody').innerHTML = html || '<tr><td colspan="12" class="no-data">No data.</td></tr>';
 }
 
-// ── AGGREGATION HELPERS ───────────────────────────────────────────────────────
-function initTotals() {
+// ─── BY CATEGORY ───────────────────────────────────────────────────────────
+function renderByCategory() {
+  const skuMap = buildSKUMap(filteredData);
+  const byCat = {};
+  Object.values(skuMap).forEach(s => {
+    const cat = s.category || 'NA';
+    if (!byCat[cat]) byCat[cat] = [];
+    byCat[cat].push(s);
+  });
+
+  let html = '';
+  Object.keys(byCat).sort().forEach(cat => {
+    const skus = byCat[cat].sort((a,b)=>b.total-a.total);
+    const totals = { amazon:0,threepl:0,intransit:0,openorder:0,other:0,total:0 };
+    skus.forEach(s => { totals.amazon+=s.amazon;totals.threepl+=s.threepl;totals.intransit+=s.intransit;totals.openorder+=s.openorder;totals.other+=s.other;totals.total+=s.total; });
+    html += `<tr class="tr-brand-hdr"><td colspan="12">🗂️ ${cat} &nbsp; <span style="font-weight:400;font-size:11px;opacity:.8;">${skus.length} SKUs · ${fmt(totals.total)} total units</span></td></tr>`;
+    skus.forEach(s => {
+      html += `<tr>
+        <td></td><td class="td-code">${s.sku_code}</td><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;" title="${s.sku_name}">${s.sku_name}</td>
+        <td class="td-muted">${s.brand}</td><td class="td-muted">${s.platform}</td>
+        <td><span class="pill ${s.status==='Active'?'pill-active':'pill-inactive'}">${s.status}</span></td>
+        <td class="td-right">${fmt(s.amazon)}</td><td class="td-right">${fmt(s.threepl)}</td><td class="td-right">${fmt(s.intransit)}</td><td class="td-right">${fmt(s.openorder)}</td><td class="td-right">${fmt(s.other)}</td>
+        <td class="td-right td-bold">${fmt(s.total)}</td>
+      </tr>`;
+    });
+    html += `<tr class="tr-sub">
+      <td></td><td colspan="5">Category Total</td>
+      <td class="td-right">${fmt(totals.amazon)}</td><td class="td-right">${fmt(totals.threepl)}</td><td class="td-right">${fmt(totals.intransit)}</td><td class="td-right">${fmt(totals.openorder)}</td><td class="td-right">${fmt(totals.other)}</td>
+      <td class="td-right">${fmt(totals.total)}</td>
+    </tr>`;
+  });
+  document.getElementById('categoryBody').innerHTML = html || '<tr><td colspan="12" class="no-data">No data.</td></tr>';
+}
+
+// ─── TRANSIT & OPEN ORDERS ─────────────────────────────────────────────────
+function renderTransit() {
+  const transitTypes = ['In Transit','Open Order India','Open Order China'];
+  const data = filteredData.filter(d => transitTypes.includes(d._locType));
+
+  const toAmazon = data.filter(d=>d.warehouse.toLowerCase().includes('amazon')).reduce((s,d)=>s+d.stock_on_hand,0);
+  const to3PL = data.filter(d=>d._locType==='In Transit'&&!d.warehouse.toLowerCase().includes('amazon')).reduce((s,d)=>s+d.stock_on_hand,0);
+  const openIndia = data.filter(d=>d._locType==='Open Order India').reduce((s,d)=>s+d.stock_on_hand,0);
+  const openChina = data.filter(d=>d._locType==='Open Order China').reduce((s,d)=>s+d.stock_on_hand,0);
+
+  document.getElementById('transitKpi').innerHTML = [
+    { icon:'🚚', label:'In Transit to Amazon', value: fmt(toAmazon) },
+    { icon:'📦', label:'In Transit to 3PL', value: fmt(to3PL) },
+    { icon:'📋', label:'Open Orders (India)', value: fmt(openIndia) },
+    { icon:'🏭', label:'Open Orders (China WH)', value: fmt(openChina) },
+  ].map(k=>`<div class="kpi-card"><div class="kpi-icon">${k.icon}</div><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div>`).join('');
+
+  document.getElementById('transitBody').innerHTML = data.length ? data.sort((a,b)=>b.stock_on_hand-a.stock_on_hand).map(d=>`
+    <tr>
+      <td class="td-code">${d.sku_code}</td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;" title="${d.sku_name}">${d.sku_name}</td>
+      <td class="td-muted">${d.brand}</td>
+      <td class="td-muted">${d.category}</td>
+      <td class="td-muted">${d.platform}</td>
+      <td><span class="pill ${d.status==='Active'?'pill-active':'pill-inactive'}">${d.status}</span></td>
+      <td>${d.warehouse}</td>
+      <td><span class="loc-badge ${whColor(d._locType)}">${d._locType}</span></td>
+      <td class="td-right td-bold">${fmt(d.stock_on_hand)}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="9" class="no-data">No in-transit or open order data.</td></tr>';
+}
+
+// ─── BUILD SKU MAP ─────────────────────────────────────────────────────────
+function buildSKUMap(data) {
+  const map = {};
+  data.forEach(d => {
+    if (!map[d.sku_code]) map[d.sku_code] = { sku_code:d.sku_code, sku_name:d.sku_name, brand:d.brand, category:d.category, platform:d.platform, status:d.status, india:0, china:0, amazon:0, threepl:0, intransit:0, openorder:0, other:0, total:0 };
+    const s = map[d.sku_code];
+    const lt = d._locType;
+    const remark = norm(d.remark);
+    if (remark==='india') s.india += d.stock_on_hand;
+    else if (remark==='china') s.china += d.stock_on_hand;
+    if (remark.includes('open order')) s.openorder += d.stock_on_hand;
+    else if (lt==='Amazon'||lt==='Amazon (Receiving)') s.amazon += d.stock_on_hand;
+    else if (lt==='3PL Warehouse') s.threepl += d.stock_on_hand;
+    else if (lt==='In Transit') s.intransit += d.stock_on_hand;
+    else s.other += d.stock_on_hand;
+    s.total += d.stock_on_hand;
+  });
+  return map;
+}
+
+function compareTop20Rows(a, b) {
+  const { field, direction } = top20SortState;
+  const stringFields = ['details', 'brand', 'category', 'platform', 'status'];
+  const aValue = field === 'details' ? `${a.sku_code} ${a.sku_name}` : a[field];
+  const bValue = field === 'details' ? `${b.sku_code} ${b.sku_name}` : b[field];
+  const result = stringFields.includes(field)
+    ? String(aValue || '').localeCompare(String(bValue || ''), undefined, { sensitivity: 'base' })
+    : Number(aValue || 0) - Number(bValue || 0);
+  return direction === 'asc' ? result : -result;
+}
+
+function sortTop20(field) {
+  top20SortState = nextSortState(top20SortState, field, ['details', 'brand', 'category', 'platform', 'status']);
+  renderTop20();
+}
+
+function nextSortState(state, field, ascendingFields) {
+  if (state.field === field) {
+    return { field, direction: state.direction === 'asc' ? 'desc' : 'asc' };
+  }
   return {
-    on_order_units: 0, ytd_shipped: 0, total_units: 0,
-    on_order_value: 0, ytd_shipped_value: 0, total_value: 0,
-    order_count: 0, lytd_shipped_qty: 0, lytd_shipped_value: 0,
-    share_sum: 0, ly_growth_qty_avg: null, ly_growth_value_avg: null,
-    _lyq_count: 0, _lyv_count: 0, _lyq_sum: 0, _lyv_sum: 0
+    field,
+    direction: ascendingFields.includes(field) ? 'asc' : 'desc'
   };
 }
 
-function accumulateTotals(t, r) {
-  t.on_order_units     += r.on_order_units     || 0;
-  t.ytd_shipped        += r.ytd_shipped        || 0;
-  t.total_units        += r.total_units        || 0;
-  t.on_order_value     += r.on_order_value     || 0;
-  t.ytd_shipped_value  += r.ytd_shipped_value  || 0;
-  t.total_value        += r.total_value        || 0;
-  t.order_count        += r.order_count        || 0;
-  t.lytd_shipped_qty   += r.lytd_shipped_qty   || 0;
-  t.lytd_shipped_value += r.lytd_shipped_value || 0;
-  t.share_sum          += r.share              || 0;
-  if (r.ly_growth_qty  && r.ly_growth_qty  !== 0 && r.ly_growth_qty  > -1) { t._lyq_sum += r.ly_growth_qty;  t._lyq_count++; }
-  if (r.ly_growth_value && r.ly_growth_value !== 0 && r.ly_growth_value > -1) { t._lyv_sum += r.ly_growth_value; t._lyv_count++; }
-  t.ly_growth_qty_avg   = t._lyq_count  ? t._lyq_sum  / t._lyq_count  : null;
-  t.ly_growth_value_avg = t._lyv_count  ? t._lyv_sum  / t._lyv_count  : null;
-}
-
-function totalise(rows) {
-  const t = initTotals();
-  rows.forEach(r => accumulateTotals(t, r));
-  return t;
-}
-
-// ── FORMAT HELPERS ────────────────────────────────────────────────────────────
-function fmtNum(v, decimals=0) {
-  if (v === null || v === undefined) return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  if (decimals === 0) return n.toLocaleString('en-US', {maximumFractionDigits:0});
-  return n.toLocaleString('en-US', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
-}
-
-function fmtVal(v) {
-  if (v === null || v === undefined) return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-function fmtPct(v) {
-  if (v === null || v === undefined) return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  return (n * 100).toFixed(1) + '%';
-}
-
-function fmtGrowth(v) {
-  if (v === null || v === undefined) return '<span class="td-muted">—</span>';
-  const n = parseFloat(v);
-  if (isNaN(n) || n === 0) return '<span class="td-muted">—</span>';
-  if (n <= -1) return '<span class="td-muted">—</span>';
-  const pct  = (n * 100).toFixed(1) + '%';
-  const cls  = n >= 0 ? 'td-green' : 'td-red';
-  const arrow = n >= 0 ? '▲' : '▼';
-  return `<span class="${cls}">${arrow} ${pct}</span>`;
-}
-
-function esc(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function setRefreshState(loading) {
-  const btn = document.getElementById('refreshBtn');
-  const icon = document.getElementById('refreshIcon');
-  const indicator = document.getElementById('liveIndicator');
-  if (loading) {
-    btn.disabled = true;
-    btn.classList.add('spinning');
-    if (indicator) indicator.classList.remove('visible');
-  } else {
-    btn.disabled = false;
-    btn.classList.remove('spinning');
-  }
-}
-
-async function refreshData() {
-  try {
-    setRefreshState(true);
-    await loadData();
-    setRefreshState(false);
-    // Switch back to dashboard after refresh
-    switchTab('dashboard');
-  } catch (err) {
-    console.error('Refresh error:', err);
-    setRefreshState(false);
-  }
-}
-
-// ── EXCEL EXPORT ──────────────────────────────────────────────────────────────
-// The button always exports a complete workbook snapshot (all data, unfiltered):
-//   Sheet 1 "Dashboard"    → per-year Revenue Summary tables, then the YoY summary below
-//   Sheet 2 "Comparative"  → the year-over-year comparative table
-//   Sheet 3+ "<year>"      → each year's party-level detail on its own sheet
-const XLS_FMT = { num: '#,##0', val: '$#,##0.00', pct: '0.0%', text: null };
-
-// Convert a growth fraction into a cell value (blank when not meaningful — mirrors fmtGrowth)
-function gCell(v) {
-  if (v === null || v === undefined) return '';
-  const n = parseFloat(v);
-  if (isNaN(n) || n === 0 || n <= -1) return '';
-  return n;
-}
-
-// Build a worksheet from an array-of-arrays + a parallel grid of Excel number-format codes.
-// fmtGrid[r][c] is a format code (or null/undefined). Only applied to numeric cells.
-function aoaToSheetGrid(aoa, fmtGrid, colWidths) {
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  for (let R = range.s.r; R <= range.e.r; R++) {
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const addr = XLSX.utils.encode_cell({ r: R, c: C });
-      const cell = ws[addr];
-      if (!cell || typeof cell.v !== 'number') continue;
-      const z = (fmtGrid[R] && fmtGrid[R][C]) || null;
-      if (z) cell.z = z;
-    }
-  }
-  if (colWidths) ws['!cols'] = colWidths;
-  return ws;
-}
-
-// ── BLOCK: one year's Revenue Summary (by account type) ──
-// Returns { aoa, fmt } so it can be stacked onto the Dashboard sheet.
-function blockYearSummary(year) {
-  const isLatest = year === LATEST_YEAR;
-  const yearData = RAW.filter(d => d.year === year);
-  const totalYTDShippedValue = yearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
-  const prevYearData = RAW.filter(d => d.year === year - 1);
-
-  const headers = ['Account Type', 'On Order Units', 'YTD Shipped', 'Total Units',
-    'On Order Value', 'YTD Shipped Value', 'Total Value', 'Order Count'];
-  const colFmt = ['text', 'num', 'num', 'num', 'val', 'val', 'val', 'num'];
-  if (isLatest) { headers.push('LYTD Shipped Qty', 'LYTD Shipped Value'); colFmt.push('num', 'val'); }
-  headers.push('LY Growth Qty', 'LY Growth Value', 'Share');
-  colFmt.push('pct', 'pct', 'pct');
-
-  const fmtRow = colFmt.map(t => XLS_FMT[t]);
-  const aoa = [[year + ' Revenue Summary'], headers];
-  const fmt = [[null], headers.map(() => null)];
-  const grand = initTotals();
-
-  SHEETS.forEach(sheet => {
-    const rows = yearData.filter(d => d.sheet === sheet);
-    if (!rows.length) return;
-    const t = totalise(rows);
-    accumulateTotals(grand, t);
-    const share = totalYTDShippedValue ? t.ytd_shipped_value / totalYTDShippedValue : 0;
-
-    let gQty = null, gVal = null;
-    if (isLatest) {
-      if (t.lytd_shipped_qty > 0)   gQty = (t.ytd_shipped - t.lytd_shipped_qty) / t.lytd_shipped_qty;
-      if (t.lytd_shipped_value > 0) gVal = (t.ytd_shipped_value - t.lytd_shipped_value) / t.lytd_shipped_value;
-    } else {
-      const prevRows = prevYearData.filter(d => d.sheet === sheet);
-      if (prevRows.length) {
-        const p = totalise(prevRows);
-        if (p.ytd_shipped > 0)       gQty = (t.ytd_shipped - p.ytd_shipped) / p.ytd_shipped;
-        if (p.ytd_shipped_value > 0) gVal = (t.ytd_shipped_value - p.ytd_shipped_value) / p.ytd_shipped_value;
-      }
-    }
-
-    const row = [sheet, t.on_order_units, t.ytd_shipped, t.total_units,
-      t.on_order_value, t.ytd_shipped_value, t.total_value, t.order_count];
-    if (isLatest) row.push(t.lytd_shipped_qty, t.lytd_shipped_value);
-    row.push(gCell(gQty), gCell(gVal), share);
-    aoa.push(row);
-    fmt.push(fmtRow);
+function updateSortIndicators(tableId, state) {
+  document.querySelectorAll(`#${tableId} th[data-sort]`).forEach(th => {
+    const active = th.dataset.sort === state.field;
+    th.classList.toggle('sort-active', active);
+    const indicator = th.querySelector('.sort-indicator');
+    if (indicator) indicator.textContent = active ? (state.direction === 'asc' ? ' ↑' : ' ↓') : ' ↕';
   });
-
-  // Grand total
-  let gtQty = null, gtVal = null;
-  if (isLatest) {
-    if (grand.lytd_shipped_qty > 0)   gtQty = (grand.ytd_shipped - grand.lytd_shipped_qty) / grand.lytd_shipped_qty;
-    if (grand.lytd_shipped_value > 0) gtVal = (grand.ytd_shipped_value - grand.lytd_shipped_value) / grand.lytd_shipped_value;
-  } else {
-    const pQty = prevYearData.reduce((a, b) => a + (b.ytd_shipped || 0), 0);
-    const pVal = prevYearData.reduce((a, b) => a + (b.ytd_shipped_value || 0), 0);
-    if (pQty > 0) gtQty = (grand.ytd_shipped - pQty) / pQty;
-    if (pVal > 0) gtVal = (grand.ytd_shipped_value - pVal) / pVal;
-  }
-  const gtRow = ['TOTAL', grand.on_order_units, grand.ytd_shipped, grand.total_units,
-    grand.on_order_value, grand.ytd_shipped_value, grand.total_value, grand.order_count];
-  if (isLatest) gtRow.push(grand.lytd_shipped_qty, grand.lytd_shipped_value);
-  gtRow.push(gCell(gtQty), gCell(gtVal), 1);
-  aoa.push(gtRow);
-  fmt.push(fmtRow);
-
-  return { aoa, fmt };
 }
 
-// ── BLOCK: the year-over-year comparative table (all accounts, all data) ──
-// Returns { aoa, fmt }.
-function blockComparative() {
-  const data = RAW;
-  const yearsDesc = YEARS.slice().reverse();
-  const yearTotals = {};
-  yearsDesc.forEach(y => { yearTotals[y] = totalise(data.filter(d => d.year === y)); });
-
-  function calcGrowth(year) {
-    const t = yearTotals[year];
-    let gQty = null, gVal = null;
-    if (year === LATEST_YEAR) {
-      if (t.lytd_shipped_qty > 0)   gQty = (t.ytd_shipped - t.lytd_shipped_qty) / t.lytd_shipped_qty;
-      if (t.lytd_shipped_value > 0) gVal = (t.ytd_shipped_value - t.lytd_shipped_value) / t.lytd_shipped_value;
-    } else {
-      const p = yearTotals[year - 1];
-      if (p && p.ytd_shipped > 0)       gQty = (t.ytd_shipped - p.ytd_shipped) / p.ytd_shipped;
-      if (p && p.ytd_shipped_value > 0) gVal = (t.ytd_shipped_value - p.ytd_shipped_value) / p.ytd_shipped_value;
-    }
-    return { gQty, gVal };
-  }
-
-  const sections = [
-    { section: 'Units',          metrics: [['on_order_units','On Order Units','num'],['ytd_shipped','YTD Shipped','num'],['total_units','Total Units','num']] },
-    { section: 'Revenue',        metrics: [['on_order_value','On Order Value','val'],['ytd_shipped_value','YTD Shipped Value','val'],['total_value','Total Value','val']] },
-    { section: 'Operations',     metrics: [['order_count','Order Count','num']] },
-    { section: 'Year-over-Year', metrics: [['lytd_shipped_qty','LYTD Shipped Qty','num'],['lytd_shipped_value','LYTD Shipped Value','val'],['ly_growth_qty','LY Growth: Qty','growth'],['ly_growth_value','LY Growth: Value','growth'],['share','Share','pct']] },
-  ];
-
-  const headers = ['Metric', ...yearsDesc.map(String)];
-  const aoa = [headers];
-  const fmt = [headers.map(() => null)];
-
-  sections.forEach(sec => {
-    aoa.push([sec.section]);            // section header row
-    fmt.push([null]);
-    sec.metrics.forEach(([key, label, mf]) => {
-      const code = XLS_FMT[mf === 'growth' ? 'pct' : mf] || null;
-      const row = [label];
-      const frow = [null];
-      yearsDesc.forEach(year => {
-        const t = yearTotals[year];
-        if (key === 'ly_growth_qty')        row.push(gCell(calcGrowth(year).gQty));
-        else if (key === 'ly_growth_value') row.push(gCell(calcGrowth(year).gVal));
-        else if (key === 'share')           row.push(1);
-        else                                row.push(t[key] || 0);
-        frow.push(code);
-      });
-      aoa.push(row);
-      fmt.push(frow);
-    });
-  });
-
-  return { aoa, fmt, ncols: headers.length };
+// ─── TOP SKU TOGGLE ───────────────────────────────────────────────────────
+function setTopMode(mode) {
+  topMode = mode;
+  document.getElementById('toggleAll').classList.toggle('active', mode === 'all');
+  document.getElementById('toggleTop').classList.toggle('active', mode === 'top');
+  document.getElementById('topInputWrap').style.display = mode === 'top' ? 'flex' : 'none';
+  renderTop20();
 }
 
-// ── BLOCK: the 5 KPI "cards" (latest year) laid out across one row ──
-// Returns { aoa, fmt }: a title row, a row of labels, and a row of values.
-function blockKpiCards() {
-  const ly = RAW.filter(d => d.year === LATEST_YEAR);
-  const sum = (k) => ly.reduce((a, b) => a + (b[k] || 0), 0);
-  const labels = ['Total Revenue', 'YTD Shipped Value', 'On Order Value', 'Total Units', 'Order Count'];
-  const values = [sum('total_value'), sum('ytd_shipped_value'), sum('on_order_value'), sum('total_units'), sum('order_count')];
-  const valFmt = [XLS_FMT.val, XLS_FMT.val, XLS_FMT.val, XLS_FMT.num, XLS_FMT.num];
-  return {
-    aoa: [[LATEST_YEAR + ' Revenue Summary'], labels, values],
-    fmt: [[null], labels.map(() => null), valFmt]
-  };
+function onTopNChange() {
+  const input = document.getElementById('topNInput');
+  let val = parseInt(input.value);
+  if (isNaN(val) || val < 1) val = 1;
+  topN = val;
+  renderTop20();
 }
 
-// ── SHEET 1: Dashboard (KPI cards row, then per-year summaries stacked, then YoY summary) ──
-function composeDashboardSheet() {
-  const aoa = [], fmt = [];
-  const push = (b) => b.aoa.forEach((r, i) => { aoa.push(r); fmt.push(b.fmt[i] || []); });
-  const blank = (n = 1) => { for (let i = 0; i < n; i++) { aoa.push([]); fmt.push([]); } };
-
-  // KPI cards row first (no YoY here)
-  push(blockKpiCards());
-  blank(2);
-
-  YEARS.slice().reverse().forEach((y, idx) => {
-    if (idx > 0) blank(2);
-    push(blockYearSummary(y));
-  });
-
-  const maxCols = aoa.reduce((m, r) => Math.max(m, r.length), 0);
-  const widths = Array.from({ length: maxCols }, (_, i) => ({ wch: i === 0 ? 26 : 16 }));
-  return { name: 'Dashboard', ws: aoaToSheetGrid(aoa, fmt, widths) };
+// ─── TAB SWITCH ────────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
 }
 
-// ── SHEET 2: Comparative ──
-function composeComparativeSheet() {
-  const b = blockComparative();
-  const widths = Array.from({ length: b.ncols }, (_, i) => ({ wch: i === 0 ? 22 : 16 }));
-  return { name: 'Comparative', ws: aoaToSheetGrid(b.aoa, b.fmt, widths) };
-}
-
-// ── SHEET 3+: one sheet per year (party-level detail, all data) ──
-function composeYearSheet(year) {
-  const isLatest = year === LATEST_YEAR;
-  const data = RAW.filter(d => d.year === year);
-  const prevData = RAW.filter(d => d.year === year - 1);
-
-  const headers = ['Account Type', 'Country', 'Party / Retailer', 'On Order Units', 'YTD Shipped',
-    'Total Units', 'On Order Value', 'YTD Shipped Value', 'Total Value', 'Order Count'];
-  const colFmt = ['text', 'text', 'text', 'num', 'num', 'num', 'val', 'val', 'val', 'num'];
-  if (isLatest) { headers.push('LYTD Shipped Qty', 'LYTD Shipped Value'); colFmt.push('num', 'val'); }
-  headers.push('LY Growth Qty', 'LY Growth Value', 'Share');
-  colFmt.push('pct', 'pct', 'pct');
-
-  const fmtRow = colFmt.map(t => XLS_FMT[t]);
-  const aoa = [headers];
-  const fmt = [headers.map(() => null)];
-  const pad = (arr) => { while (arr.length < headers.length) arr.push(''); return arr; };
-
-  SHEETS.forEach(sheet => {
-    const sheetRows = data.filter(d => d.sheet === sheet);
-    if (!sheetRows.length) return;
-
-    aoa.push(pad(['▸ ' + sheet])); fmt.push([]);   // account-type header row
-
-    const st = initTotals();
-    sheetRows.forEach(r => {
-      accumulateTotals(st, r);
-      const row = [r.sheet, r.country, r.retailer, r.on_order_units, r.ytd_shipped,
-        r.total_units, r.on_order_value, r.ytd_shipped_value, r.total_value, r.order_count];
-      if (isLatest) row.push(r.lytd_shipped_qty, r.lytd_shipped_value);
-      row.push(gCell(r.ly_growth_qty), gCell(r.ly_growth_value), (r.share || 0));
-      aoa.push(row); fmt.push(fmtRow);
-    });
-
-    let sQty = null, sVal = null;
-    if (isLatest) {
-      if (st.lytd_shipped_qty > 0)   sQty = (st.ytd_shipped - st.lytd_shipped_qty) / st.lytd_shipped_qty;
-      if (st.lytd_shipped_value > 0) sVal = (st.ytd_shipped_value - st.lytd_shipped_value) / st.lytd_shipped_value;
-    } else {
-      const prevSheet = prevData.filter(d => d.sheet === sheet);
-      if (prevSheet.length) {
-        const p = totalise(prevSheet);
-        if (p.ytd_shipped > 0)       sQty = (st.ytd_shipped - p.ytd_shipped) / p.ytd_shipped;
-        if (p.ytd_shipped_value > 0) sVal = (st.ytd_shipped_value - p.ytd_shipped_value) / p.ytd_shipped_value;
-      }
-    }
-    const stRow = ['∑ ' + sheet + ' Total', '', '', st.on_order_units, st.ytd_shipped,
-      st.total_units, st.on_order_value, st.ytd_shipped_value, st.total_value, st.order_count];
-    if (isLatest) stRow.push(st.lytd_shipped_qty, st.lytd_shipped_value);
-    stRow.push(gCell(sQty), gCell(sVal), st.share_sum);
-    aoa.push(stRow); fmt.push(fmtRow);
-  });
-
-  // Grand total
-  if (data.length) {
-    const gt = initTotals();
-    data.forEach(r => accumulateTotals(gt, r));
-    let gQty = null, gVal = null;
-    if (isLatest) {
-      if (gt.lytd_shipped_qty > 0)   gQty = (gt.ytd_shipped - gt.lytd_shipped_qty) / gt.lytd_shipped_qty;
-      if (gt.lytd_shipped_value > 0) gVal = (gt.ytd_shipped_value - gt.lytd_shipped_value) / gt.lytd_shipped_value;
-    } else if (prevData.length) {
-      const p = totalise(prevData);
-      if (p.ytd_shipped > 0)       gQty = (gt.ytd_shipped - p.ytd_shipped) / p.ytd_shipped;
-      if (p.ytd_shipped_value > 0) gVal = (gt.ytd_shipped_value - p.ytd_shipped_value) / p.ytd_shipped_value;
-    }
-    const gtRow = ['GRAND TOTAL', '', '', gt.on_order_units, gt.ytd_shipped,
-      gt.total_units, gt.on_order_value, gt.ytd_shipped_value, gt.total_value, gt.order_count];
-    if (isLatest) gtRow.push(gt.lytd_shipped_qty, gt.lytd_shipped_value);
-    gtRow.push(gCell(gQty), gCell(gVal), 1);
-    aoa.push(gtRow); fmt.push(fmtRow);
-  }
-
-  return { name: String(year).slice(0, 31), ws: aoaToSheetGrid(aoa, fmt, colWidthsFromHeaders(headers)) };
-}
-
-function colWidthsFromHeaders(headers) {
-  return headers.map(h => ({ wch: Math.max(12, String(h).length + 2) }));
-}
-
-// ── Main download handler — builds the complete workbook ──
-function downloadExcel() {
-  if (typeof XLSX === 'undefined') {
-    alert('The Excel library could not be loaded. Please check your internet connection and try again.');
-    return;
-  }
-  if (!RAW || !RAW.length) {
-    alert('No data has loaded yet. Please wait for the dashboard to finish loading.');
-    return;
-  }
-
-  try {
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, composeDashboardSheet().ws, 'Dashboard');
-    XLSX.utils.book_append_sheet(wb, composeComparativeSheet().ws, 'Comparative');
-    YEARS.slice().reverse().forEach(year => {
-      const s = composeYearSheet(year);
-      XLSX.utils.book_append_sheet(wb, s.ws, s.name);
-    });
-
-    const today = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `Skillmatics_Revenue_${today}.xlsx`);
-  } catch (err) {
-    console.error('Excel export error:', err);
-    alert('Sorry, something went wrong while building the Excel file.');
-  }
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('loginUser').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('loginPass').focus();
-  });
-
-  // Auto-login if session is still active (survives refresh)
-  if (sessionStorage.getItem('sk_rev_logged_in') === '1') {
-    document.getElementById('loginOverlay').style.display = 'none';
-    const loadOv = document.getElementById('loadingOverlay');
-    loadOv.style.display = 'flex';
-    loadOv.style.opacity = '1';
-
-    const statusEl = document.getElementById('loadingStatus');
-    const subEl    = document.getElementById('loadingSubStatus');
-    const messages = [
-      ['Connecting to data source…', 'This may take a moment'],
-      ['Fetching revenue records…', 'Pulling latest figures'],
-      ['Processing account data…', 'Crunching the numbers'],
-      ['Building your dashboard…', 'Almost there']
-    ];
-    let msgIdx = 0;
-    const msgInterval = setInterval(() => {
-      msgIdx++;
-      if (msgIdx < messages.length) {
-        statusEl.textContent = messages[msgIdx][0];
-        subEl.textContent    = messages[msgIdx][1];
-      }
-    }, 1800);
-
-    loadData().then(() => {
-      clearInterval(msgInterval);
-      statusEl.textContent = 'Ready!';
-      subEl.textContent = '';
-      loadOv.style.opacity = '0';
-      setTimeout(() => { loadOv.style.display = 'none'; }, 500);
-    }).catch(err => {
-      console.error('Auto-load error:', err);
-      clearInterval(msgInterval);
-      sessionStorage.removeItem('sk_rev_logged_in');
-      loadOv.style.display = 'none';
-      document.getElementById('loginOverlay').style.display = 'flex';
-      showLoginError('Session expired. Please sign in again.');
-    });
-  }
+// ─── ENTER KEY ON LOGIN ────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') attemptLogin();
 });
 </script>
 </body>
