@@ -46,8 +46,8 @@
   .login-input:focus{border-color:var(--accent);}
   .login-fields{display:flex;flex-direction:column;gap:14px;width:100%;}
   #loginError{display:none;font-size:13px;color:var(--red);background:var(--red-light);border:1px solid var(--red);border-radius:var(--rs);padding:9px 13px;text-align:center;}
-  .login-btn{margin-top:4px;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .2s;width:100%;}
-  .login-btn:hover{background:#3d6347;}
+  .login-btn{margin-top:4px;padding:12px;background:#1d81c4;color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .2s;width:100%;}
+  .login-btn:hover{background:#176aa1;}
 
   /* LOADING */
   #loadingOverlay{position:fixed;inset:0;z-index:9998;background:var(--bg);display:none;align-items:center;justify-content:center;flex-direction:column;}
@@ -56,7 +56,7 @@
   .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06);}
   .brand{display:flex;align-items:center;gap:14px;}
   .brand-img{height:30px;width:auto;display:block;}
-  .brand-sub{font-size:18px;font-weight:700;letter-spacing:.2px;color:#15233b;line-height:1;padding-left:14px;border-left:1.5px solid var(--border2);}
+  .brand-sub{font-size:18px;font-weight:700;letter-spacing:.2px;color:#1d81c4;line-height:1;padding-left:14px;border-left:1.5px solid var(--border2);}
   .brand-sub b{color:#1d81c4;font-weight:700;}
   .header-right{display:flex;align-items:center;gap:0;}
   .hdr-status{display:flex;align-items:center;gap:12px;padding-right:16px;border-right:1px solid var(--border);margin-right:12px;}
@@ -300,8 +300,7 @@
 <!-- LOADING -->
 <div id="loadingOverlay">
   <div style="display:flex;flex-direction:column;align-items:center;gap:0;animation:loadFadeIn .6s ease;">
-    <div style="width:64px;height:64px;background:var(--accent);border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700;margin-bottom:20px;animation:loadLogoPulse 2s ease-in-out infinite;">S</div>
-    <div style="font-family:'Fraunces',serif;font-size:26px;letter-spacing:-.3px;margin-bottom:6px;">Skillmatics</div>
+    <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" style="height:40px;width:auto;display:block;margin-bottom:24px;animation:loadLogoPulse 2s ease-in-out infinite;">
     <div style="font-size:13px;color:var(--text3);margin-bottom:36px;">Loading Inventory Data…</div>
     <div style="position:relative;width:48px;height:48px;margin-bottom:24px;">
       <svg width="48" height="48" viewBox="0 0 48 48" style="animation:loadSpin 1.2s linear infinite;">
