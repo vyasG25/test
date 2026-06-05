@@ -957,21 +957,21 @@ let filtered = [];
 let storeNameMap = {};   // store_code -> store_name
 
 // ── API URL configuration ──
-// Define all JSON endpoints here. Each entry: { url, isTarget }
-// Add or remove entries as needed for your data sources.
+// All 9 sales JSON files + optional target file.
+// Place these JSON files in the same folder as index.html on your server.
+// isTarget:true  → treated as Target/budget data (kept in TARGET_RAW)
+// isTarget:false → treated as sales data (merged into RAW)
 const API_SOURCES = [
-    { url: "./2022(1).json", isTarget: false },
-    { url: "./2023(1).json", isTarget: false },
-    { url: "./2023(2).json", isTarget: false },
-    { url: "./2024(1).json", isTarget: false },
-    { url: "./2024(2).json", isTarget: false },
-    { url: "./2025(1).json", isTarget: false },
-    { url: "./2025(2).json", isTarget: false },
-    { url: "./2025(3).json", isTarget: false },
-    { url: "./2026(1).json", isTarget: false },
-    { url: "./target.json", isTarget: true },
-  // Add more sources here:
-  // { url: "./data3.json",    isTarget: false },
+  { url: "./2022_1.json",   isTarget: false },  // 2022 (Part 1)
+  { url: "./2023_1.json",   isTarget: false },  // 2023 (Part 1)
+  { url: "./2023_2.json",   isTarget: false },  // 2023 (Part 2)
+  { url: "./2024_1.json",   isTarget: false },  // 2024 (Part 1)
+  { url: "./2024_2.json",   isTarget: false },  // 2024 (Part 2)
+  { url: "./2025_1.json",   isTarget: false },  // 2025 (Part 1)
+  { url: "./2025_2.json",   isTarget: false },  // 2025 (Part 2)
+  { url: "./2025_3.json",   isTarget: false },  // 2025 (Part 3)
+  { url: "./2026_1.json",   isTarget: false },  // 2026 (Part 1)
+  // { url: "./target.json", isTarget: true  },  // Uncomment if you have a target file
 ];
 
 // ── LOGIN ──────────────────────────────────────────────────────
@@ -1074,17 +1074,33 @@ async function refreshData() {
 async function loadDashboardData() {
   setRefreshState(true);
   try {
-    // Fetch all sources in parallel, capturing last-modified from headers
-    const fetchResults = await Promise.allSettled(
-      API_SOURCES.map(src =>
-        fetch(src.url + '?_=' + Date.now())
-          .then(async res => {
-            const lastModified = res.headers.get('Last-Modified') || res.headers.get('last-modified');
-            const json = await res.json();
-            return { url: src.url, isTarget: src.isTarget, json, lastModified };
-          })
-      )
-    );
+    // Fetch all sources sequentially so we can show per-file progress.
+    // We use res.text() + parseJsonText() (not res.json()) so that malformed
+    // exports with missing commas between objects ("}{" → "},{") are repaired
+    // before parsing — the same robust path the old file-upload handler used.
+    const salesSources  = API_SOURCES.filter(s => !s.isTarget);
+    const targetSources = API_SOURCES.filter(s =>  s.isTarget);
+    const total = API_SOURCES.length;
+    let done = 0;
+
+    async function fetchSource(src) {
+      const res  = await fetch(src.url + '?_=' + Date.now());
+      const lastModified = res.headers.get('Last-Modified') || res.headers.get('last-modified');
+      const text = await res.text();
+      const json = parseJsonText(text); // BOM-strip + "}{" repair
+      if (!json) throw new Error(`Could not parse JSON from ${src.url}`);
+      done++;
+      // Show live progress: "Fetching file 3 of 9 — 2024_2.json"
+      const fname = src.url.split('/').pop().replace(/\?.*$/, '');
+      setLoadingMsg(
+        `Fetching file ${done} of ${total} — ${fname}`,
+        `${Array.isArray(json) ? json.length.toLocaleString() : '?'} rows loaded`
+      );
+      return { url: src.url, isTarget: src.isTarget, json, lastModified };
+    }
+
+    // Run all fetches in parallel (Promise.allSettled so one failure doesn't block others)
+    const fetchResults = await Promise.allSettled(API_SOURCES.map(fetchSource));
 
     // Find the most recent Last-Modified header across all files
     let latestModified = null;
@@ -1105,10 +1121,16 @@ async function loadDashboardData() {
     const targetResults = fetchResults.filter(r => r.status === 'fulfilled' && r.value.isTarget);
     const salesResults  = fetchResults.filter(r => r.status === 'fulfilled' && !r.value.isTarget);
 
-    // Log fetch failures
-    fetchResults.filter(r => r.status === 'rejected').forEach((r, i) => {
-      console.warn(`API source fetch failed:`, r.reason);
+    // Log fetch/parse failures per source so they're easy to debug in console
+    fetchResults.forEach((r, i) => {
+      if (r.status === 'rejected') {
+        console.warn(`[API source ${i}] ${API_SOURCES[i]?.url} — failed:`, r.reason);
+      }
     });
+
+    const loaded   = fetchResults.filter(r => r.status === 'fulfilled').length;
+    const skipped  = fetchResults.filter(r => r.status === 'rejected').length;
+    console.log(`Data fetch complete: ${loaded} succeeded, ${skipped} failed/skipped of ${total} sources`);
 
     // ── Process target files (small, fast) ──
     for (const r of targetResults) {
@@ -1335,10 +1357,12 @@ function setLoadingMsg(main, sub) {
 
 // Catchy, professional messages that rotate while data is loading.
 const LOADING_MESSAGES = [
-  ['Connecting to your data source…', 'Securing the link'],
-  ['Crunching the numbers…', 'Tallying sales across every store'],
-  ['Uncovering the trends…', 'Mapping zones, brands & products'],
-  ['Polishing your dashboard…', 'Adding the finishing touches'],
+  ['Connecting to data sources…',        'Fetching 9 files across 2022 – 2026'],
+  ['Loading 2022 & 2023 data…',          'Tallying sales across every store'],
+  ['Loading 2024 & 2025 data…',          'Mapping zones, brands & products'],
+  ['Loading 2026 data…',                 'Crunching the latest numbers'],
+  ['Merging all years together…',        'Building one unified dataset'],
+  ['Polishing your dashboard…',          'Adding the finishing touches'],
 ];
 let _loadCycle = null, _loadIdx = 0;
 
