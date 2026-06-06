@@ -1271,6 +1271,8 @@ let uploadedFileCount = 0;
 // Month-on-Month Zone Performance state
 let zmomFY = null;            // selected fiscal-year start year (e.g. 2025 => FY25)
 let zmomMetric = 'overview';  // overview | sales | target | ach | contrib | mom | yoy
+// Zone Trends local bt-bar filters (Customer Type + Store Category)
+let zmomFilt = { customer: new Set(), category: new Set() };
 let storeFY = null;           // independent FY selection for the Store Trends tab
 let storeMetric = 'overview'; // independent metric view for the Store Trends tab
 let storeSearch = '';         // Store Trends search term (raw)
@@ -2755,16 +2757,141 @@ function renderTargetAch(){
     <div style="margin-top:6px;font-size:11px;color:var(--text2);">${periodActive?'Aggregated across the selected FY / Quarter / Month(s)':'Latest month within the current selection'} · total sales &amp; total target shown in full · Ach% = sales of stores that have a target ÷ total target · responds to FY / Quarter / Month / Zone / State / Store · ignores date-range &amp; product filters (Brand, Family, Class, Brick).</div>`;
 }
 
+// ── Zone Trends — bt-bar wrapper around buildMoM ──
+const ZONE_METRICS = [
+  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'target',label:'Target'},
+  {k:'ach',label:'Ach %'},{k:'contrib',label:'Contrib %'},{k:'mom',label:'MoM'},{k:'yoy',label:'YoY'},
+];
 function renderZoneMoM(){
-  buildMoM({
-    hostId:'secZoneMoM', mode:'zone',
-    dims:[{label:'Zone',key:'zone',w:104}],
-    rowKey:r=>r.zone_name||'—',
-    rowMeta:r=>({zone:r.zone_name||'—'}),
-    useTarget:true, targetFn:zmomTargetByZoneMonth,
-    sortRows:(a,b,fyS)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone) || (fyS[b.key]-fyS[a.key]),
-    getFY:()=>zmomFY, setFY:v=>{zmomFY=v;}, getMetric:()=>zmomMetric, setMetric:v=>{zmomMetric=v;},
+  const host = document.getElementById('secZoneMoM');
+  if (!host) return;
+  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+
+  // ── Build option lists from full RAW ──
+  const custOpts = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
+  const catOpts  = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
+  [...zmomFilt.customer].forEach(v=>{ if(!custOpts.includes(v)) zmomFilt.customer.delete(v); });
+  [...zmomFilt.category].forEach(v=>{ if(!catOpts.includes(v)) zmomFilt.category.delete(v); });
+
+  // ── Chip builder ──
+  const allOpts = { customer: custOpts, category: catOpts };
+  function zmChip(key, label) {
+    const n = zmomFilt[key].size;
+    const badge = `<span class="mc-badge" id="zmbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
+    return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="zmbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="zmpanel-${key}"><input type="text" class="ms-search" id="zmsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="zmlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-zmact="all" data-zmk="${key}">Select All</button><button class="ms-action-btn" data-zmact="clear" data-zmk="${key}">Clear All</button></div></div></div>`;
+  }
+
+  // ── FY list (from full RAW so pills stay stable while filters change) ──
+  const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return m>=4?y:y-1; };
+  const fySet = new Set();
+  for (const r of RAW) {
+    const mk = (r.month && /^\d{4}-\d{2}$/.test(r.month)) ? r.month : (r.bill_date ? r.bill_date.slice(0,7) : '');
+    if (mk) fySet.add(fyOf(mk));
+  }
+  const fyList = [...fySet].sort((a,b)=>b-a);
+  if (zmomFY == null || !fySet.has(zmomFY)) zmomFY = fyList[0];
+  const fyPills = fyList.map(f=>`<button class="zmom-pill fy-pill${f===zmomFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
+
+  // ── Metric pills ──
+  const mPills = ZONE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===zmomMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
+
+  const hasActive = zmomFilt.customer.size || zmomFilt.category.size;
+  const resetBtn  = hasActive ? `<button class="kpi-reset" id="zmReset" title="Clear all Zone Trends filters">↺ Reset</button>` : '';
+
+  // ── Two-row bt-bar ──
+  // Row 1: Fiscal Year · View (metric) · Reset · period badge
+  // Row 2: Customer Type · Store Category
+  host.innerHTML = `
+    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
+        <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+        ${resetBtn}
+        <div class="bt-period" style="margin-left:auto;">
+          <span class="bt-period-rng"><b>${zmomFyLabel(zmomFY)}</b> · Apr–Mar</span>
+          <span class="bt-period-tag">Zone Trends</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
+        <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${zmChip('customer','Customer Type')}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${zmChip('category','Store Category')}</div></div>
+      </div>
+    </div>
+    <div id="zmMoMHost"></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Apr→Mar of ${zmomFyLabel(zmomFY)}, newest first · per zone · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`;
+
+  // ── Wire FY pills ──
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ zmomFY=+b.dataset.fy; renderZoneMoM(); }));
+  // ── Wire Metric pills ──
+  host.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ zmomMetric=b.dataset.metric; renderZoneMoM(); }));
+  // ── Wire Reset ──
+  const rb = host.querySelector('#zmReset');
+  if (rb) rb.addEventListener('click',()=>{ zmomFilt.customer.clear(); zmomFilt.category.clear(); renderZoneMoM(); });
+
+  // ── Wire filter chips ──
+  ['customer','category'].forEach(key=>{
+    const btn    = host.querySelector('#zmbtn-'   + key);
+    const panel  = host.querySelector('#zmpanel-' + key);
+    const search = host.querySelector('#zmsearch-'+ key);
+    const list   = host.querySelector('#zmlist-'  + key);
+    if (!btn || !panel) return;
+    btn.addEventListener('click', ()=>{
+      const open = panel.classList.contains('open');
+      host.querySelectorAll('.mc-panel.open').forEach(p=>{ p.classList.remove('open'); });
+      host.querySelectorAll('.mc-btn.open').forEach(b=>{ b.classList.remove('open'); });
+      if (!open){ panel.classList.add('open'); btn.classList.add('open'); if(search) setTimeout(()=>search.focus(),0); }
+    });
+    function renderZmList(sq){
+      sq=(sq||'').trim().toLowerCase();
+      const items=allOpts[key].filter(o=>!sq||o.toLowerCase().includes(sq));
+      list.innerHTML=items.length
+        ?items.map(o=>`<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${zmomFilt[key].has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join('')
+        :'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
+      list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
+        const v=cb.dataset.v; if(cb.checked) zmomFilt[key].add(v); else zmomFilt[key].delete(v);
+        rebuildZoneTable();
+      }));
+    }
+    if (search) search.addEventListener('input',()=>renderZmList(search.value));
+    renderZmList('');
   });
+  host.querySelectorAll('.ms-action-btn[data-zmk]').forEach(b=>b.addEventListener('click',()=>{
+    const key=b.dataset.zmk, sb=host.querySelector('#zmsearch-'+key);
+    if(b.dataset.zmact==='all'){
+      const sq=(sb&&sb.value?sb.value:'').trim().toLowerCase();
+      (sq?allOpts[key].filter(o=>o.toLowerCase().includes(sq)):allOpts[key]).forEach(v=>zmomFilt[key].add(v));
+    } else { zmomFilt[key].clear(); if(sb) sb.value=''; }
+    renderZoneMoM();
+  }));
+
+  // ── Build table ──
+  rebuildZoneTable();
+
+  function rebuildZoneTable(){
+    const fRAW = (zmomFilt.customer.size || zmomFilt.category.size)
+      ? RAW.filter(r=>
+          (!zmomFilt.customer.size || zmomFilt.customer.has(String(r.customer_type))) &&
+          (!zmomFilt.category.size || zmomFilt.category.has(String(r.store_category))))
+      : RAW;
+    const saved = RAW; RAW = fRAW;
+    buildMoM({
+      hostId:'zmMoMHost', mode:'zone', hideControls:true,
+      dims:[{label:'Zone',key:'zone',w:104}],
+      rowKey:r=>r.zone_name||'—',
+      rowMeta:r=>({zone:r.zone_name||'—'}),
+      useTarget:true, targetFn:zmomTargetByZoneMonth,
+      sortRows:(a,b,fyS)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone)||(fyS[b.key]-fyS[a.key]),
+      getFY:()=>zmomFY,  setFY:v=>{zmomFY=v;},
+      getMetric:()=>zmomMetric, setMetric:v=>{zmomMetric=v;},
+    });
+    RAW = saved;
+    // Re-wire buildMoM's own FY/metric pills so they update the bt-bar state too
+    const h = document.getElementById('zmMoMHost');
+    if (h) {
+      h.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ zmomFY=+b.dataset.fy; renderZoneMoM(); }));
+      h.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ zmomMetric=b.dataset.metric; renderZoneMoM(); }));
+    }
+  }
 }
 // ── Store Trends — bt-bar wrapper around buildMoM ──
 // Metric definitions mirrored from buildMoM for the bt-bar label.
@@ -2822,16 +2949,13 @@ function renderStoreMoM(){
   const periodTag = `${zmomFyLabel(storeFY)} · Apr–Mar`;
 
   // ── Two-row bt-bar ──
-  // Row 1: Fiscal Year · View (metric) · Search · Reset · period badge
-  // Row 2: Zone · Customer Type · Store Category  (only location/store filters)
+  // Row 1: Fiscal Year · View (metric) · Reset · period badge
+  // Row 2: Search · Zone · Customer Type · Store Category
   host.innerHTML = `
     <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
       <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
         <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
         <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Search</label>
-          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
-            <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
         ${resetBtn}
         <div class="bt-period" style="margin-left:auto;">
           <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Apr–Mar</span>
@@ -2839,6 +2963,9 @@ function renderStoreMoM(){
         </div>
       </div>
       <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
+        <div class="bt-fg"><label class="bt-flabel">Search</label>
+          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+            <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
         <div class="bt-fg"><label class="bt-flabel">Zone</label><div class="bt-chips">${stChip('zone','Zone')}</div></div>
         <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${stChip('customer','Customer Type')}</div></div>
         <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${stChip('category','Store Category')}</div></div>
@@ -2912,7 +3039,7 @@ function renderStoreMoM(){
       : RAW;
     const saved = RAW; RAW = fRAW;
     buildMoM({
-      hostId:'stMoMHost', mode:'store', wrapDims:true,
+      hostId:'stMoMHost', mode:'store', wrapDims:true, hideControls:true,
       dims:[{label:'Zone',key:'zone',w:74},{label:'State',key:'state',w:100},{label:'City',key:'city',w:100},
             {label:'Store Code',key:'code',w:84},{label:'Store Name',key:'name',w:150},
             {label:'Customer Type',key:'customer',w:118},{label:'Store Category',key:'category',w:120}],
@@ -3087,18 +3214,18 @@ function renderProductMoM(){
         <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
         <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
         <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Search</label>
-          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
-            <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
-        ${resetBtn}
         <div class="bt-period" style="margin-left:auto;">
           <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Apr–Mar</span>
           <span class="bt-period-tag">Product Trends</span>
         </div>
       </div>
       <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
+        <div class="bt-fg"><label class="bt-flabel">Search</label>
+          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+            <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
         <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${ptChip('customer','Customer Type')}</div></div>
         <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${ptChip('category','Store Category')}</div></div>
+        ${resetBtn}
       </div>
     </div>
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
@@ -3739,14 +3866,14 @@ function buildMoM(cfg) {
         <input type="text" class="kpi-searchbox zmom-search" placeholder="Search store…" value="${escapeHtml(cfg.getSearch())}" autocomplete="off"></div></div>` : '';
 
   host.innerHTML = `
-    <div class="zmom-controls">
+    ${cfg.hideControls ? '' : `<div class="zmom-controls">
       ${searchHtml}
       <div class="zmom-pillset"><span class="pset-label">Fiscal Year</span>${fyPills}</div>
       <div class="zmom-pillset"><span class="pset-label">View</span>${mPills}</div>
       ${legend}
-    </div>
+    </div>`}
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
-    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Apr→Mar of ${zmomFyLabel(selFY)}, newest first · per ${grain} · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`;
+    ${cfg.hideControls ? '' : `<div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Apr→Mar of ${zmomFyLabel(selFY)}, newest first · per ${grain} · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`}`;
 
   host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { cfg.setFY(+b.dataset.fy); buildMoM(cfg); }));
   host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { cfg.setMetric(b.dataset.metric); buildMoM(cfg); }));
