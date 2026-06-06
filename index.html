@@ -30,77 +30,26 @@
   @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
   @keyframes loadLogoIn{0%{opacity:0;transform:translateY(16px) scale(.93);}100%{opacity:1;transform:translateY(0) scale(1);}}
   @keyframes loadRise{0%{opacity:0;transform:translateY(18px);}100%{opacity:1;transform:translateY(0);}}
-  @keyframes orbDrift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(80px,-56px) scale(1.22);}}
-  @keyframes orbDrift2{0%,100%{transform:translate(0,0) scale(1.08);}50%{transform:translate(-90px,64px) scale(.85);}}
-  @keyframes orbDrift3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(54px,76px) scale(1.28);}}
-  @keyframes orbDrift4{0%,100%{transform:translate(0,0) scale(1.04);}50%{transform:translate(-60px,-44px) scale(.9);}}
+  @keyframes orbDrift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(70px,-46px) scale(1.18);}}
+  @keyframes orbDrift2{0%,100%{transform:translate(0,0) scale(1.06);}50%{transform:translate(-80px,54px) scale(.88);}}
+  @keyframes orbDrift3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(46px,68px) scale(1.22);}}
   @keyframes gridDrift{0%{background-position:0 0;}100%{background-position:46px 46px;}}
   @keyframes ringSpinSlow{to{transform:rotate(360deg);}}
   @keyframes checkDraw{from{stroke-dashoffset:48;}to{stroke-dashoffset:0;}}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  /* Product card floater animations — each drifts on its own unique path */
-  @keyframes cardFloat1{0%,100%{transform:translate(0,0) rotate(-6deg);}33%{transform:translate(14px,-22px) rotate(-4deg);}66%{transform:translate(-8px,12px) rotate(-8deg);}}
-  @keyframes cardFloat2{0%,100%{transform:translate(0,0) rotate(8deg);}33%{transform:translate(-18px,16px) rotate(6deg);}66%{transform:translate(10px,-14px) rotate(10deg);}}
-  @keyframes cardFloat3{0%,100%{transform:translate(0,0) rotate(-3deg);}40%{transform:translate(20px,18px) rotate(-6deg);}80%{transform:translate(-12px,-8px) rotate(-1deg);}}
-  @keyframes cardFloat4{0%,100%{transform:translate(0,0) rotate(5deg);}50%{transform:translate(-14px,-20px) rotate(3deg);}}
-  @keyframes cardFloat5{0%,100%{transform:translate(0,0) rotate(-9deg);}45%{transform:translate(16px,14px) rotate(-11deg);}90%{transform:translate(-6px,-10px) rotate(-7deg);}}
-  @keyframes cardFloat6{0%,100%{transform:translate(0,0) rotate(4deg);}35%{transform:translate(-20px,10px) rotate(6deg);}70%{transform:translate(12px,-16px) rotate(2deg);}}
-  @keyframes cardFloat7{0%,100%{transform:translate(0,0) rotate(-7deg);}50%{transform:translate(18px,-12px) rotate(-5deg);}}
-  @keyframes cardFloat8{0%,100%{transform:translate(0,0) rotate(11deg);}40%{transform:translate(-10px,18px) rotate(9deg);}80%{transform:translate(14px,-8px) rotate(13deg);}}
-  @keyframes shimmer{0%,100%{opacity:.13;}50%{opacity:.22;}}
 
   /* ── ANIMATED LOADING OVERLAY ── */
   #loadingOverlay{overflow:hidden;}
   .load-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .load-orb{position:absolute;border-radius:50%;filter:blur(48px);opacity:.5;will-change:transform;}
+  .load-orb1{width:460px;height:460px;top:-130px;left:-110px;background:radial-gradient(circle at 35% 35%, #cfe8d8, transparent 70%);animation:orbDrift1 22s ease-in-out infinite;}
+  .load-orb2{width:540px;height:540px;bottom:-170px;right:-130px;background:radial-gradient(circle at 60% 40%, #f6e2c2, transparent 70%);animation:orbDrift2 27s ease-in-out infinite;}
+  .load-orb3{width:380px;height:380px;top:34%;left:54%;background:radial-gradient(circle at 50% 50%, #d6e4f0, transparent 70%);animation:orbDrift3 31s ease-in-out infinite;}
+  .load-grid{position:absolute;inset:-50px;background-image:radial-gradient(rgba(30,28,24,.07) 1.4px, transparent 1.4px);background-size:46px 46px;animation:gridDrift 6s linear infinite;
+    -webkit-mask-image:radial-gradient(ellipse 68% 64% at 50% 50%, #000 30%, transparent 78%);mask-image:radial-gradient(ellipse 68% 64% at 50% 50%, #000 30%, transparent 78%);}
 
-  /* Stronger, richer orbs */
-  .load-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.65;will-change:transform;}
-  .load-orb1{width:520px;height:520px;top:-150px;left:-120px;background:radial-gradient(circle at 35% 35%,#a8dfc0,#c8edd8,transparent 68%);animation:orbDrift1 22s ease-in-out infinite;}
-  .load-orb2{width:600px;height:600px;bottom:-190px;right:-140px;background:radial-gradient(circle at 60% 40%,#f5d49a,#fde9c4,transparent 68%);animation:orbDrift2 27s ease-in-out infinite;}
-  .load-orb3{width:420px;height:420px;top:34%;left:54%;background:radial-gradient(circle at 50% 50%,#b4d4f0,#d0e8f8,transparent 68%);animation:orbDrift3 31s ease-in-out infinite;}
-  .load-orb4{width:320px;height:320px;top:10%;right:8%;background:radial-gradient(circle at 45% 55%,#e8c8f0,#f4e0f8,transparent 68%);animation:orbDrift4 19s ease-in-out infinite;}
-
-  /* Animated dot grid — tighter, more visible */
-  .load-grid{position:absolute;inset:-50px;background-image:radial-gradient(rgba(30,28,24,.10) 1.6px, transparent 1.6px);background-size:40px 40px;animation:gridDrift 5s linear infinite;
-    -webkit-mask-image:radial-gradient(ellipse 72% 68% at 50% 50%, #000 20%, transparent 80%);mask-image:radial-gradient(ellipse 72% 68% at 50% 50%, #000 20%, transparent 80%);}
-
-  /* ── PRODUCT CARD FLOATERS ── */
-  .load-cards{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
-  .lcard{
-    position:absolute;
-    width:110px;height:110px;
-    border-radius:16px;
-    background:#fff;
-    box-shadow:0 6px 28px rgba(30,28,24,.10), 0 1px 4px rgba(30,28,24,.06);
-    border:1px solid rgba(226,222,214,.8);
-    overflow:hidden;
-    opacity:0;
-    will-change:transform,opacity;
-    transition:opacity .8s ease;
-  }
-  .lcard.visible{opacity:.18;}
-  .lcard img{width:100%;height:100%;object-fit:cover;display:block;}
-  /* Position each card in different screen regions */
-  .lcard:nth-child(1){top:5%;  left:3%;  animation:cardFloat1 18s ease-in-out infinite; animation-delay:0s;}
-  .lcard:nth-child(2){top:2%;  right:4%; animation:cardFloat2 22s ease-in-out infinite; animation-delay:-4s;}
-  .lcard:nth-child(3){top:38%; left:1%;  animation:cardFloat3 25s ease-in-out infinite; animation-delay:-8s;}
-  .lcard:nth-child(4){top:62%; left:5%;  animation:cardFloat4 20s ease-in-out infinite; animation-delay:-2s;}
-  .lcard:nth-child(5){bottom:4%;left:2%; animation:cardFloat5 23s ease-in-out infinite; animation-delay:-6s;}
-  .lcard:nth-child(6){top:42%; right:2%; animation:cardFloat6 19s ease-in-out infinite; animation-delay:-10s;}
-  .lcard:nth-child(7){bottom:6%;right:3%;animation:cardFloat7 24s ease-in-out infinite; animation-delay:-3s;}
-  .lcard:nth-child(8){bottom:24%;right:5%;animation:cardFloat8 21s ease-in-out infinite; animation-delay:-7s;}
-  /* Larger cards at corners for depth */
-  .lcard:nth-child(1),.lcard:nth-child(2),.lcard:nth-child(5),.lcard:nth-child(7){width:130px;height:130px;}
-  /* Vignette so cards fade out near center, keeping center clean */
-  .load-cards::after{
-    content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse 55% 50% at 50% 50%, var(--bg) 30%, transparent 72%);
-    pointer-events:none;
-  }
-
-  /* Foreground content */
-  .load-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;padding:0 24px;}
+  .load-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;padding:0 24px;}
   .load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{opacity:0;animation:loadRise .7s cubic-bezier(.2,.7,.2,1) forwards;}
   .load-content .load-logo{animation:loadLogoIn .85s cubic-bezier(.2,.7,.2,1) forwards;}
   .load-content .load-ring-wrap{animation-delay:.14s;}
@@ -129,7 +78,7 @@
   .lstep .lstep-fill{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#2d8a57,var(--accent));transform:scaleX(0);transform-origin:left;transition:transform .55s cubic-bezier(.2,.7,.2,1);}
   .lstep.on .lstep-fill{transform:scaleX(1);}
   @media (prefers-reduced-motion: reduce){
-    .load-orb,.load-grid,.load-ring-deco,.lcard{animation:none !important;}
+    .load-orb,.load-grid,.load-ring-deco{animation:none !important;}
     .load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{animation:none !important;opacity:1 !important;}
     #loadComet{transition:none !important;}
   }
@@ -803,20 +752,7 @@
     <div class="load-orb load-orb1"></div>
     <div class="load-orb load-orb2"></div>
     <div class="load-orb load-orb3"></div>
-    <div class="load-orb load-orb4"></div>
     <div class="load-grid"></div>
-  </div>
-
-  <!-- Floating bestseller product cards (background layer, populated by JS) -->
-  <div class="load-cards" aria-hidden="true" id="loadCards">
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="" alt="" loading="lazy"></div>
   </div>
 
   <!-- Foreground -->
@@ -4095,102 +4031,6 @@ async function init() {
     }
   }
 }
-
-// ═══════════════════════════════════════════════════════════════
-// LOADING SCREEN — PRODUCT CARD FLOATERS
-// Fetches bestseller images from Skillmatics Shopify storefront and
-// populates the 8 floating background cards on the loading overlay.
-// Falls back gracefully to placeholder colours if fetch fails.
-// ═══════════════════════════════════════════════════════════════
-(function initLoadCards() {
-  // Curated bestseller product handles from skillmatics.in Shopify store.
-  // These resolve to product image CDN URLs via the Shopify storefront JSON API.
-  const HANDLES = [
-    'eat-your-colours',
-    'brain-games-for-curious-kids',
-    'no-stress-chess',
-    'my-first-word-book',
-    'guess-in-10-world-of-animals',
-    'sequence-for-kids',
-    'blink',
-    'zingo'
-  ];
-  // Fallback pastel colours if images can't load — keeps the screen pretty
-  const FALLBACK_COLORS = [
-    '#e4f2eb','#fdf0e4','#e6eff7','#f0ebf7',
-    '#fde8ea','#e2f5ec','#e2f2f2','#fdf5e2'
-  ];
-
-  const cards = document.querySelectorAll('#loadCards .lcard');
-
-  function applyFallbacks() {
-    cards.forEach((card, i) => {
-      card.style.background = FALLBACK_COLORS[i % FALLBACK_COLORS.length];
-      const img = card.querySelector('img');
-      if (img) img.style.display = 'none';
-      setTimeout(() => card.classList.add('visible'), 200 + i * 120);
-    });
-  }
-
-  async function loadProductImages() {
-    try {
-      // Use Shopify's public JSON product endpoint (no auth needed, read-only)
-      const results = await Promise.allSettled(
-        HANDLES.map(h =>
-          fetch(`https://www.skillmatics.in/products/${h}.json`, { signal: AbortSignal.timeout(4000) })
-            .then(r => r.ok ? r.json() : null)
-            .catch(() => null)
-        )
-      );
-
-      const urls = results.map(r => {
-        if (r.status === 'fulfilled' && r.value?.product?.images?.[0]?.src) {
-          return r.value.product.images[0].src;
-        }
-        return null;
-      });
-
-      const anyLoaded = urls.some(Boolean);
-      if (!anyLoaded) { applyFallbacks(); return; }
-
-      cards.forEach((card, i) => {
-        const url = urls[i];
-        const img = card.querySelector('img');
-        if (url && img) {
-          img.src = url;
-          img.alt = HANDLES[i].replace(/-/g,' ');
-          img.onload = () => setTimeout(() => card.classList.add('visible'), 100 + i * 150);
-          img.onerror = () => {
-            card.style.background = FALLBACK_COLORS[i % FALLBACK_COLORS.length];
-            img.style.display = 'none';
-            setTimeout(() => card.classList.add('visible'), 100 + i * 150);
-          };
-        } else {
-          card.style.background = FALLBACK_COLORS[i % FALLBACK_COLORS.length];
-          if (img) img.style.display = 'none';
-          setTimeout(() => card.classList.add('visible'), 100 + i * 150);
-        }
-      });
-    } catch (e) {
-      applyFallbacks();
-    }
-  }
-
-  // Only run when the loading overlay is actually shown
-  const loadOvEl = document.getElementById('loadingOverlay');
-  if (!loadOvEl) return;
-  const obs = new MutationObserver(() => {
-    if (loadOvEl.style.display !== 'none' && loadOvEl.style.display !== '') {
-      obs.disconnect();
-      loadProductImages();
-    }
-  });
-  obs.observe(loadOvEl, { attributes: true, attributeFilter: ['style'] });
-  // Also run immediately if overlay is already visible on page load
-  if (loadOvEl.style.display && loadOvEl.style.display !== 'none') {
-    loadProductImages();
-  }
-})();
 
 init();
 </script>
