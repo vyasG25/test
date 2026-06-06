@@ -698,25 +698,25 @@
   display:none;align-items:center;justify-content:center;flex-direction:column;
   transition:opacity .5s ease;
 ">
-  <div style="display:flex;flex-direction:column;align-items:center;gap:0;animation:loadFadeIn .6s ease;">
+  <div style="display:flex;flex-direction:column;align-items:center;animation:loadFadeIn .6s ease;width:100%;max-width:460px;padding:0 24px;">
     <!-- Skillmatics wordmark with glow-ring pulse animation -->
-    <div class="brand-name" style="margin-bottom:6px;">
-      <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" style="height:40px;animation:loadLogoPulse 2s ease-in-out infinite;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
-      <span class="brand-wordmark-text" style="display:none;font-size:38px;">Skillmatics</span>
+    <div class="brand-name" style="margin-bottom:7px;">
+      <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" style="height:38px;animation:loadLogoPulse 2.4s ease-in-out infinite;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+      <span class="brand-wordmark-text" style="display:none;font-size:36px;">Skillmatics</span>
     </div>
-    <div class="brand-title" style="font-size:13px;color:var(--text3);margin-bottom:36px;font-weight:400;">Hamleys Sales Dashboard</div>
-    <div id="loadSpinner" style="position:relative;width:48px;height:48px;margin-bottom:24px;">
-      <svg width="48" height="48" viewBox="0 0 48 48" style="animation:loadSpin 1.2s linear infinite;">
-        <circle cx="24" cy="24" r="20" fill="none" stroke="var(--border2)" stroke-width="3"/>
-        <circle cx="24" cy="24" r="20" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="80 126" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div id="loadingStatus" style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:8px;text-align:center;padding:0 24px;">Connecting to data source…</div>
-    <div id="loadingSubStatus" style="font-size:12px;color:var(--text3);text-align:center;max-width:340px;padding:0 24px;line-height:1.4;">This may take a moment</div>
-    <div id="loadDots" style="display:flex;gap:6px;margin-top:24px;">
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out infinite;"></div>
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out .2s infinite;"></div>
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out .4s infinite;"></div>
+    <div class="brand-title" style="font-size:12.5px;color:var(--text3);font-weight:500;letter-spacing:.4px;margin-bottom:30px;">Hamleys Sales Intelligence</div>
+
+    <!-- ERP-style progress card -->
+    <div style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 26px rgba(30,28,24,.07);padding:22px 24px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:11px;">
+        <span id="loadingStatus" style="font-size:14px;font-weight:600;color:var(--text);line-height:1.3;">Establishing secure connection…</span>
+        <span id="loadingPct" style="font-size:15px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;flex-shrink:0;">0%</span>
+      </div>
+      <div style="width:100%;height:7px;border-radius:7px;background:var(--bg);overflow:hidden;">
+        <div id="loadingBar" style="height:100%;width:0%;border-radius:7px;background:linear-gradient(90deg,#2d8a57,var(--accent));box-shadow:0 0 10px rgba(26,95,58,.4);transition:width .55s cubic-bezier(.4,0,.2,1),background .3s;"></div>
+      </div>
+      <div id="loadingSubStatus" style="font-size:11.5px;color:var(--text3);line-height:1.4;min-height:16px;margin-top:11px;">Verifying credentials</div>
+      <div id="loadingSteps" style="display:flex;align-items:center;gap:6px;margin-top:18px;"></div>
     </div>
   </div>
 </div>
@@ -1006,7 +1006,7 @@ async function attemptLogin() {
       await loadDashboardData();
 
       stopLoadingCycle();
-      finishLoading('success', 'Ready!', '');
+      finishLoading('success', 'Dashboard ready', 'Launching your workspace');
       setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
     } else {
       showLoginError('Invalid username or password. Please try again.');
@@ -1060,12 +1060,21 @@ function showLiveIndicator() {
 
 async function refreshData() {
   setRefreshState(true);
+  const loadOv = document.getElementById('loadingOverlay');
+  loadOv.style.display = 'flex';
+  loadOv.style.opacity = '1';
   resetLoadingVisual();
+  startLoadingCycle();
   try {
     await loadDashboardData();
+    stopLoadingCycle();
+    finishLoading('success', 'Dashboard updated', 'Latest figures are in');
+    setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
+  } catch (e) {
+    // Error overlay + fade-out are handled inside loadDashboardData().
+    stopLoadingCycle();
   } finally {
     setRefreshState(false);
-    showLiveIndicator();
   }
 }
 
@@ -1080,7 +1089,6 @@ async function loadDashboardData() {
     const salesSources  = API_SOURCES.filter(s => !s.isTarget);
     const targetSources = API_SOURCES.filter(s =>  s.isTarget);
     const total = API_SOURCES.length;
-    let done = 0;
 
     async function fetchSource(src) {
       const res  = await fetch(src.url + '?_=' + Date.now());
@@ -1088,13 +1096,7 @@ async function loadDashboardData() {
       const text = await res.text();
       const json = parseJsonText(text); // BOM-strip + "}{" repair
       if (!json) throw new Error(`Could not parse JSON from ${src.url}`);
-      done++;
-      // Show live progress: "Fetching file 3 of 9 — 2024_2.json"
-      const fname = src.url.split('/').pop().replace(/\?.*$/, '');
-      setLoadingMsg(
-        `Fetching file ${done} of ${total} — ${fname}`,
-        `${Array.isArray(json) ? json.length.toLocaleString() : '?'} rows loaded`
-      );
+      // Progress messaging is driven by the ERP-style progress engine; no per-file/row text.
       return { url: src.url, isTarget: src.isTarget, json, lastModified };
     }
 
@@ -1360,35 +1362,73 @@ function setLoadingMsg(main, sub) {
   if (ss) ss.textContent = sub || '';
 }
 
-// Status messages that advance while data is loading (matches National Accounts dashboard).
-const LOADING_MESSAGES = [
-  ['Connecting to data source…',     'This may take a moment'],
-  ['Fetching sales records…',        'Pulling latest figures'],
-  ['Processing inventory data…',     'Crunching the numbers'],
-  ['Building your dashboard…',       'Almost there'],
+// ── ERP-STYLE LOADING PROGRESS ENGINE ──────────────────────────
+// Drives a determinate progress bar + staged status messages. No file
+// names or row counts are shown. The bar eases toward a soft cap (~96%)
+// — reaching ~85% in roughly 5s — and snaps to 100% when the real data
+// load completes, so it feels right whether the load takes 5s or longer.
+const LOADING_STAGES = [
+  { p: 6,  main: 'Establishing secure connection…',  sub: 'Authenticating your session' },
+  { p: 22, main: 'Connecting to data warehouse…',    sub: 'Reaching the Skillmatics data layer' },
+  { p: 44, main: 'Retrieving sales data…',           sub: 'Streaming transactions across all periods' },
+  { p: 66, main: 'Consolidating datasets…',          sub: 'Unifying stores, zones & products' },
+  { p: 83, main: 'Computing performance metrics…',   sub: 'Aggregating KPIs, trends & inventory' },
+  { p: 93, main: 'Finalizing your dashboard…',       sub: 'Preparing your workspace' },
 ];
-let _loadCycle = null, _loadIdx = 0;
+const _LOAD_CAP = 96; // creeps toward this until the real load finishes
+let _loadCycle = null, _loadProgress = 0, _loadStageIdx = -1;
 
-// Reset the overlay back to its "in-progress" look (spinner + dots, neutral colour).
-function resetLoadingVisual() {
-  const sp = document.getElementById('loadSpinner');
-  const dt = document.getElementById('loadDots');
-  const s  = document.getElementById('loadingStatus');
-  if (sp) sp.style.display = '';
-  if (dt) dt.style.display = 'flex';
-  if (s)  s.style.color = 'var(--text2)';
+function _renderLoadSteps() {
+  const host = document.getElementById('loadingSteps');
+  if (!host) return;
+  host.innerHTML = LOADING_STAGES.map(() =>
+    '<div class="lstep" style="flex:1;height:4px;border-radius:3px;background:var(--border2);transition:background .4s ease;"></div>'
+  ).join('');
 }
 
+function _paintLoadProgress() {
+  const p = Math.round(_loadProgress);
+  const bar = document.getElementById('loadingBar');
+  const pct = document.getElementById('loadingPct');
+  if (bar) bar.style.width = p + '%';
+  if (pct) pct.textContent = p + '%';
+  // Advance to the latest stage whose threshold we've crossed.
+  let idx = 0;
+  for (let i = 0; i < LOADING_STAGES.length; i++) { if (_loadProgress >= LOADING_STAGES[i].p) idx = i; }
+  if (idx !== _loadStageIdx) {
+    _loadStageIdx = idx;
+    setLoadingMsg(LOADING_STAGES[idx].main, LOADING_STAGES[idx].sub);
+  }
+  document.querySelectorAll('#loadingSteps .lstep').forEach((el, i) => {
+    el.style.background = (i <= _loadStageIdx) ? 'var(--accent)' : 'var(--border2)';
+  });
+}
+
+// Reset the overlay back to its "in-progress" look (0%, neutral colour).
+function resetLoadingVisual() {
+  _loadProgress = 0; _loadStageIdx = -1;
+  const bar = document.getElementById('loadingBar');
+  const pct = document.getElementById('loadingPct');
+  const s   = document.getElementById('loadingStatus');
+  if (bar) { bar.style.background = 'linear-gradient(90deg,#2d8a57,var(--accent))'; bar.style.width = '0%'; }
+  if (pct) { pct.style.color = 'var(--accent)'; pct.textContent = '0%'; }
+  if (s)   s.style.color = 'var(--text)';
+  _renderLoadSteps();
+  setLoadingMsg(LOADING_STAGES[0].main, LOADING_STAGES[0].sub);
+}
+
+// Begin the animated progress run (function name kept for existing call sites).
 function startLoadingCycle() {
   stopLoadingCycle();
-  _loadIdx = 0;
-  setLoadingMsg(LOADING_MESSAGES[0][0], LOADING_MESSAGES[0][1]);
+  if (_loadProgress < 3) _loadProgress = 3;
+  _paintLoadProgress();
   _loadCycle = setInterval(() => {
-    _loadIdx++;
-    if (_loadIdx < LOADING_MESSAGES.length) {
-      setLoadingMsg(LOADING_MESSAGES[_loadIdx][0], LOADING_MESSAGES[_loadIdx][1]);
-    }
-  }, 1800);
+    // Ease-out: each tick covers a shrinking fraction of the remaining
+    // distance to the cap, with a small floor so it never fully stalls.
+    _loadProgress += Math.max(0.25, (_LOAD_CAP - _loadProgress) * 0.035);
+    if (_loadProgress > _LOAD_CAP) _loadProgress = _LOAD_CAP;
+    _paintLoadProgress();
+  }, 80);
 }
 
 function stopLoadingCycle() {
@@ -1396,20 +1436,23 @@ function stopLoadingCycle() {
 }
 
 // Show the final outcome: state = 'success' | 'error'.
-// Success keeps the spinner running and simply shows "Ready!" (matches National Accounts).
-// Error stops the spinner/dots and shows the message in red.
+// Success snaps the bar to 100% and fills every stage; error turns it red.
 function finishLoading(state, main, sub) {
   stopLoadingCycle();
-  const sp = document.getElementById('loadSpinner');
-  const dt = document.getElementById('loadDots');
-  const s  = document.getElementById('loadingStatus');
+  const bar = document.getElementById('loadingBar');
+  const pct = document.getElementById('loadingPct');
+  const s   = document.getElementById('loadingStatus');
   if (state === 'success') {
-    if (s) s.style.color = 'var(--text2)';
+    _loadProgress = 100;
+    if (bar) bar.style.width = '100%';
+    if (pct) { pct.style.color = 'var(--accent)'; pct.textContent = '100%'; }
+    if (s)   s.style.color = 'var(--text)';
+    document.querySelectorAll('#loadingSteps .lstep').forEach(el => { el.style.background = 'var(--accent)'; });
     setLoadingMsg(main, sub);
   } else {
-    if (sp) sp.style.display = 'none';
-    if (dt) dt.style.display = 'none';
-    if (s)  s.style.color = 'var(--red)';
+    if (bar) bar.style.background = 'var(--red)';
+    if (pct) pct.style.color = 'var(--red)';
+    if (s)   s.style.color = 'var(--red)';
     setLoadingMsg(main, sub);
   }
 }
@@ -3851,7 +3894,7 @@ async function init() {
     try {
       await loadDashboardData();
       stopLoadingCycle();
-      finishLoading('success', 'Ready!', '');
+      finishLoading('success', 'Dashboard ready', 'Launching your workspace');
       setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
     } catch (err) {
       console.error('Auto-load error:', err);
