@@ -1698,6 +1698,7 @@ function initializeDashboard() {
   }
 
   applyFilters();
+  markIndependentTabsDirty();   // trend tabs render lazily on first visit (kept off the filter path)
   initKpiTab();
   adjustStickyTops();
   requestAnimationFrame(adjustStickyTops);
@@ -1997,16 +1998,34 @@ function resetFilters() {
 // ═══════════════════════════════════════════════════════════════
 // RENDER ALL SECTIONS
 // ═══════════════════════════════════════════════════════════════
+// Sections on the DASHBOARD tab that respond to the global filters. These read
+// the filtered subset and are fast, so they re-render on every filter change.
 function renderAll() {
   renderKPI();
   renderTargetAch();
   renderPOP();
   renderTopSKU();
-  renderZoneMoM();
-  renderStoreMoM();
-  renderProductMoM();
-  renderWeeklyTrends();
-  renderBrandTrends();
+}
+
+// The trend tabs (Zone / Store / Product / Weekly / Brand) read RAW directly and
+// are INDEPENDENT of the global filters (their tabs hide the global filter bar and
+// each has its own local controls). Re-rendering these heavy tables on every global
+// filter change is what made the Dashboard tab lag 3–5s. Instead they are rendered
+// lazily the first time their tab is opened, and re-armed after each data (re)load.
+const INDEP_TAB_RENDER = {
+  weeklytrends:  renderWeeklyTrends,
+  zonemom:       renderZoneMoM,
+  storemom:      renderStoreMoM,
+  producttrends: renderProductMoM,
+  brandtrends:   renderBrandTrends,
+};
+let _indepTabsDirty = new Set();
+// Call after a data load so each independent tab re-renders the next time it's viewed.
+function markIndependentTabsDirty() { _indepTabsDirty = new Set(Object.keys(INDEP_TAB_RENDER)); }
+// Render an independent tab on demand (only if it hasn't been built for this dataset).
+function ensureIndependentTab(tab) {
+  const fn = INDEP_TAB_RENDER[tab];
+  if (fn && _indepTabsDirty.has(tab)) { fn(); _indepTabsDirty.delete(tab); }
 }
 
 // ── A: Executive KPI ──
@@ -3964,6 +3983,7 @@ function setup() {
       const tab = btn.dataset.tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+      ensureIndependentTab(tab);   // build the heavy trend tables only when first viewed
       const fb = document.getElementById('filterBar');
       if (fb) fb.style.display = (tab === 'zonemom' || tab === 'kpi' || tab === 'storemom' || tab === 'producttrends' || tab === 'weeklytrends' || tab === 'brandtrends') ? 'none' : '';
       adjustStickyTops();
