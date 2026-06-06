@@ -27,10 +27,10 @@
 
   /* ── ANIMATIONS ── */
   @keyframes spin{to{transform:rotate(360deg);}}
-  @keyframes loadLogoPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  @keyframes loadLogoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(26,95,58,.3);}50%{transform:scale(1.05);box-shadow:0 0 0 14px rgba(26,95,58,0);}}
   @keyframes loadSpin{to{transform:rotate(360deg);}}
-  @keyframes loadDot{0%,100%{opacity:.3;transform:scale(.8);}50%{opacity:1;transform:scale(1.2);}}
-  @keyframes loadFadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes loadDot{0%,80%,100%{opacity:.25;transform:scale(.8);}40%{opacity:1;transform:scale(1.1);}}
+  @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 
@@ -699,25 +699,24 @@
   transition:opacity .5s ease;
 ">
   <div style="display:flex;flex-direction:column;align-items:center;gap:0;animation:loadFadeIn .6s ease;">
-    <!-- Skillmatics wordmark with pulse animation -->
+    <!-- Skillmatics wordmark with glow-ring pulse animation -->
     <div class="brand-name" style="margin-bottom:6px;">
       <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" style="height:40px;animation:loadLogoPulse 2s ease-in-out infinite;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
       <span class="brand-wordmark-text" style="display:none;font-size:38px;">Skillmatics</span>
     </div>
-    <div class="brand-title" style="font-size:13px;color:var(--text3);margin-bottom:34px;font-weight:400;">Hamleys Sales Dashboard</div>
+    <div class="brand-title" style="font-size:13px;color:var(--text3);margin-bottom:36px;font-weight:400;">Hamleys Sales Dashboard</div>
     <div id="loadSpinner" style="position:relative;width:48px;height:48px;margin-bottom:24px;">
       <svg width="48" height="48" viewBox="0 0 48 48" style="animation:loadSpin 1.2s linear infinite;">
         <circle cx="24" cy="24" r="20" fill="none" stroke="var(--border2)" stroke-width="3"/>
-        <circle cx="24" cy="24" r="20" fill="none" stroke="var(--blue)" stroke-width="3" stroke-dasharray="80 126" stroke-linecap="round"/>
+        <circle cx="24" cy="24" r="20" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="80 126" stroke-linecap="round"/>
       </svg>
     </div>
-    <div id="loadIcon" style="display:none;width:48px;height:48px;border-radius:50%;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:700;margin-bottom:24px;animation:loadFadeIn .4s ease;">✓</div>
     <div id="loadingStatus" style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:8px;text-align:center;padding:0 24px;">Connecting to data source…</div>
     <div id="loadingSubStatus" style="font-size:12px;color:var(--text3);text-align:center;max-width:340px;padding:0 24px;line-height:1.4;">This may take a moment</div>
     <div id="loadDots" style="display:flex;gap:6px;margin-top:24px;">
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--blue);animation:loadDot 1.4s ease-in-out infinite;"></div>
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--blue);animation:loadDot 1.4s ease-in-out .2s infinite;"></div>
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--blue);animation:loadDot 1.4s ease-in-out .4s infinite;"></div>
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out infinite;"></div>
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out .2s infinite;"></div>
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:loadDot 1.4s ease-in-out .4s infinite;"></div>
     </div>
   </div>
 </div>
@@ -1007,7 +1006,7 @@ async function attemptLogin() {
       await loadDashboardData();
 
       stopLoadingCycle();
-      finishLoading('success', 'Your dashboard is ready', 'Welcome to your retail command center');
+      finishLoading('success', 'Ready!', '');
       setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
     } else {
       showLoginError('Invalid username or password. Please try again.');
@@ -1361,14 +1360,12 @@ function setLoadingMsg(main, sub) {
   if (ss) ss.textContent = sub || '';
 }
 
-// Catchy, professional messages that rotate while data is loading.
+// Status messages that advance while data is loading (matches National Accounts dashboard).
 const LOADING_MESSAGES = [
-  ['Connecting to data sources…',        'Fetching 9 files across 2022 – 2026'],
-  ['Loading 2022 & 2023 data…',          'Tallying sales across every store'],
-  ['Loading 2024 & 2025 data…',          'Mapping zones, brands & products'],
-  ['Loading 2026 data…',                 'Crunching the latest numbers'],
-  ['Merging all years together…',        'Building one unified dataset'],
-  ['Polishing your dashboard…',          'Adding the finishing touches'],
+  ['Connecting to data source…',     'This may take a moment'],
+  ['Fetching sales records…',        'Pulling latest figures'],
+  ['Processing inventory data…',     'Crunching the numbers'],
+  ['Building your dashboard…',       'Almost there'],
 ];
 let _loadCycle = null, _loadIdx = 0;
 
@@ -1376,11 +1373,9 @@ let _loadCycle = null, _loadIdx = 0;
 function resetLoadingVisual() {
   const sp = document.getElementById('loadSpinner');
   const dt = document.getElementById('loadDots');
-  const ic = document.getElementById('loadIcon');
   const s  = document.getElementById('loadingStatus');
   if (sp) sp.style.display = '';
   if (dt) dt.style.display = 'flex';
-  if (ic) ic.style.display = 'none';
   if (s)  s.style.color = 'var(--text2)';
 }
 
@@ -1389,9 +1384,11 @@ function startLoadingCycle() {
   _loadIdx = 0;
   setLoadingMsg(LOADING_MESSAGES[0][0], LOADING_MESSAGES[0][1]);
   _loadCycle = setInterval(() => {
-    _loadIdx = (_loadIdx + 1) % LOADING_MESSAGES.length;
-    setLoadingMsg(LOADING_MESSAGES[_loadIdx][0], LOADING_MESSAGES[_loadIdx][1]);
-  }, 1400);
+    _loadIdx++;
+    if (_loadIdx < LOADING_MESSAGES.length) {
+      setLoadingMsg(LOADING_MESSAGES[_loadIdx][0], LOADING_MESSAGES[_loadIdx][1]);
+    }
+  }, 1800);
 }
 
 function stopLoadingCycle() {
@@ -1399,21 +1396,22 @@ function stopLoadingCycle() {
 }
 
 // Show the final outcome: state = 'success' | 'error'.
+// Success keeps the spinner running and simply shows "Ready!" (matches National Accounts).
+// Error stops the spinner/dots and shows the message in red.
 function finishLoading(state, main, sub) {
   stopLoadingCycle();
   const sp = document.getElementById('loadSpinner');
   const dt = document.getElementById('loadDots');
-  const ic = document.getElementById('loadIcon');
   const s  = document.getElementById('loadingStatus');
-  if (sp) sp.style.display = 'none';
-  if (dt) dt.style.display = 'none';
-  if (ic) {
-    ic.style.display = 'flex';
-    ic.textContent = state === 'success' ? '✓' : '!';
-    ic.style.background = state === 'success' ? 'var(--green)' : 'var(--red)';
+  if (state === 'success') {
+    if (s) s.style.color = 'var(--text2)';
+    setLoadingMsg(main, sub);
+  } else {
+    if (sp) sp.style.display = 'none';
+    if (dt) dt.style.display = 'none';
+    if (s)  s.style.color = 'var(--red)';
+    setLoadingMsg(main, sub);
   }
-  if (s) s.style.color = state === 'success' ? 'var(--green)' : 'var(--red)';
-  setLoadingMsg(main, sub);
 }
 
 function yieldToUI() { return new Promise(resolve => setTimeout(resolve, 0)); }
@@ -3853,7 +3851,7 @@ async function init() {
     try {
       await loadDashboardData();
       stopLoadingCycle();
-      finishLoading('success', 'Your dashboard is ready', 'Welcome to your retail command center');
+      finishLoading('success', 'Ready!', '');
       setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
     } catch (err) {
       console.error('Auto-load error:', err);
