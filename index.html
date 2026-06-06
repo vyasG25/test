@@ -1271,23 +1271,23 @@ let uploadedFileCount = 0;
 // Month-on-Month Zone Performance state
 let zmomFY = null;            // selected fiscal-year start year (e.g. 2025 => FY25)
 let zmomMetric = 'overview';  // overview | sales | target | ach | contrib | mom | yoy
-// Zone Trends local filters (Customer Type + Store Category)
-let zmomFilt = { customer: new Set(), category: new Set() };
 let storeFY = null;           // independent FY selection for the Store Trends tab
 let storeMetric = 'overview'; // independent metric view for the Store Trends tab
 let storeSearch = '';         // Store Trends search term (raw)
 let storeSearchActive = false;
+// Store Trends local bt-bar filters (Customer Type, Store Category, Zone)
+let storeFilt = { zone: new Set(), customer: new Set(), category: new Set() };
 let prodFY = null;            // independent FY selection for the Product Trends tab
 let prodDim = 'brand';        // selected product dimension (brand|luggage|range|size|dept)
 let prodView = 'month';       // Product Trends column view: 'month' | 'quarter' | 'zone'
 let prodSearch = '';          // Product Trends search term (raw)
 let prodSearchActive = false;
-// Product Trends local filters (Customer Type + Store Category)
+// Product Trends local bt-bar filters (Customer Type, Store Category)
 let prodFilt = { customer: new Set(), category: new Set() };
 // Weekly Trends (Month rows × Monthly-Week columns, per fiscal year)
 let weeklyFY = null;          // selected fiscal-year start year (e.g. 2025 => FY25)
 // Local Location & Stores + Product filters (empty Set = All). Independent of global filters.
-let weeklyFilt = { zone:new Set(), state:new Set(), store:new Set(), customer:new Set(), category:new Set(), brand:new Set(), family:new Set(), cls:new Set(), brick:new Set(), sku:new Set() };
+let weeklyFilt = { zone:new Set(), state:new Set(), store:new Set(), brand:new Set(), family:new Set(), cls:new Set(), brick:new Set(), sku:new Set() };
 // Brand Trends (Brand, current vs last — LFL same period)
 let brandMode = 'month';      // 'month' | 'fy'
 let brandMonth = null;        // selected month key 'YYYY-MM'
@@ -2756,59 +2756,8 @@ function renderTargetAch(){
 }
 
 function renderZoneMoM(){
-  const host = document.getElementById('secZoneMoM');
-  if (!host) return;
-  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
-
-  // ── Build option lists from RAW ──
-  const custOpts = [...new Set(RAW.map(r => r.customer_type).filter(v => v != null && v !== ''))].sort();
-  const catOpts  = [...new Set(RAW.map(r => r.store_category).filter(v => v != null && v !== ''))].sort();
-
-  // Validate persisted selections against current data
-  [...zmomFilt.customer].forEach(v => { if (!custOpts.includes(v)) zmomFilt.customer.delete(v); });
-  [...zmomFilt.category].forEach(v => { if (!catOpts.includes(v)) zmomFilt.category.delete(v); });
-
-  // ── Chip builder (reused pattern from Weekly Trends) ──
-  function chipHtml(key, label, opts) {
-    const n = zmomFilt[key].size;
-    const badge = n ? `<span class="mc-badge" id="zmbadge-${key}" style="display:inline-flex">${n}</span>` : `<span class="mc-badge" id="zmbadge-${key}" style="display:none">0</span>`;
-    const items = opts.map(o => `<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${zmomFilt[key].has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join('');
-    return `<div class="mc bt-chip"><button class="mc-btn" id="zmbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="zmpanel-${key}"><input type="text" class="ms-search" id="zmsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="zmlist-${key}">${items}</div><div class="ms-actions"><button class="ms-action-btn" data-zmact="all" data-zmk="${key}">Select All</button><button class="ms-action-btn" data-zmact="clear" data-zmk="${key}">Clear All</button></div></div></div>`;
-  }
-
-  // ── Filter row HTML (injected above the MoM table) ──
-  const hasActive = zmomFilt.customer.size || zmomFilt.category.size;
-  const filterBar = `<div class="bt-bar" id="zmFilterBar" style="margin-bottom:0;border-radius:var(--r) var(--r) 0 0;">
-    <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${chipHtml('customer','Customer Type',custOpts)}</div></div>
-    <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${chipHtml('category','Store Category',catOpts)}</div></div>
-    ${hasActive ? `<button class="kpi-reset" id="zmReset" title="Clear all Zone Trends filters">↺ Reset</button>` : ''}
-  </div>
-  <div id="zmMoMHost"></div>`;
-
-  // Only re-inject filter bar if not already present (avoids losing panel open state on filter change)
-  const existing = host.querySelector('#zmFilterBar');
-  if (!existing) {
-    host.innerHTML = filterBar;
-    // Wire chip panels
-    wireZmomChips(host, custOpts, catOpts);
-  } else {
-    // Update badges without full rebuild
-    updateZmomBadges(host);
-  }
-
-  // ── Apply filters to a subset of RAW, then build the table ──
-  const filtRAW = (zmomFilt.customer.size || zmomFilt.category.size)
-    ? RAW.filter(r =>
-        (!zmomFilt.customer.size || zmomFilt.customer.has(String(r.customer_type))) &&
-        (!zmomFilt.category.size || zmomFilt.category.has(String(r.store_category)))
-      )
-    : RAW;
-
-  // Temporarily swap RAW for buildMoM aggregation, then restore
-  const savedRAW = RAW;
-  RAW = filtRAW;
   buildMoM({
-    hostId:'zmMoMHost', mode:'zone',
+    hostId:'secZoneMoM', mode:'zone',
     dims:[{label:'Zone',key:'zone',w:104}],
     rowKey:r=>r.zone_name||'—',
     rowMeta:r=>({zone:r.zone_name||'—'}),
@@ -2816,108 +2765,178 @@ function renderZoneMoM(){
     sortRows:(a,b,fyS)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone) || (fyS[b.key]-fyS[a.key]),
     getFY:()=>zmomFY, setFY:v=>{zmomFY=v;}, getMetric:()=>zmomMetric, setMetric:v=>{zmomMetric=v;},
   });
-  RAW = savedRAW;
-
-  // Wire reset after rebuild
-  const resetBtn = host.querySelector('#zmReset');
-  if (resetBtn) resetBtn.addEventListener('click', () => { zmomFilt.customer.clear(); zmomFilt.category.clear(); renderZoneMoM(); });
 }
+// ── Store Trends — bt-bar wrapper around buildMoM ──
+// Metric definitions mirrored from buildMoM for the bt-bar label.
+const STORE_METRICS = [
+  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'target',label:'Target'},
+  {k:'ach',label:'Ach %'},{k:'contrib',label:'Contrib %'},{k:'mom',label:'MoM'},{k:'yoy',label:'YoY'},
+];
+function renderStoreMoM(){
+  const host = document.getElementById('secStoreMoM');
+  if (!host) return;
+  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
 
-function updateZmomBadges(host) {
-  ['customer','category'].forEach(key => {
-    const b = host.querySelector('#zmbadge-' + key);
-    if (!b) return;
-    const n = zmomFilt[key].size;
-    b.textContent = n;
-    b.style.display = n ? 'inline-flex' : 'none';
-  });
-  // Show/hide reset button
-  const hasActive = zmomFilt.customer.size || zmomFilt.category.size;
-  let rb = host.querySelector('#zmReset');
-  if (hasActive && !rb) {
-    const bar = host.querySelector('#zmFilterBar');
-    if (bar) { rb = document.createElement('button'); rb.className='kpi-reset'; rb.id='zmReset'; rb.title='Clear all Zone Trends filters'; rb.textContent='↺ Reset'; bar.appendChild(rb); }
-  } else if (!hasActive && rb) rb.remove();
-  if (rb) rb.onclick = () => { zmomFilt.customer.clear(); zmomFilt.category.clear(); renderZoneMoM(); };
-}
+  // ── Build option lists from RAW ──
+  const zoneOpts = [...new Set(RAW.map(r=>r.zone_name).filter(v=>v!=null&&v!==''))].sort((a,b)=>a.localeCompare(b));
+  const custOpts  = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
+  const catOpts   = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
+  // Validate persisted selections
+  [...storeFilt.zone].forEach(v=>{if(!zoneOpts.includes(v)) storeFilt.zone.delete(v);});
+  [...storeFilt.customer].forEach(v=>{if(!custOpts.includes(v)) storeFilt.customer.delete(v);});
+  [...storeFilt.category].forEach(v=>{if(!catOpts.includes(v)) storeFilt.category.delete(v);});
 
-function wireZmomChips(host, custOpts, catOpts) {
-  const allOpts = { customer: custOpts, category: catOpts };
-  ['customer','category'].forEach(key => {
-    const btn   = host.querySelector('#zmbtn-'   + key);
-    const panel = host.querySelector('#zmpanel-' + key);
-    const search= host.querySelector('#zmsearch-'+ key);
-    const list  = host.querySelector('#zmlist-'  + key);
+  // ── Pre-filter RAW ──
+  const workRAW = (storeFilt.zone.size || storeFilt.customer.size || storeFilt.category.size)
+    ? RAW.filter(r =>
+        (!storeFilt.zone.size     || storeFilt.zone.has(String(r.zone_name)))     &&
+        (!storeFilt.customer.size || storeFilt.customer.has(String(r.customer_type))) &&
+        (!storeFilt.category.size || storeFilt.category.has(String(r.store_category)))
+      )
+    : RAW;
+
+  // ── Chip builder (same pattern as Weekly/Brand Trends) ──
+  const allOpts = { zone: zoneOpts, customer: custOpts, category: catOpts };
+  function stChip(key, label) {
+    const n = storeFilt[key].size;
+    const badge = `<span class="mc-badge" id="stbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
+    return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="stbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="stpanel-${key}"><input type="text" class="ms-search" id="stsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="stlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-stact="all" data-stk="${key}">Select All</button><button class="ms-action-btn" data-stact="clear" data-stk="${key}">Clear All</button></div></div></div>`;
+  }
+
+  // ── FY list (from full RAW so pills stay stable while filters change) ──
+  const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return m>=4?y:y-1; };
+  const fySet = new Set();
+  for (const r of RAW) {
+    const mk = (r.month && /^\d{4}-\d{2}$/.test(r.month)) ? r.month : (r.bill_date ? r.bill_date.slice(0,7) : '');
+    if (mk) fySet.add(fyOf(mk));
+  }
+  const fyList = [...fySet].sort((a,b)=>b-a);
+  if (storeFY == null || !fySet.has(storeFY)) storeFY = fyList[0];
+  const fyPills = fyList.map(f=>`<button class="zmom-pill fy-pill${f===storeFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
+
+  // ── Metric pills ──
+  const mPills = STORE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===storeMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
+
+  const hasActive = storeFilt.zone.size || storeFilt.customer.size || storeFilt.category.size;
+  const resetBtn  = hasActive ? `<button class="kpi-reset" id="stReset" title="Clear all Store Trends filters">↺ Reset</button>` : '';
+  const periodTag = `${zmomFyLabel(storeFY)} · Apr–Mar`;
+
+  // ── Two-row bt-bar ──
+  // Row 1: Fiscal Year · View (metric) · Search · Reset · period badge
+  // Row 2: Zone · Customer Type · Store Category  (only location/store filters)
+  host.innerHTML = `
+    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
+        <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">Search</label>
+          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+            <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
+        ${resetBtn}
+        <div class="bt-period" style="margin-left:auto;">
+          <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Apr–Mar</span>
+          <span class="bt-period-tag">Store Trends</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
+        <div class="bt-fg"><label class="bt-flabel">Zone</label><div class="bt-chips">${stChip('zone','Zone')}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${stChip('customer','Customer Type')}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${stChip('category','Store Category')}</div></div>
+      </div>
+    </div>
+    <div id="stMoMHost"></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Apr→Mar of ${zmomFyLabel(storeFY)}, newest first · per store · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`;
+
+  // ── Wire FY pills ──
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ storeFY=+b.dataset.fy; renderStoreMoM(); }));
+  // ── Wire Metric pills ──
+  host.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ storeMetric=b.dataset.metric; renderStoreMoM(); }));
+  // ── Wire Search ──
+  const si = host.querySelector('.st-search');
+  if (si) {
+    si.addEventListener('input', ()=>{ storeSearch=si.value; storeSearchActive=true; renderStoreMoM(); });
+    si.addEventListener('focus', ()=>{ storeSearchActive=true; });
+    si.addEventListener('blur',  ()=>{ storeSearchActive=false; });
+    if (storeSearchActive) { si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
+  }
+  // ── Wire Reset ──
+  const rb = host.querySelector('#stReset');
+  if (rb) rb.addEventListener('click', ()=>{ storeFilt.zone.clear(); storeFilt.customer.clear(); storeFilt.category.clear(); renderStoreMoM(); });
+
+  // ── Wire filter chips ──
+  ['zone','customer','category'].forEach(key=>{
+    const btn    = host.querySelector('#stbtn-'   + key);
+    const panel  = host.querySelector('#stpanel-' + key);
+    const search = host.querySelector('#stsearch-'+ key);
+    const list   = host.querySelector('#stlist-'  + key);
     if (!btn || !panel) return;
-
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', ()=>{
       const open = panel.classList.contains('open');
-      // close all zm panels
-      host.querySelectorAll('.mc-panel.open').forEach(p => { p.classList.remove('open'); });
-      host.querySelectorAll('.mc-btn.open').forEach(b => { b.classList.remove('open'); });
-      if (!open) { panel.classList.add('open'); btn.classList.add('open'); if (search) setTimeout(() => search.focus(), 0); }
+      host.querySelectorAll('.mc-panel.open').forEach(p=>{p.classList.remove('open');});
+      host.querySelectorAll('.mc-btn.open').forEach(b=>{b.classList.remove('open');});
+      if (!open){ panel.classList.add('open'); btn.classList.add('open'); if(search) setTimeout(()=>search.focus(),0); }
     });
-
-    function renderList(sq) {
-      sq = (sq || '').trim().toLowerCase();
-      const items = allOpts[key].filter(o => !sq || o.toLowerCase().includes(sq));
-      list.innerHTML = items.length
-        ? items.map(o => `<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${zmomFilt[key].has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join('')
-        : '<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
-      list.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => {
-        const v = cb.dataset.v;
-        if (cb.checked) zmomFilt[key].add(v); else zmomFilt[key].delete(v);
-        updateZmomBadges(host);
-        // Re-run only the table part (keep panels open)
-        const filtRAW = (zmomFilt.customer.size || zmomFilt.category.size)
-          ? RAW.filter(r => (!zmomFilt.customer.size || zmomFilt.customer.has(String(r.customer_type))) && (!zmomFilt.category.size || zmomFilt.category.has(String(r.store_category))))
-          : RAW;
-        const saved = RAW; RAW = filtRAW;
-        buildMoM({
-          hostId:'zmMoMHost', mode:'zone',
-          dims:[{label:'Zone',key:'zone',w:104}],
-          rowKey:r=>r.zone_name||'—',
-          rowMeta:r=>({zone:r.zone_name||'—'}),
-          useTarget:true, targetFn:zmomTargetByZoneMonth,
-          sortRows:(a,b,fyS)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone) || (fyS[b.key]-fyS[a.key]),
-          getFY:()=>zmomFY, setFY:v=>{zmomFY=v;}, getMetric:()=>zmomMetric, setMetric:v=>{zmomMetric=v;},
-        });
-        RAW = saved;
+    function renderStList(sq){
+      sq=(sq||'').trim().toLowerCase();
+      const items=allOpts[key].filter(o=>!sq||o.toLowerCase().includes(sq));
+      list.innerHTML=items.length
+        ?items.map(o=>`<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${storeFilt[key].has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join('')
+        :'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
+      list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
+        const v=cb.dataset.v; if(cb.checked) storeFilt[key].add(v); else storeFilt[key].delete(v);
+        rebuildStoreTable();
       }));
     }
-    if (search) search.addEventListener('input', () => renderList(search.value));
-    renderList('');
+    if (search) search.addEventListener('input',()=>renderStList(search.value));
+    renderStList('');
   });
-
-  // Select All / Clear All
-  host.querySelectorAll('.ms-action-btn[data-zmk]').forEach(b => b.addEventListener('click', () => {
-    const key = b.dataset.zmk;
-    const sb = host.querySelector('#zmsearch-' + key);
-    if (b.dataset.zmact === 'all') {
-      const sq = (sb && sb.value ? sb.value : '').trim().toLowerCase();
-      const visible = sq ? allOpts[key].filter(o => o.toLowerCase().includes(sq)) : allOpts[key];
-      visible.forEach(v => zmomFilt[key].add(v));
-    } else { zmomFilt[key].clear(); if (sb) sb.value = ''; }
-    updateZmomBadges(host);
-    renderZoneMoM();
+  host.querySelectorAll('.ms-action-btn[data-stk]').forEach(b=>b.addEventListener('click',()=>{
+    const key=b.dataset.stk, sb=host.querySelector('#stsearch-'+key);
+    if(b.dataset.stact==='all'){
+      const sq=(sb&&sb.value?sb.value:'').trim().toLowerCase();
+      (sq?allOpts[key].filter(o=>o.toLowerCase().includes(sq)):allOpts[key]).forEach(v=>storeFilt[key].add(v));
+    } else { storeFilt[key].clear(); if(sb) sb.value=''; }
+    renderStoreMoM();
   }));
-}
-function renderStoreMoM(){
-  buildMoM({
-    hostId:'secStoreMoM', mode:'store', wrapDims:true,
-    dims:[{label:'Zone',key:'zone',w:74},{label:'State',key:'state',w:100},{label:'City',key:'city',w:100},
-          {label:'Store Code',key:'code',w:84},{label:'Store Name',key:'name',w:150},
-          {label:'Customer Type',key:'customer',w:118},{label:'Store Category',key:'category',w:120}],
-    rowKey:r=>r.store_code||r.store_name||'—',
-    rowMeta:r=>({zone:r.zone_name||'—', state:r.state_name||'—', city:r.city_name||'—', code:r.store_code||'—', name:r.store_name||'—', customer:r.customer_type||'—', category:r.store_category||'—'}),
-    useTarget:true, targetFn:zmomTargetByStoreMonth,
-    sortRows:(a,b)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone)
-      || String(a.meta.state).localeCompare(String(b.meta.state))
-      || String(a.meta.city).localeCompare(String(b.meta.city))
-      || String(a.meta.name).localeCompare(String(b.meta.name)),
-    getFY:()=>storeFY, setFY:v=>{storeFY=v;}, getMetric:()=>storeMetric, setMetric:v=>{storeMetric=v;},
-    getSearch:()=>storeSearch, setSearch:v=>{storeSearch=v;},
-  });
+
+  // ── Build table (called on initial render + chip checkbox changes) ──
+  rebuildStoreTable();
+
+  function rebuildStoreTable(){
+    const fRAW = (storeFilt.zone.size || storeFilt.customer.size || storeFilt.category.size)
+      ? RAW.filter(r =>
+          (!storeFilt.zone.size     || storeFilt.zone.has(String(r.zone_name)))     &&
+          (!storeFilt.customer.size || storeFilt.customer.has(String(r.customer_type))) &&
+          (!storeFilt.category.size || storeFilt.category.has(String(r.store_category)))
+        )
+      : RAW;
+    const saved = RAW; RAW = fRAW;
+    buildMoM({
+      hostId:'stMoMHost', mode:'store', wrapDims:true,
+      dims:[{label:'Zone',key:'zone',w:74},{label:'State',key:'state',w:100},{label:'City',key:'city',w:100},
+            {label:'Store Code',key:'code',w:84},{label:'Store Name',key:'name',w:150},
+            {label:'Customer Type',key:'customer',w:118},{label:'Store Category',key:'category',w:120}],
+      rowKey:r=>r.store_code||r.store_name||'—',
+      rowMeta:r=>({zone:r.zone_name||'—',state:r.state_name||'—',city:r.city_name||'—',code:r.store_code||'—',name:r.store_name||'—',customer:r.customer_type||'—',category:r.store_category||'—'}),
+      useTarget:true, targetFn:zmomTargetByStoreMonth,
+      sortRows:(a,b)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone)
+        ||String(a.meta.state).localeCompare(String(b.meta.state))
+        ||String(a.meta.city).localeCompare(String(b.meta.city))
+        ||String(a.meta.name).localeCompare(String(b.meta.name)),
+      getFY:()=>storeFY, setFY:v=>{storeFY=v;},
+      getMetric:()=>storeMetric, setMetric:v=>{storeMetric=v;},
+      getSearch:()=>storeSearch, setSearch:v=>{storeSearch=v;},
+    });
+    RAW = saved;
+    // Re-wire search inside rebuilt table area (buildMoM writes its own .zmom-search)
+    const tsi = host.querySelector('#stMoMHost .zmom-search');
+    if (tsi) {
+      tsi.addEventListener('input',()=>{ storeSearch=tsi.value; storeSearchActive=true; rebuildStoreTable(); });
+      tsi.addEventListener('focus',()=>{ storeSearchActive=true; });
+      tsi.addEventListener('blur', ()=>{ storeSearchActive=false; });
+      if (storeSearchActive){ tsi.focus(); const L=tsi.value.length; tsi.setSelectionRange(L,L); }
+    }
+  }
 }
 
 // ── Product Trends (month-wise Qty + Sales Value by a selectable product dimension) ──
@@ -2935,30 +2954,28 @@ function renderProductMoM(){
   const dimCfg = PROD_DIMS.find(d=>d.k===prodDim) || PROD_DIMS[0];
   const field = dimCfg.field;
 
-  // ── Build Customer Type + Store Category option lists ──
+  // Build Customer Type + Store Category option lists from full RAW
   const custOpts = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
   const catOpts  = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
-  [...prodFilt.customer].forEach(v=>{ if(!custOpts.includes(v)) prodFilt.customer.delete(v); });
-  [...prodFilt.category].forEach(v=>{ if(!catOpts.includes(v)) prodFilt.category.delete(v); });
+  [...prodFilt.customer].forEach(v=>{if(!custOpts.includes(v)) prodFilt.customer.delete(v);});
+  [...prodFilt.category].forEach(v=>{if(!catOpts.includes(v)) prodFilt.category.delete(v);});
 
-  // ── Apply Customer Type + Store Category filters to data used for aggregation ──
-  const workRAW = (prodFilt.customer.size || prodFilt.category.size)
-    ? RAW.filter(r =>
-        (!prodFilt.customer.size || prodFilt.customer.has(String(r.customer_type))) &&
-        (!prodFilt.category.size || prodFilt.category.has(String(r.store_category)))
-      )
+  // Apply filters
+  const workRAW = (prodFilt.customer.size||prodFilt.category.size)
+    ? RAW.filter(r=>
+        (!prodFilt.customer.size||prodFilt.customer.has(String(r.customer_type)))&&
+        (!prodFilt.category.size||prodFilt.category.has(String(r.store_category))))
     : RAW;
 
-  // ── View mode: 'month' | 'quarter' | 'zone'
   if(!['month','quarter','zone'].includes(prodView)) prodView='month';
 
-  // Aggregate qty & sales by dimension value x monthKey using workRAW (filtered).
+  // Aggregate qty & sales by dimension x monthKey from workRAW
   const qty={}, sale={}, monthsSet=new Set(), keysSet=new Set();
   for(let i=0;i<workRAW.length;i++){
     const r=workRAW[i];
     const mk=(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
     if(!mk) continue;
-    const k=(r[field]==null||r[field]==='')?'—':String(r[field]);
+    const k=(r[field]==null||r[field]==='')?'\u2014':String(r[field]);
     keysSet.add(k); monthsSet.add(mk);
     (qty[k]||(qty[k]={}))[mk]=(qty[k][mk]||0)+(r.quantity||0);
     (sale[k]||(sale[k]={}))[mk]=(sale[k][mk]||0)+(r.amount||0);
@@ -2982,20 +2999,18 @@ function renderProductMoM(){
   let cols=[], val;
   if(prodView==='quarter'){
     const quarters=[
-      { id:'Q1', label:'Q1', sub:'Apr\u2013Jun', mons:fyMonths.slice(0,3)  },
-      { id:'Q2', label:'Q2', sub:'Jul\u2013Sep', mons:fyMonths.slice(3,6)  },
-      { id:'Q3', label:'Q3', sub:'Oct\u2013Dec', mons:fyMonths.slice(6,9)  },
-      { id:'Q4', label:'Q4', sub:'Jan\u2013Mar', mons:fyMonths.slice(9,12) },
+      { id:'Q1', label:'Q1', sub:'Apr–Jun', mons:fyMonths.slice(0,3)  },
+      { id:'Q2', label:'Q2', sub:'Jul–Sep', mons:fyMonths.slice(3,6)  },
+      { id:'Q3', label:'Q3', sub:'Oct–Dec', mons:fyMonths.slice(6,9)  },
+      { id:'Q4', label:'Q4', sub:'Jan–Mar', mons:fyMonths.slice(9,12) },
     ];
     cols=quarters.slice().reverse();
     val=(k,c)=>{ let q=0,s=0; c.mons.forEach(mk=>{ q+=qAt(k,mk); s+=sAt(k,mk); }); return {q,s}; };
   } else if(prodView==='zone'){
     const ZONE_ORDER=['North','East','West','South'];
     const canonZone=raw=>{ const s=String(raw==null?'':raw).trim().toLowerCase();
-      if(/north/.test(s)||s==='n') return 'North';
-      if(/east/.test(s) ||s==='e') return 'East';
-      if(/west/.test(s) ||s==='w') return 'West';
-      if(/south/.test(s)||s==='s') return 'South';
+      if(/north/.test(s)||s==='n') return 'North'; if(/east/.test(s)||s==='e') return 'East';
+      if(/west/.test(s)||s==='w')  return 'West';  if(/south/.test(s)||s==='s') return 'South';
       return null; };
     const fyMonSet=new Set(fyMonths);
     const zq={}, zs={};
@@ -3004,14 +3019,14 @@ function renderProductMoM(){
       const mk=(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
       if(!mk||!fyMonSet.has(mk)) continue;
       const z=canonZone(r.zone_name); if(!z) continue;
-      const k=(r[field]==null||r[field]==='')?'—':String(r[field]);
+      const k=(r[field]==null||r[field]==='')?'\u2014':String(r[field]);
       (zq[k]||(zq[k]={}))[z]=(zq[k][z]||0)+(r.quantity||0);
       (zs[k]||(zs[k]={}))[z]=(zs[k][z]||0)+(r.amount||0);
     }
-    cols=ZONE_ORDER.map(z=>({ id:z, label:z, sub:'Sales \u00b7 Qty' }));
+    cols=ZONE_ORDER.map(z=>({ id:z, label:z, sub:'Sales · Qty' }));
     val=(k,c)=>({ q:(zq[k]&&zq[k][c.id])||0, s:(zs[k]&&zs[k][c.id])||0 });
   } else {
-    cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:'Sales \u00b7 Qty' }));
+    cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:'Sales · Qty' }));
     val=(k,c)=>({ q:qAt(k,c.id), s:sAt(k,c.id) });
   }
 
@@ -3038,47 +3053,53 @@ function renderProductMoM(){
   const headCells=cols.map(c=>`<th>${escapeHtml(c.label)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
   const thead=`<thead><tr>
     <th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th>
-    <th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">Sales \u00b7 Qty</span></th>
+    <th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">Sales · Qty</span></th>
     ${headCells}
   </tr></thead>`;
   const body=rowsArr.length
     ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
     : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
 
-  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}" title="FY ${f}-${String((f+1)%100).padStart(2,'0')} (Apr\u2013Mar)">${zmomFyLabel(f)}</button>`).join('');
+  // bt-bar controls (Row 1: FY + View + Dimension + Search | Row 2: Customer Type + Store Category)
+  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}" title="FY ${f}-${String((f+1)%100).padStart(2,'0')} (Apr–Mar)">${zmomFyLabel(f)}</button>`).join('');
   const dimPills=PROD_DIMS.map(d=>`<button class="zmom-pill m-pill${d.k===prodDim?' active':''}" data-dim="${d.k}">${d.label}</button>`).join('');
   const VIEWS=[{k:'month',label:'Month'},{k:'quarter',label:'Quarter'},{k:'zone',label:'Zone'}];
   const viewPills=VIEWS.map(v=>`<button class="zmom-pill v-pill${v.k===prodView?' active':''}" data-view="${v.k}">${v.label}</button>`).join('');
-  const searchHtml=`<div class="zmom-pillset"><span class="pset-label">Search</span>
-      <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">\u2315</span>
-        <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}\u2026" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>`;
 
-  // ── Customer Type + Store Category chip builder ──
-  function ptChip(key, label) {
+  const allPtOpts={customer:custOpts, category:catOpts};
+  function ptChip(key, label){
     const n=prodFilt[key].size;
-    const badge=`<span class="mc-badge" id="ptbadge-${key}" style="display:${n?'inline-flex':'none'}">${n||0}</span>`;
-    return `<div class="mc bt-chip"><button class="mc-btn" id="ptbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">\u25be</span></button><div class="mc-panel" id="ptpanel-${key}"><input type="text" class="ms-search" id="ptsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}\u2026"><div class="ms-list" id="ptlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-ptact="all" data-ptk="${key}">Select All</button><button class="ms-action-btn" data-ptact="clear" data-ptk="${key}">Clear All</button></div></div></div>`;
+    const badge=`<span class="mc-badge" id="ptbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
+    return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="ptbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="ptpanel-${key}"><input type="text" class="ms-search" id="ptsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="ptlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-ptact="all" data-ptk="${key}">Select All</button><button class="ms-action-btn" data-ptact="clear" data-ptk="${key}">Clear All</button></div></div></div>`;
   }
   const hasActive=prodFilt.customer.size||prodFilt.category.size;
-  const ptFilterRow=`<div class="zmom-pillset" style="border-top:1px solid var(--border);padding-top:10px;margin-top:2px;gap:8px;flex-wrap:wrap;align-items:center;">
-    <span class="pset-label">Customer Type</span>${ptChip('customer','Customer Type')}
-    <span class="pset-label" style="margin-left:8px;">Store Category</span>${ptChip('category','Store Category')}
-    ${hasActive?`<button class="kpi-reset" id="ptReset" style="margin-left:auto;">\u21ba Reset</button>`:''}
-  </div>`;
+  const resetBtn=hasActive?`<button class="kpi-reset" id="ptReset" title="Clear all Product Trends filters">↺ Reset</button>`:'';
 
   const note = prodView==='quarter'
-      ? `Quarters of ${zmomFyLabel(selFY)} (Q1 Apr\u2013Jun \u2026 Q4 Jan\u2013Mar), newest first \u00b7 grouped by ${escapeHtml(dimCfg.label)} \u00b7 Independent of the global filters.`
+    ? `Quarters of ${zmomFyLabel(selFY)} (Q1 Apr–Jun … Q4 Jan–Mar), newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
     : prodView==='zone'
-      ? `Zones across ${zmomFyLabel(selFY)} (Apr\u2192Mar) \u00b7 North \u00b7 East \u00b7 West \u00b7 South \u00b7 grouped by ${escapeHtml(dimCfg.label)} \u00b7 Independent of the global filters.`
-      : `Months Apr\u2192Mar of ${zmomFyLabel(selFY)}, newest first \u00b7 grouped by ${escapeHtml(dimCfg.label)} \u00b7 Independent of the global filters.`;
+    ? `Zones across ${zmomFyLabel(selFY)} (Apr→Mar) · North · East · West · South · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
+    : `Months Apr→Mar of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`;
 
   host.innerHTML=`
-    <div class="zmom-controls">
-      ${searchHtml}
-      <div class="zmom-pillset"><span class="pset-label">Fiscal Year</span>${fyPills}</div>
-      <div class="zmom-pillset"><span class="pset-label">View</span>${viewPills}</div>
-      <div class="zmom-pillset"><span class="pset-label">Dimension</span>${dimPills}</div>
-      ${ptFilterRow}
+    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
+        <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">Search</label>
+          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+            <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
+        ${resetBtn}
+        <div class="bt-period" style="margin-left:auto;">
+          <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Apr–Mar</span>
+          <span class="bt-period-tag">Product Trends</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
+        <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${ptChip('customer','Customer Type')}</div></div>
+        <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${ptChip('category','Store Category')}</div></div>
+      </div>
     </div>
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
     <div style="margin-top:7px;font-size:11px;color:var(--text2);">${note}</div>`;
@@ -3093,9 +3114,9 @@ function renderProductMoM(){
     si.addEventListener('blur',()=>{ prodSearchActive=false; });
     if(prodSearchActive){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
   }
+  const prst=host.querySelector('#ptReset');
+  if(prst) prst.addEventListener('click',()=>{ prodFilt.customer.clear(); prodFilt.category.clear(); renderProductMoM(); });
 
-  // ── Wire Product Trends filter chips ──
-  const allPtOpts={customer:custOpts, category:catOpts};
   ['customer','category'].forEach(key=>{
     const btn=host.querySelector('#ptbtn-'+key), panel=host.querySelector('#ptpanel-'+key);
     const search=host.querySelector('#ptsearch-'+key), list=host.querySelector('#ptlist-'+key);
@@ -3124,13 +3145,10 @@ function renderProductMoM(){
     const key=b.dataset.ptk, sb=host.querySelector('#ptsearch-'+key);
     if(b.dataset.ptact==='all'){
       const sq=(sb&&sb.value?sb.value:'').trim().toLowerCase();
-      const visible=sq?allPtOpts[key].filter(o=>o.toLowerCase().includes(sq)):allPtOpts[key];
-      visible.forEach(v=>prodFilt[key].add(v));
+      (sq?allPtOpts[key].filter(o=>o.toLowerCase().includes(sq)):allPtOpts[key]).forEach(v=>prodFilt[key].add(v));
     } else { prodFilt[key].clear(); if(sb) sb.value=''; }
     renderProductMoM();
   }));
-  const prst=host.querySelector('#ptReset');
-  if(prst) prst.addEventListener('click',()=>{ prodFilt.customer.clear(); prodFilt.category.clear(); renderProductMoM(); });
 }
 
 
@@ -3142,16 +3160,14 @@ function renderProductMoM(){
 const WT_WEEK_RANGE = { 'Wk-1':'Days 1–7', 'Wk-2':'Days 8–14', 'Wk-3':'Days 15–21', 'Wk-4':'Days 22–28', 'Wk-5':'Days 29–31' };
 // Local filters shown on the Weekly Trends bar — Location & Stores and Product groups.
 const WT_FILTERS = [
-  { key:'zone',     label:'Zone',           field:'zone_name',    group:'loc'  },
-  { key:'state',    label:'State',          field:'state_name',   group:'loc'  },
-  { key:'store',    label:'Store',          field:'store_name',   group:'loc'  },
-  { key:'customer', label:'Customer Type',  field:'customer_type',group:'loc'  },
-  { key:'category', label:'Store Category', field:'store_category',group:'loc' },
-  { key:'brand',    label:'Brand',          field:'brand_name',   group:'prod' },
-  { key:'family',   label:'Family',         field:'family',       group:'prod' },
-  { key:'cls',      label:'Class',          field:'cls',          group:'prod' },
-  { key:'brick',    label:'Brick',          field:'brick',        group:'prod' },
-  { key:'sku',      label:'SKU',            field:'product_code', group:'prod' },
+  { key:'zone',   label:'Zone',   field:'zone_name',    group:'loc'  },
+  { key:'state',  label:'State',  field:'state_name',   group:'loc'  },
+  { key:'store',  label:'Store',  field:'store_name',   group:'loc'  },
+  { key:'brand',  label:'Brand',  field:'brand_name',   group:'prod' },
+  { key:'family', label:'Family', field:'family',       group:'prod' },
+  { key:'cls',    label:'Class',  field:'cls',          group:'prod' },
+  { key:'brick',  label:'Brick',  field:'brick',        group:'prod' },
+  { key:'sku',    label:'SKU',    field:'product_code', group:'prod' },
 ];
 function renderWeeklyTrends(){
   const host=document.getElementById('secWeeklyTrends');
@@ -3179,16 +3195,14 @@ function renderWeeklyTrends(){
   const opts={}; WT_FILTERS.forEach(f=>{ opts[f.key]=[...optSets[f.key]].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})); });
   WT_FILTERS.forEach(f=>{ [...weeklyFilt[f.key]].forEach(v=>{ if(!optSets[f.key].has(v)) weeklyFilt[f.key].delete(v); }); });
   const passFilters=r=>{
-    if(weeklyFilt.zone.size     && !weeklyFilt.zone.has(String(r.zone_name)))     return false;
-    if(weeklyFilt.state.size    && !weeklyFilt.state.has(String(r.state_name)))   return false;
-    if(weeklyFilt.store.size    && !weeklyFilt.store.has(String(r.store_name)))   return false;
-    if(weeklyFilt.customer.size && !weeklyFilt.customer.has(String(r.customer_type))) return false;
-    if(weeklyFilt.category.size && !weeklyFilt.category.has(String(r.store_category))) return false;
-    if(weeklyFilt.brand.size    && !weeklyFilt.brand.has(String(r.brand_name)))   return false;
-    if(weeklyFilt.family.size   && !weeklyFilt.family.has(String(r.family)))      return false;
-    if(weeklyFilt.cls.size      && !weeklyFilt.cls.has(String(r.cls)))            return false;
-    if(weeklyFilt.brick.size    && !weeklyFilt.brick.has(String(r.brick)))        return false;
-    if(weeklyFilt.sku.size      && !weeklyFilt.sku.has(String(r.product_code)))   return false;
+    if(weeklyFilt.zone.size   && !weeklyFilt.zone.has(String(r.zone_name)))   return false;
+    if(weeklyFilt.state.size  && !weeklyFilt.state.has(String(r.state_name))) return false;
+    if(weeklyFilt.store.size  && !weeklyFilt.store.has(String(r.store_name))) return false;
+    if(weeklyFilt.brand.size  && !weeklyFilt.brand.has(String(r.brand_name))) return false;
+    if(weeklyFilt.family.size && !weeklyFilt.family.has(String(r.family)))    return false;
+    if(weeklyFilt.cls.size    && !weeklyFilt.cls.has(String(r.cls)))          return false;
+    if(weeklyFilt.brick.size  && !weeklyFilt.brick.has(String(r.brick)))      return false;
+    if(weeklyFilt.sku.size    && !weeklyFilt.sku.has(String(r.product_code))) return false;
     return true;
   };
 
