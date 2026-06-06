@@ -27,12 +27,61 @@
 
   /* ── ANIMATIONS ── */
   @keyframes spin{to{transform:rotate(360deg);}}
-  @keyframes loadLogoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(26,95,58,.3);}50%{transform:scale(1.05);box-shadow:0 0 0 14px rgba(26,95,58,0);}}
-  @keyframes loadSpin{to{transform:rotate(360deg);}}
-  @keyframes loadDot{0%,80%,100%{opacity:.25;transform:scale(.8);}40%{opacity:1;transform:scale(1.1);}}
   @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes loadLogoIn{0%{opacity:0;transform:translateY(16px) scale(.93);}100%{opacity:1;transform:translateY(0) scale(1);}}
+  @keyframes loadRise{0%{opacity:0;transform:translateY(18px);}100%{opacity:1;transform:translateY(0);}}
+  @keyframes orbDrift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(70px,-46px) scale(1.18);}}
+  @keyframes orbDrift2{0%,100%{transform:translate(0,0) scale(1.06);}50%{transform:translate(-80px,54px) scale(.88);}}
+  @keyframes orbDrift3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(46px,68px) scale(1.22);}}
+  @keyframes gridDrift{0%{background-position:0 0;}100%{background-position:46px 46px;}}
+  @keyframes ringSpinSlow{to{transform:rotate(360deg);}}
+  @keyframes checkDraw{from{stroke-dashoffset:48;}to{stroke-dashoffset:0;}}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ── ANIMATED LOADING OVERLAY ── */
+  #loadingOverlay{overflow:hidden;}
+  .load-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .load-orb{position:absolute;border-radius:50%;filter:blur(48px);opacity:.5;will-change:transform;}
+  .load-orb1{width:460px;height:460px;top:-130px;left:-110px;background:radial-gradient(circle at 35% 35%, #cfe8d8, transparent 70%);animation:orbDrift1 22s ease-in-out infinite;}
+  .load-orb2{width:540px;height:540px;bottom:-170px;right:-130px;background:radial-gradient(circle at 60% 40%, #f6e2c2, transparent 70%);animation:orbDrift2 27s ease-in-out infinite;}
+  .load-orb3{width:380px;height:380px;top:34%;left:54%;background:radial-gradient(circle at 50% 50%, #d6e4f0, transparent 70%);animation:orbDrift3 31s ease-in-out infinite;}
+  .load-grid{position:absolute;inset:-50px;background-image:radial-gradient(rgba(30,28,24,.07) 1.4px, transparent 1.4px);background-size:46px 46px;animation:gridDrift 6s linear infinite;
+    -webkit-mask-image:radial-gradient(ellipse 68% 64% at 50% 50%, #000 30%, transparent 78%);mask-image:radial-gradient(ellipse 68% 64% at 50% 50%, #000 30%, transparent 78%);}
+
+  .load-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;padding:0 24px;}
+  .load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{opacity:0;animation:loadRise .7s cubic-bezier(.2,.7,.2,1) forwards;}
+  .load-content .load-logo{animation:loadLogoIn .85s cubic-bezier(.2,.7,.2,1) forwards;}
+  .load-content .load-ring-wrap{animation-delay:.14s;}
+  .load-content .load-steps{animation-delay:.42s;}
+
+  .load-logo{margin-bottom:36px;}
+  .load-logo .brand-wordmark-img{height:64px;width:auto;display:block;}
+  .load-logo .brand-wordmark-text{font-size:54px;}
+
+  .load-ring-wrap{position:relative;width:196px;height:196px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;}
+  .load-ring{display:block;width:196px;height:196px;}
+  .load-ring-deco{transform-box:view-box;transform-origin:60px 60px;animation:ringSpinSlow 18s linear infinite;}
+  #loadArc{transition:stroke-dashoffset .18s linear;}
+  #loadComet{transform-box:view-box;transform-origin:60px 60px;transition:transform .18s linear;filter:drop-shadow(0 0 5px rgba(26,95,58,.55));}
+  .load-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:baseline;gap:2px;font-family:'Playfair Display',serif;color:var(--text);}
+  .load-num #loadingPct{font-size:48px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-1.5px;}
+  .load-num-pct{font-size:20px;font-weight:600;color:var(--accent);transform:translateY(-2px);}
+  .load-check{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+  .load-check path{stroke-dasharray:48;stroke-dashoffset:48;}
+  .load-check.draw path{animation:checkDraw .55s cubic-bezier(.6,0,.3,1) forwards;}
+
+  .load-status{font-family:'Playfair Display',serif;font-size:19px;font-weight:600;color:var(--text);text-align:center;min-height:26px;transition:opacity .26s ease;letter-spacing:.1px;}
+  .load-sub{font-size:12.5px;color:var(--text3);text-align:center;margin-top:7px;min-height:17px;transition:opacity .26s ease;letter-spacing:.25px;}
+  .load-steps{display:flex;align-items:center;gap:7px;width:100%;max-width:300px;margin-top:28px;}
+  .lstep{flex:1;height:4px;border-radius:3px;background:var(--border2);overflow:hidden;position:relative;}
+  .lstep .lstep-fill{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#2d8a57,var(--accent));transform:scaleX(0);transform-origin:left;transition:transform .55s cubic-bezier(.2,.7,.2,1);}
+  .lstep.on .lstep-fill{transform:scaleX(1);}
+  @media (prefers-reduced-motion: reduce){
+    .load-orb,.load-grid,.load-ring-deco{animation:none !important;}
+    .load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{animation:none !important;opacity:1 !important;}
+    #loadComet{transition:none !important;}
+  }
 
   /* ── TOP BAR ── */
   .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05);}
@@ -698,26 +747,55 @@
   display:none;align-items:center;justify-content:center;flex-direction:column;
   transition:opacity .5s ease;
 ">
-  <div style="display:flex;flex-direction:column;align-items:center;animation:loadFadeIn .6s ease;width:100%;max-width:460px;padding:0 24px;">
-    <!-- Skillmatics wordmark with glow-ring pulse animation -->
-    <div class="brand-name" style="margin-bottom:7px;">
-      <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" style="height:38px;animation:loadLogoPulse 2.4s ease-in-out infinite;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
-      <span class="brand-wordmark-text" style="display:none;font-size:36px;">Skillmatics</span>
-    </div>
-    <div class="brand-title" style="font-size:12.5px;color:var(--text3);font-weight:500;letter-spacing:.4px;margin-bottom:30px;">Hamleys Sales Intelligence</div>
+  <!-- Ambient animated background -->
+  <div class="load-bg" aria-hidden="true">
+    <div class="load-orb load-orb1"></div>
+    <div class="load-orb load-orb2"></div>
+    <div class="load-orb load-orb3"></div>
+    <div class="load-grid"></div>
+  </div>
 
-    <!-- ERP-style progress card -->
-    <div style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 26px rgba(30,28,24,.07);padding:22px 24px;">
-      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:11px;">
-        <span id="loadingStatus" style="font-size:14px;font-weight:600;color:var(--text);line-height:1.3;">Establishing secure connection…</span>
-        <span id="loadingPct" style="font-size:15px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;flex-shrink:0;">0%</span>
-      </div>
-      <div style="width:100%;height:7px;border-radius:7px;background:var(--bg);overflow:hidden;">
-        <div id="loadingBar" style="height:100%;width:0%;border-radius:7px;background:linear-gradient(90deg,#2d8a57,var(--accent));box-shadow:0 0 10px rgba(26,95,58,.4);transition:width .55s cubic-bezier(.4,0,.2,1),background .3s;"></div>
-      </div>
-      <div id="loadingSubStatus" style="font-size:11.5px;color:var(--text3);line-height:1.4;min-height:16px;margin-top:11px;">Verifying credentials</div>
-      <div id="loadingSteps" style="display:flex;align-items:center;gap:6px;margin-top:18px;"></div>
+  <!-- Foreground -->
+  <div class="load-content">
+    <!-- Skillmatics wordmark (larger, no glow) -->
+    <div class="brand-name load-logo">
+      <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+      <span class="brand-wordmark-text" style="display:none;">Skillmatics</span>
     </div>
+
+    <!-- Hero progress ring -->
+    <div class="load-ring-wrap">
+      <svg class="load-ring" viewBox="0 0 120 120" width="196" height="196">
+        <defs>
+          <linearGradient id="loadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3ba06a"/>
+            <stop offset="55%" stop-color="#1a5f3a"/>
+            <stop offset="100%" stop-color="#b8892e"/>
+          </linearGradient>
+        </defs>
+        <!-- decorative slow-rotating dashed ring -->
+        <circle class="load-ring-deco" cx="60" cy="60" r="56" fill="none" stroke="#d4cfc5" stroke-width="1" stroke-dasharray="1.5 7"/>
+        <!-- track -->
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#e2ded6" stroke-width="6"/>
+        <!-- progress arc -->
+        <circle id="loadArc" cx="60" cy="60" r="50" fill="none" stroke="url(#loadGrad)" stroke-width="6" stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="314.159" stroke-dashoffset="314.159"/>
+        <!-- comet riding the arc's leading edge -->
+        <g id="loadComet">
+          <circle cx="60" cy="10" r="5.5" fill="#ffffff" stroke="#1a5f3a" stroke-width="2.5"/>
+        </g>
+      </svg>
+      <div class="load-num"><span id="loadingPct">0</span><span class="load-num-pct">%</span></div>
+      <svg id="loadCheck" class="load-check" viewBox="0 0 52 52" width="66" height="66" style="display:none;">
+        <path d="M14 27 l8 8 l16 -18" fill="none" stroke="#1a5f3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- Status -->
+    <div id="loadingStatus" class="load-status">Establishing secure connection</div>
+    <div id="loadingSubStatus" class="load-sub">Authenticating your session</div>
+
+    <!-- Stage tracker -->
+    <div id="loadingSteps" class="load-steps"></div>
   </div>
 </div>
 
@@ -1007,7 +1085,7 @@ async function attemptLogin() {
 
       stopLoadingCycle();
       finishLoading('success', 'Dashboard ready', 'Launching your workspace');
-      setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
+      setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
     } else {
       showLoginError('Invalid username or password. Please try again.');
       btn.disabled = false;
@@ -1069,7 +1147,7 @@ async function refreshData() {
     await loadDashboardData();
     stopLoadingCycle();
     finishLoading('success', 'Dashboard updated', 'Latest figures are in');
-    setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
+    setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
   } catch (e) {
     // Error overlay + fade-out are handled inside loadDashboardData().
     stopLoadingCycle();
@@ -1355,80 +1433,97 @@ function showDashboard() {
 // ═══════════════════════════════════════════════════════════════
 // LOADING OVERLAY HELPERS
 // ═══════════════════════════════════════════════════════════════
-function setLoadingMsg(main, sub) {
+let _msgTO = null;
+function setLoadingMsg(main, sub, instant) {
   const s = document.getElementById('loadingStatus');
   const ss = document.getElementById('loadingSubStatus');
-  if (s) s.textContent = main;
-  if (ss) ss.textContent = sub || '';
+  if (_msgTO) { clearTimeout(_msgTO); _msgTO = null; }
+  const apply = () => {
+    if (s)  { s.textContent = main; s.style.opacity = '1'; }
+    if (ss) { ss.textContent = sub || ''; ss.style.opacity = '1'; }
+  };
+  if (instant) { apply(); return; }
+  if (s)  s.style.opacity = '0';
+  if (ss) ss.style.opacity = '0';
+  _msgTO = setTimeout(apply, 180);
 }
 
-// ── ERP-STYLE LOADING PROGRESS ENGINE ──────────────────────────
-// Drives a determinate progress bar + staged status messages. No file
-// names or row counts are shown. The bar eases toward a soft cap (~96%)
-// — reaching ~85% in roughly 5s — and snaps to 100% when the real data
-// load completes, so it feels right whether the load takes 5s or longer.
+// ── CREATIVE LOADING PROGRESS ENGINE ───────────────────────────
+// Drives a circular progress ring (gradient arc + travelling comet),
+// a count-up percentage, crossfading staged status messages and an
+// animated stage tracker. No file names or row counts are shown. The
+// arc eases toward a soft cap (~96%) — reaching ~83% in roughly 5s —
+// and snaps to 100% when the real data load completes, so it feels
+// right whether the load takes 5s or much longer.
 const LOADING_STAGES = [
-  { p: 6,  main: 'Establishing secure connection…',  sub: 'Authenticating your session' },
-  { p: 22, main: 'Connecting to data warehouse…',    sub: 'Reaching the Skillmatics data layer' },
-  { p: 44, main: 'Retrieving sales data…',           sub: 'Streaming transactions across all periods' },
-  { p: 66, main: 'Consolidating datasets…',          sub: 'Unifying stores, zones & products' },
-  { p: 83, main: 'Computing performance metrics…',   sub: 'Aggregating KPIs, trends & inventory' },
-  { p: 93, main: 'Finalizing your dashboard…',       sub: 'Preparing your workspace' },
+  { p: 6,  main: 'Establishing secure connection', sub: 'Authenticating your session' },
+  { p: 22, main: 'Connecting to data warehouse',   sub: 'Reaching the Skillmatics data layer' },
+  { p: 44, main: 'Retrieving sales data',          sub: 'Streaming transactions across all periods' },
+  { p: 66, main: 'Consolidating datasets',         sub: 'Unifying stores, zones & products' },
+  { p: 83, main: 'Computing performance metrics',  sub: 'Aggregating KPIs, trends & inventory' },
+  { p: 93, main: 'Finalizing your dashboard',      sub: 'Preparing your workspace' },
 ];
-const _LOAD_CAP = 96; // creeps toward this until the real load finishes
+const _LOAD_CAP = 96;                 // creeps toward this until the real load finishes
+const _LOAD_CIRC = 2 * Math.PI * 50;  // ring circumference (r = 50)
 let _loadCycle = null, _loadProgress = 0, _loadStageIdx = -1;
 
 function _renderLoadSteps() {
   const host = document.getElementById('loadingSteps');
   if (!host) return;
-  host.innerHTML = LOADING_STAGES.map(() =>
-    '<div class="lstep" style="flex:1;height:4px;border-radius:3px;background:var(--border2);transition:background .4s ease;"></div>'
-  ).join('');
+  host.innerHTML = LOADING_STAGES.map(() => '<div class="lstep"><div class="lstep-fill"></div></div>').join('');
 }
 
 function _paintLoadProgress() {
-  const p = Math.round(_loadProgress);
-  const bar = document.getElementById('loadingBar');
-  const pct = document.getElementById('loadingPct');
-  if (bar) bar.style.width = p + '%';
-  if (pct) pct.textContent = p + '%';
+  const p = _loadProgress;
+  const arc   = document.getElementById('loadArc');
+  const comet = document.getElementById('loadComet');
+  const pct   = document.getElementById('loadingPct');
+  if (arc)   arc.style.strokeDashoffset = (_LOAD_CIRC * (1 - p / 100)).toFixed(2);
+  if (comet) comet.style.transform = 'rotate(' + (p * 3.6) + 'deg)';
+  if (pct)   pct.textContent = Math.round(p);
   // Advance to the latest stage whose threshold we've crossed.
   let idx = 0;
-  for (let i = 0; i < LOADING_STAGES.length; i++) { if (_loadProgress >= LOADING_STAGES[i].p) idx = i; }
+  for (let i = 0; i < LOADING_STAGES.length; i++) { if (p >= LOADING_STAGES[i].p) idx = i; }
   if (idx !== _loadStageIdx) {
     _loadStageIdx = idx;
     setLoadingMsg(LOADING_STAGES[idx].main, LOADING_STAGES[idx].sub);
   }
   document.querySelectorAll('#loadingSteps .lstep').forEach((el, i) => {
-    el.style.background = (i <= _loadStageIdx) ? 'var(--accent)' : 'var(--border2)';
+    el.classList.toggle('on', i <= _loadStageIdx);
   });
 }
 
 // Reset the overlay back to its "in-progress" look (0%, neutral colour).
 function resetLoadingVisual() {
   _loadProgress = 0; _loadStageIdx = -1;
-  const bar = document.getElementById('loadingBar');
-  const pct = document.getElementById('loadingPct');
-  const s   = document.getElementById('loadingStatus');
-  if (bar) { bar.style.background = 'linear-gradient(90deg,#2d8a57,var(--accent))'; bar.style.width = '0%'; }
-  if (pct) { pct.style.color = 'var(--accent)'; pct.textContent = '0%'; }
-  if (s)   s.style.color = 'var(--text)';
+  const arc   = document.getElementById('loadArc');
+  const comet = document.getElementById('loadComet');
+  const pct   = document.getElementById('loadingPct');
+  const num   = document.querySelector('.load-num');
+  const check = document.getElementById('loadCheck');
+  const s     = document.getElementById('loadingStatus');
+  if (arc)   { arc.style.transition = ''; arc.style.stroke = 'url(#loadGrad)'; arc.style.strokeDashoffset = _LOAD_CIRC.toFixed(2); }
+  if (comet) { comet.style.transition = ''; comet.style.transform = 'rotate(0deg)'; comet.style.display = ''; }
+  if (pct)   { pct.style.color = ''; pct.textContent = '0'; }
+  if (num)   num.style.display = 'flex';
+  if (check) { check.style.display = 'none'; check.classList.remove('draw'); }
+  if (s)     s.style.color = '';
   _renderLoadSteps();
-  setLoadingMsg(LOADING_STAGES[0].main, LOADING_STAGES[0].sub);
+  setLoadingMsg(LOADING_STAGES[0].main, LOADING_STAGES[0].sub, true);
 }
 
 // Begin the animated progress run (function name kept for existing call sites).
 function startLoadingCycle() {
   stopLoadingCycle();
-  if (_loadProgress < 3) _loadProgress = 3;
+  if (_loadProgress < 2) _loadProgress = 2;
   _paintLoadProgress();
   _loadCycle = setInterval(() => {
     // Ease-out: each tick covers a shrinking fraction of the remaining
     // distance to the cap, with a small floor so it never fully stalls.
-    _loadProgress += Math.max(0.25, (_LOAD_CAP - _loadProgress) * 0.035);
+    _loadProgress += Math.max(0.12, (_LOAD_CAP - _loadProgress) * 0.012);
     if (_loadProgress > _LOAD_CAP) _loadProgress = _LOAD_CAP;
     _paintLoadProgress();
-  }, 80);
+  }, 30);
 }
 
 function stopLoadingCycle() {
@@ -1436,21 +1531,30 @@ function stopLoadingCycle() {
 }
 
 // Show the final outcome: state = 'success' | 'error'.
-// Success snaps the bar to 100% and fills every stage; error turns it red.
+// Success fills the ring to 100% and draws a checkmark; error turns it red.
 function finishLoading(state, main, sub) {
   stopLoadingCycle();
-  const bar = document.getElementById('loadingBar');
-  const pct = document.getElementById('loadingPct');
-  const s   = document.getElementById('loadingStatus');
+  const arc   = document.getElementById('loadArc');
+  const comet = document.getElementById('loadComet');
+  const pct   = document.getElementById('loadingPct');
+  const num   = document.querySelector('.load-num');
+  const check = document.getElementById('loadCheck');
+  const s     = document.getElementById('loadingStatus');
   if (state === 'success') {
     _loadProgress = 100;
-    if (bar) bar.style.width = '100%';
-    if (pct) { pct.style.color = 'var(--accent)'; pct.textContent = '100%'; }
-    if (s)   s.style.color = 'var(--text)';
-    document.querySelectorAll('#loadingSteps .lstep').forEach(el => { el.style.background = 'var(--accent)'; });
+    if (arc)   arc.style.transition = 'stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)';
+    if (comet) comet.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
+    _paintLoadProgress();
+    document.querySelectorAll('#loadingSteps .lstep').forEach(el => el.classList.add('on'));
     setLoadingMsg(main, sub);
+    // Once the ring is full, morph the number into a drawn checkmark.
+    setTimeout(() => {
+      if (comet) comet.style.display = 'none';
+      if (num)   num.style.display = 'none';
+      if (check) { check.style.display = 'block'; void check.offsetWidth; check.classList.add('draw'); }
+    }, 600);
   } else {
-    if (bar) bar.style.background = 'var(--red)';
+    if (arc) arc.style.stroke = 'var(--red)';
     if (pct) pct.style.color = 'var(--red)';
     if (s)   s.style.color = 'var(--red)';
     setLoadingMsg(main, sub);
@@ -3895,7 +3999,7 @@ async function init() {
       await loadDashboardData();
       stopLoadingCycle();
       finishLoading('success', 'Dashboard ready', 'Launching your workspace');
-      setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 900);
+      setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
     } catch (err) {
       console.error('Auto-load error:', err);
       stopLoadingCycle();
