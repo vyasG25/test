@@ -2832,6 +2832,7 @@ function renderZoneMoM(){
     const panel  = host.querySelector('#zmpanel-' + key);
     const search = host.querySelector('#zmsearch-'+ key);
     const list   = host.querySelector('#zmlist-'  + key);
+    const badgeEl= host.querySelector('#zmbadge-' + key);
     if (!btn || !panel) return;
     btn.addEventListener('click', ()=>{
       const open = panel.classList.contains('open');
@@ -2847,6 +2848,10 @@ function renderZoneMoM(){
         :'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
       list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
         const v=cb.dataset.v; if(cb.checked) zmomFilt[key].add(v); else zmomFilt[key].delete(v);
+        // Update the green count badge + active state immediately (like Weekly Trends)
+        const n=zmomFilt[key].size;
+        if(badgeEl){ badgeEl.textContent=n; badgeEl.style.display=n?'inline-flex':'none'; }
+        btn.classList.toggle('active', !!n);
         rebuildZoneTable();
       }));
     }
@@ -2902,33 +2907,7 @@ function renderStoreMoM(){
   if (!host) return;
   if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
 
-  // ── Build option lists from RAW ──
-  const zoneOpts = [...new Set(RAW.map(r=>r.zone_name).filter(v=>v!=null&&v!==''))].sort((a,b)=>a.localeCompare(b));
-  const custOpts  = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
-  const catOpts   = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
-  // Validate persisted selections
-  [...storeFilt.zone].forEach(v=>{if(!zoneOpts.includes(v)) storeFilt.zone.delete(v);});
-  [...storeFilt.customer].forEach(v=>{if(!custOpts.includes(v)) storeFilt.customer.delete(v);});
-  [...storeFilt.category].forEach(v=>{if(!catOpts.includes(v)) storeFilt.category.delete(v);});
-
-  // ── Pre-filter RAW ──
-  const workRAW = (storeFilt.zone.size || storeFilt.customer.size || storeFilt.category.size)
-    ? RAW.filter(r =>
-        (!storeFilt.zone.size     || storeFilt.zone.has(String(r.zone_name)))     &&
-        (!storeFilt.customer.size || storeFilt.customer.has(String(r.customer_type))) &&
-        (!storeFilt.category.size || storeFilt.category.has(String(r.store_category)))
-      )
-    : RAW;
-
-  // ── Chip builder (same pattern as Weekly/Brand Trends) ──
-  const allOpts = { zone: zoneOpts, customer: custOpts, category: catOpts };
-  function stChip(key, label) {
-    const n = storeFilt[key].size;
-    const badge = `<span class="mc-badge" id="stbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
-    return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="stbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="stpanel-${key}"><input type="text" class="ms-search" id="stsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="stlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-stact="all" data-stk="${key}">Select All</button><button class="ms-action-btn" data-stact="clear" data-stk="${key}">Clear All</button></div></div></div>`;
-  }
-
-  // ── FY list (from full RAW so pills stay stable while filters change) ──
+  // ── FY list (from full RAW so pills stay stable) ──
   const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return m>=4?y:y-1; };
   const fySet = new Set();
   for (const r of RAW) {
@@ -2942,30 +2921,18 @@ function renderStoreMoM(){
   // ── Metric pills ──
   const mPills = STORE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===storeMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
 
-  const hasActive = storeFilt.zone.size || storeFilt.customer.size || storeFilt.category.size;
-  const periodTag = `${zmomFyLabel(storeFY)} · Apr–Mar`;
-
-  // ── Two-row bt-bar ──
-  // Row 1: Fiscal Year · View (metric) · Reset · period badge
-  // Row 2: Search · Zone · Customer Type · Store Category
+  // ── Single-row bt-bar: Search · Fiscal Year · View · Reset · period badge ──
   host.innerHTML = `
-    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
-        <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
-        <button class="kpi-reset" id="stReset" title="Clear all Store Trends filters">↺ Reset</button>
-        <div class="bt-period" style="margin-left:auto;">
-          <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Apr–Mar</span>
-          <span class="bt-period-tag">Store Trends</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
-        <div class="bt-fg"><label class="bt-flabel">Search</label>
-          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
-            <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
-        <div class="bt-fg"><label class="bt-flabel">Zone</label><div class="bt-chips">${stChip('zone','Zone')}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${stChip('customer','Customer Type')}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${stChip('category','Store Category')}</div></div>
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+      <button class="kpi-reset" id="stReset" title="Clear search">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Apr–Mar</span>
+        <span class="bt-period-tag">Store Trends</span>
       </div>
     </div>
     <div id="stMoMHost"></div>
@@ -2983,58 +2950,14 @@ function renderStoreMoM(){
     si.addEventListener('blur',  ()=>{ storeSearchActive=false; });
     if (storeSearchActive) { si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
   }
-  // ── Wire Reset ──
+  // ── Wire Reset (clears the search box) ──
   const rb = host.querySelector('#stReset');
-  if (rb) rb.addEventListener('click', ()=>{ storeFilt.zone.clear(); storeFilt.customer.clear(); storeFilt.category.clear(); renderStoreMoM(); });
+  if (rb) rb.addEventListener('click', ()=>{ storeSearch=''; storeSearchActive=false; renderStoreMoM(); });
 
-  // ── Wire filter chips ──
-  ['zone','customer','category'].forEach(key=>{
-    const btn    = host.querySelector('#stbtn-'   + key);
-    const panel  = host.querySelector('#stpanel-' + key);
-    const search = host.querySelector('#stsearch-'+ key);
-    const list   = host.querySelector('#stlist-'  + key);
-    if (!btn || !panel) return;
-    btn.addEventListener('click', ()=>{
-      const open = panel.classList.contains('open');
-      host.querySelectorAll('.mc-panel.open').forEach(p=>{p.classList.remove('open');});
-      host.querySelectorAll('.mc-btn.open').forEach(b=>{b.classList.remove('open');});
-      if (!open){ panel.classList.add('open'); btn.classList.add('open'); if(search) setTimeout(()=>search.focus(),0); }
-    });
-    function renderStList(sq){
-      sq=(sq||'').trim().toLowerCase();
-      const items=allOpts[key].filter(o=>!sq||o.toLowerCase().includes(sq));
-      list.innerHTML=items.length
-        ?items.map(o=>`<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${storeFilt[key].has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join('')
-        :'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
-      list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
-        const v=cb.dataset.v; if(cb.checked) storeFilt[key].add(v); else storeFilt[key].delete(v);
-        rebuildStoreTable();
-      }));
-    }
-    if (search) search.addEventListener('input',()=>renderStList(search.value));
-    renderStList('');
-  });
-  host.querySelectorAll('.ms-action-btn[data-stk]').forEach(b=>b.addEventListener('click',()=>{
-    const key=b.dataset.stk, sb=host.querySelector('#stsearch-'+key);
-    if(b.dataset.stact==='all'){
-      const sq=(sb&&sb.value?sb.value:'').trim().toLowerCase();
-      (sq?allOpts[key].filter(o=>o.toLowerCase().includes(sq)):allOpts[key]).forEach(v=>storeFilt[key].add(v));
-    } else { storeFilt[key].clear(); if(sb) sb.value=''; }
-    renderStoreMoM();
-  }));
-
-  // ── Build table (called on initial render + chip checkbox changes) ──
+  // ── Build table ──
   rebuildStoreTable();
 
   function rebuildStoreTable(){
-    const fRAW = (storeFilt.zone.size || storeFilt.customer.size || storeFilt.category.size)
-      ? RAW.filter(r =>
-          (!storeFilt.zone.size     || storeFilt.zone.has(String(r.zone_name)))     &&
-          (!storeFilt.customer.size || storeFilt.customer.has(String(r.customer_type))) &&
-          (!storeFilt.category.size || storeFilt.category.has(String(r.store_category)))
-        )
-      : RAW;
-    const saved = RAW; RAW = fRAW;
     buildMoM({
       hostId:'stMoMHost', mode:'store', wrapDims:true, hideControls:true,
       dims:[{label:'Zone',key:'zone',w:74},{label:'State',key:'state',w:100},{label:'City',key:'city',w:100},
@@ -3051,15 +2974,6 @@ function renderStoreMoM(){
       getMetric:()=>storeMetric, setMetric:v=>{storeMetric=v;},
       getSearch:()=>storeSearch, setSearch:v=>{storeSearch=v;},
     });
-    RAW = saved;
-    // Re-wire search inside rebuilt table area (buildMoM writes its own .zmom-search)
-    const tsi = host.querySelector('#stMoMHost .zmom-search');
-    if (tsi) {
-      tsi.addEventListener('input',()=>{ storeSearch=tsi.value; storeSearchActive=true; rebuildStoreTable(); });
-      tsi.addEventListener('focus',()=>{ storeSearchActive=true; });
-      tsi.addEventListener('blur', ()=>{ storeSearchActive=false; });
-      if (storeSearchActive){ tsi.focus(); const L=tsi.value.length; tsi.setSelectionRange(L,L); }
-    }
   }
 }
 
@@ -3240,7 +3154,7 @@ function renderProductMoM(){
     if(prodSearchActive){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
   }
   const prst=host.querySelector('#ptReset');
-  if(prst) prst.addEventListener('click',()=>{ prodFilt.store.clear(); prodFilt.customer.clear(); prodFilt.category.clear(); renderProductMoM(); });
+  if(prst) prst.addEventListener('click',()=>{ prodFilt.store.clear(); prodFilt.customer.clear(); prodFilt.category.clear(); prodSearch=''; prodSearchActive=false; renderProductMoM(); });
 
   ['store','customer','category'].forEach(key=>{
     const btn=host.querySelector('#ptbtn-'+key), panel=host.querySelector('#ptpanel-'+key);
