@@ -51,56 +51,70 @@
   @keyframes shimmer{0%,100%{opacity:.13;}50%{opacity:.22;}}
 
   /* ── ANIMATED LOADING OVERLAY ── */
-  #loadingOverlay{overflow:hidden;}
+  #loadingOverlay{overflow:hidden;background:#f3f1ed;}
   .load-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
 
-  /* Stronger, richer orbs */
-  .load-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.65;will-change:transform;}
-  .load-orb1{width:520px;height:520px;top:-150px;left:-120px;background:radial-gradient(circle at 35% 35%,#a8dfc0,#c8edd8,transparent 68%);animation:orbDrift1 22s ease-in-out infinite;}
-  .load-orb2{width:600px;height:600px;bottom:-190px;right:-140px;background:radial-gradient(circle at 60% 40%,#f5d49a,#fde9c4,transparent 68%);animation:orbDrift2 27s ease-in-out infinite;}
-  .load-orb3{width:420px;height:420px;top:34%;left:54%;background:radial-gradient(circle at 50% 50%,#b4d4f0,#d0e8f8,transparent 68%);animation:orbDrift3 31s ease-in-out infinite;}
-  .load-orb4{width:320px;height:320px;top:10%;right:8%;background:radial-gradient(circle at 45% 55%,#e8c8f0,#f4e0f8,transparent 68%);animation:orbDrift4 19s ease-in-out infinite;}
-
-  /* Animated dot grid — tighter, more visible */
-  .load-grid{position:absolute;inset:-50px;background-image:radial-gradient(rgba(30,28,24,.10) 1.6px, transparent 1.6px);background-size:40px 40px;animation:gridDrift 5s linear infinite;
-    -webkit-mask-image:radial-gradient(ellipse 72% 68% at 50% 50%, #000 20%, transparent 80%);mask-image:radial-gradient(ellipse 72% 68% at 50% 50%, #000 20%, transparent 80%);}
+  /* Subtle neutral dot grid only (no colored orbs) */
+  .load-grid{position:absolute;inset:-50px;background-image:radial-gradient(rgba(30,28,24,.06) 1.4px, transparent 1.4px);background-size:42px 42px;animation:gridDrift 6s linear infinite;
+    -webkit-mask-image:radial-gradient(ellipse 78% 74% at 50% 50%, #000 30%, transparent 88%);mask-image:radial-gradient(ellipse 78% 74% at 50% 50%, #000 30%, transparent 88%);}
 
   /* ── PRODUCT CARD FLOATERS ── */
   .load-cards{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
   .lcard{
     position:absolute;
-    width:115px;height:115px;
-    border-radius:16px;
+    border-radius:18px;
     background:#f0ede7;
-    box-shadow:0 8px 32px rgba(30,28,24,.12), 0 1px 4px rgba(30,28,24,.07);
-    border:1.5px solid rgba(255,255,255,.9);
+    box-shadow:0 10px 36px rgba(30,28,24,.14), 0 2px 6px rgba(30,28,24,.08);
+    border:2px solid rgba(255,255,255,.92);
     overflow:hidden;
-    opacity:0;
-    will-change:transform,opacity;
-    transition:opacity 1s ease;
+    will-change:transform;
   }
   .lcard img{width:100%;height:100%;object-fit:cover;display:block;}
-  .lcard img[src]{opacity:1;}
-  /* Staggered fade-in via animation-delay on each card */
-  .lcard:nth-child(1) {top:3%;   left:2%;   width:130px;height:130px; animation:cardFloat1 20s ease-in-out infinite; animation-delay:0s;   opacity:.2;}
-  .lcard:nth-child(2) {top:1%;   left:22%;  width:105px;height:105px; animation:cardFloat2 24s ease-in-out infinite; animation-delay:-3s;  opacity:.17;}
-  .lcard:nth-child(3) {top:2%;   right:22%; width:108px;height:108px; animation:cardFloat3 22s ease-in-out infinite; animation-delay:-7s;  opacity:.18;}
-  .lcard:nth-child(4) {top:3%;   right:2%;  width:125px;height:125px; animation:cardFloat4 19s ease-in-out infinite; animation-delay:-1s;  opacity:.2;}
-  .lcard:nth-child(5) {top:35%;  left:1%;   width:112px;height:112px; animation:cardFloat5 26s ease-in-out infinite; animation-delay:-5s;  opacity:.17;}
-  .lcard:nth-child(6) {top:35%;  right:1%;  width:118px;height:118px; animation:cardFloat6 21s ease-in-out infinite; animation-delay:-9s;  opacity:.18;}
-  .lcard:nth-child(7) {top:62%;  left:2%;   width:108px;height:108px; animation:cardFloat7 23s ease-in-out infinite; animation-delay:-2s;  opacity:.17;}
-  .lcard:nth-child(8) {top:62%;  right:2%;  width:120px;height:120px; animation:cardFloat8 25s ease-in-out infinite; animation-delay:-6s;  opacity:.2;}
-  .lcard:nth-child(9) {bottom:3%;left:2%;   width:130px;height:130px; animation:cardFloat1 18s ease-in-out infinite; animation-delay:-4s;  opacity:.2;}
-  .lcard:nth-child(10){bottom:2%;left:22%;  width:105px;height:105px; animation:cardFloat3 27s ease-in-out infinite; animation-delay:-8s;  opacity:.17;}
-  .lcard:nth-child(11){bottom:2%;right:22%; width:110px;height:110px; animation:cardFloat2 20s ease-in-out infinite; animation-delay:-11s; opacity:.17;}
-  .lcard:nth-child(12){bottom:3%;right:2%;  width:126px;height:126px; animation:cardFloat4 22s ease-in-out infinite; animation-delay:-13s; opacity:.2;}
-  .lcard:nth-child(13){top:18%;  left:6%;   width:100px;height:100px; animation:cardFloat6 29s ease-in-out infinite; animation-delay:-15s; opacity:.14;}
-  .lcard:nth-child(14){top:18%;  right:6%;  width:100px;height:100px; animation:cardFloat5 23s ease-in-out infinite; animation-delay:-12s; opacity:.14;}
-  .lcard:nth-child(15){bottom:20%;left:7%;  width:96px; height:96px;  animation:cardFloat7 28s ease-in-out infinite; animation-delay:-16s; opacity:.13;}
-  /* Vignette — fades cards out near center so progress ring stays clean */
+  /* Per-card position / size / float / opacity (full-screen grid, visible from the start) */
+  .lcard:nth-child(1){left:0.9%;top:-0.0%;width:160px;height:160px;animation:cardFloat1 19s ease-in-out infinite;animation-delay:-17s;opacity:0.44;}
+  .lcard:nth-child(2){left:12.0%;top:1.9%;width:155px;height:155px;animation:cardFloat4 18s ease-in-out infinite;animation-delay:-2s;opacity:0.44;}
+  .lcard:nth-child(3){left:25.3%;top:-0.4%;width:130px;height:130px;animation:cardFloat7 18s ease-in-out infinite;animation-delay:-18s;opacity:0.44;}
+  .lcard:nth-child(4){left:36.1%;top:0.3%;width:160px;height:160px;animation:cardFloat1 27s ease-in-out infinite;animation-delay:-18s;opacity:0.42;}
+  .lcard:nth-child(5){left:49.1%;top:3.6%;width:130px;height:130px;animation:cardFloat3 22s ease-in-out infinite;animation-delay:-13s;opacity:0.42;}
+  .lcard:nth-child(6){left:60.2%;top:-0.2%;width:145px;height:145px;animation:cardFloat3 19s ease-in-out infinite;animation-delay:-18s;opacity:0.44;}
+  .lcard:nth-child(7){left:73.8%;top:0.1%;width:130px;height:130px;animation:cardFloat2 27s ease-in-out infinite;animation-delay:-1s;opacity:0.44;}
+  .lcard:nth-child(8){left:85.9%;top:1.5%;width:155px;height:155px;animation:cardFloat7 30s ease-in-out infinite;animation-delay:-10s;opacity:0.44;}
+  .lcard:nth-child(9){left:1.4%;top:21.9%;width:145px;height:145px;animation:cardFloat5 21s ease-in-out infinite;animation-delay:-5s;opacity:0.44;}
+  .lcard:nth-child(10){left:14.2%;top:18.9%;width:155px;height:155px;animation:cardFloat5 26s ease-in-out infinite;animation-delay:-15s;opacity:0.43;}
+  .lcard:nth-child(11){left:26.9%;top:21.0%;width:145px;height:145px;animation:cardFloat2 19s ease-in-out infinite;animation-delay:-16s;opacity:0.41;}
+  .lcard:nth-child(12){left:37.2%;top:21.1%;width:140px;height:140px;animation:cardFloat8 24s ease-in-out infinite;animation-delay:-1s;opacity:0.39;}
+  .lcard:nth-child(13){left:51.2%;top:18.1%;width:155px;height:155px;animation:cardFloat6 23s ease-in-out infinite;animation-delay:-11s;opacity:0.39;}
+  .lcard:nth-child(14){left:61.8%;top:20.4%;width:150px;height:150px;animation:cardFloat2 19s ease-in-out infinite;animation-delay:-8s;opacity:0.41;}
+  .lcard:nth-child(15){left:73.4%;top:20.7%;width:130px;height:130px;animation:cardFloat5 28s ease-in-out infinite;animation-delay:-18s;opacity:0.43;}
+  .lcard:nth-child(16){left:87.3%;top:21.4%;width:145px;height:145px;animation:cardFloat7 28s ease-in-out infinite;animation-delay:-11s;opacity:0.44;}
+  .lcard:nth-child(17){left:-0.2%;top:38.8%;width:140px;height:140px;animation:cardFloat2 25s ease-in-out infinite;animation-delay:-1s;opacity:0.41;}
+  .lcard:nth-child(18){left:12.5%;top:38.1%;width:160px;height:160px;animation:cardFloat4 24s ease-in-out infinite;animation-delay:-12s;opacity:0.39;}
+  .lcard:nth-child(19){left:27.0%;top:39.0%;width:140px;height:140px;animation:cardFloat8 24s ease-in-out infinite;animation-delay:-17s;opacity:0.37;}
+  .lcard:nth-child(20){left:36.7%;top:37.4%;width:150px;height:150px;animation:cardFloat5 29s ease-in-out infinite;animation-delay:-13s;opacity:0.35;}
+  .lcard:nth-child(21){left:51.3%;top:39.8%;width:150px;height:150px;animation:cardFloat4 20s ease-in-out infinite;animation-delay:-2s;opacity:0.35;}
+  .lcard:nth-child(22){left:60.3%;top:37.8%;width:140px;height:140px;animation:cardFloat1 25s ease-in-out infinite;animation-delay:-18s;opacity:0.37;}
+  .lcard:nth-child(23){left:72.4%;top:38.0%;width:140px;height:140px;animation:cardFloat7 26s ease-in-out infinite;animation-delay:-11s;opacity:0.39;}
+  .lcard:nth-child(24){left:85.9%;top:38.2%;width:140px;height:140px;animation:cardFloat1 25s ease-in-out infinite;animation-delay:-17s;opacity:0.41;}
+  .lcard:nth-child(25){left:1.1%;top:58.1%;width:130px;height:130px;animation:cardFloat8 28s ease-in-out infinite;animation-delay:-12s;opacity:0.44;}
+  .lcard:nth-child(26){left:11.9%;top:56.6%;width:140px;height:140px;animation:cardFloat8 20s ease-in-out infinite;animation-delay:-3s;opacity:0.43;}
+  .lcard:nth-child(27){left:24.9%;top:56.5%;width:130px;height:130px;animation:cardFloat3 26s ease-in-out infinite;animation-delay:-3s;opacity:0.41;}
+  .lcard:nth-child(28){left:39.1%;top:59.0%;width:130px;height:130px;animation:cardFloat4 27s ease-in-out infinite;animation-delay:-12s;opacity:0.39;}
+  .lcard:nth-child(29){left:48.2%;top:57.4%;width:145px;height:145px;animation:cardFloat6 25s ease-in-out infinite;animation-delay:-3s;opacity:0.39;}
+  .lcard:nth-child(30){left:60.1%;top:58.4%;width:150px;height:150px;animation:cardFloat8 25s ease-in-out infinite;animation-delay:-9s;opacity:0.41;}
+  .lcard:nth-child(31){left:72.0%;top:56.7%;width:145px;height:145px;animation:cardFloat5 25s ease-in-out infinite;animation-delay:-5s;opacity:0.43;}
+  .lcard:nth-child(32){left:85.6%;top:57.2%;width:155px;height:155px;animation:cardFloat6 20s ease-in-out infinite;animation-delay:-17s;opacity:0.44;}
+  .lcard:nth-child(33){left:3.0%;top:79.1%;width:145px;height:145px;animation:cardFloat2 29s ease-in-out infinite;animation-delay:-8s;opacity:0.44;}
+  .lcard:nth-child(34){left:13.6%;top:79.8%;width:145px;height:145px;animation:cardFloat4 26s ease-in-out infinite;animation-delay:-17s;opacity:0.44;}
+  .lcard:nth-child(35){left:26.5%;top:77.3%;width:140px;height:140px;animation:cardFloat4 30s ease-in-out infinite;animation-delay:-7s;opacity:0.44;}
+  .lcard:nth-child(36){left:38.6%;top:79.1%;width:140px;height:140px;animation:cardFloat4 26s ease-in-out infinite;animation-delay:-15s;opacity:0.42;}
+  .lcard:nth-child(37){left:49.0%;top:75.9%;width:130px;height:130px;animation:cardFloat5 25s ease-in-out infinite;animation-delay:-8s;opacity:0.42;}
+  .lcard:nth-child(38){left:60.4%;top:78.5%;width:145px;height:145px;animation:cardFloat8 30s ease-in-out infinite;animation-delay:-11s;opacity:0.44;}
+  .lcard:nth-child(39){left:75.1%;top:77.4%;width:140px;height:140px;animation:cardFloat2 21s ease-in-out infinite;animation-delay:-15s;opacity:0.44;}
+  .lcard:nth-child(40){left:84.4%;top:76.7%;width:155px;height:155px;animation:cardFloat1 25s ease-in-out infinite;animation-delay:-11s;opacity:0.44;}
+  /* Vignette — gently fades cards near the very center so the ring + logo stay readable */
   .load-cards::after{
     content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse 52% 48% at 50% 50%, var(--bg) 28%, transparent 70%);
+    background:radial-gradient(ellipse 45% 42% at 50% 50%, #f3f1ed 26%, transparent 66%);
     pointer-events:none;
   }
 
@@ -134,7 +148,7 @@
   .lstep .lstep-fill{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#2d8a57,var(--accent));transform:scaleX(0);transform-origin:left;transition:transform .55s cubic-bezier(.2,.7,.2,1);}
   .lstep.on .lstep-fill{transform:scaleX(1);}
   @media (prefers-reduced-motion: reduce){
-    .load-orb,.load-grid,.load-ring-deco,.lcard{animation:none !important;}
+    .load-grid,.load-ring-deco,.lcard{animation:none !important;}
     .load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{animation:none !important;opacity:1 !important;}
     #loadComet{transition:none !important;}
   }
@@ -804,31 +818,53 @@
   transition:opacity .5s ease;
 ">
   <!-- Ambient animated background -->
+  <!-- Neutral textured background (no colored orbs) -->
   <div class="load-bg" aria-hidden="true">
-    <div class="load-orb load-orb1"></div>
-    <div class="load-orb load-orb2"></div>
-    <div class="load-orb load-orb3"></div>
-    <div class="load-orb load-orb4"></div>
     <div class="load-grid"></div>
   </div>
 
   <!-- Floating bestseller product cards (background layer, hardcoded CDN URLs) -->
   <div class="load-cards" aria-hidden="true" id="loadCards">
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514691/UVfxWzI8Ojh0-494514691_1.jpg?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL28NTB/0/MKbmj2EbnA-491603818-1.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL201RR/0/IpBaANPxuI-492908399-1_2980.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892737/j8ClA1POSL-491892737-1.jpg?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176584/0/606zZospln-493176584-1_5767.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL35GAW/0/Z7aAOh3yac-491568705-1_5870.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892736/x20C0Xd1CEM-491892736-1.jpg?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL237FBG/0/_SO_lBt-pE-492908407-1_7960.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176580/0/zznDRkWjB5-493176580-1_1144.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423356/0/sgD4vsPK8q-494423356-1_6733.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL234ICWU/0/2UxlBqFMtV-492908409-1.jpg?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL128TOT/0/H5UUcWCdbZ-492908404-1_4495.webp?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347865/0/RA37Ud9Dbw-494347865-1.jpg?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514681/qdxlkiqNlp9c-494514681_1.jpg?dpr=1" alt="" loading="lazy"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176580/0/zznDRkWjB5-493176580-1_1144.webp?dpr=1" alt="" loading="lazy"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL28NTB/0/MKbmj2EbnA-491603818-1.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514691/UVfxWzI8Ojh0-494514691_1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL201RR/0/IpBaANPxuI-492908399-1_2980.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892737/j8ClA1POSL-491892737-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493175401/0/8t7PyPciNh-493175401-1_7149.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176584/0/606zZospln-493176584-1_5767.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL35GAW/0/Z7aAOh3yac-491568705-1_5870.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892736/x20C0Xd1CEM-491892736-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL237FBG/0/_SO_lBt-pE-492908407-1_7960.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176581/0/DblYM7RHUZd-493176581-1_6223.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL36GWS/0/G5rzzZt3HB-491568706-1_6910.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423356/0/sgD4vsPK8q-494423356-1_6733.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL234ICWU/0/2UxlBqFMtV-492908409-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492365397/SaM-JJUUJD-492365397-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL232GBAW/0/_UxLXrKO44-492908408-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL128TOT/0/H5UUcWCdbZ-492908404-1_4495.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176580/0/zznDRkWjB5-493176580-1_1144.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347879/0/VGVA8GqIjfq-494347879-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423354/0/wYyJ8uthhS-494423354-1_7540.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL119PCB/0/liPEwSMjra-492908402-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892740/hKRco90nfr-491892740-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423355/0/igwz4S7-iD-494423355-1_7835.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494500669/uZlybJEcv-494500669_1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494348582/0/Db55fANkXR-494348582-1_7596.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176583/0/H82s_7mjca-493176583-1_4257.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377539/IVBAp8PEcq-494377539-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347877/0/6ewqSauT5f-494347877-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492407473/v5vgHw8JdU-492407473-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176579/0/oFNKpCmIdzQ-493176579-1_6578.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL194FWH/0/FZHD8d_iURQ-492908400-1_6233.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494230158/0/kx5Q9iQc_W-494230158-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL120CWB/0/FKuQn257A92-492908403-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347876/0/89Bx0blwdK4-494347876-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377540/0/TMwT6Ksj7g-494377540-1_1140.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892739/7DXYxhjNBk-491892739.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL06SEB/0/tBRImV6HDZ-491334540-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377541/0/y67t7EMpMT-494377541-1_4722.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377536/H3UAVGyhtQ-494377536-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492409461/591fDCVZfiqz-492409461-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347878/0/2lvXU_6zWo-494347878-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
   </div>
 
   <!-- Foreground -->
