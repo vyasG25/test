@@ -1586,7 +1586,6 @@ async function loadDashboardData() {
           zone_name: str(row['zone']),
           state_name: str(row['state']),
           city_name: str(row['city']),
-          region_name: str(row['region']),
           brand_name: str(row['brand']),
           sales_person: str(row['sales_person']),
           inv_number: str(row['inv_number']),
@@ -2171,7 +2170,7 @@ function refreshDependents(key) {
     const sb = document.getElementById('mc-search-' + dk);
     renderList(cfg, sb ? sb.value : '');
     updateTrigger(cfg);
-    refreshDependents(dk); // recurse (e.g. zone -> state -> region -> store)
+    refreshDependents(dk); // recurse (e.g. zone -> state -> store)
   }
 }
 
@@ -2397,21 +2396,21 @@ function renderInvoices(){
       const key=r.inv_number || (r.store_code+'|'+r.bill_date);
       let o=inv[key];
       if(!o) o=inv[key]={ inv:r.inv_number||'—', date:r.bill_date||'', code:r.store_code||'—', name:r.store_name||'—',
-        zone:r.zone_name||'—', region:r.region_name||'—', state:r.state_name||'—', city:r.city_name||'—',
+        zone:r.zone_name||'—', state:r.state_name||'—', city:r.city_name||'—',
         sp:r.sales_person||'—', qty:0, val:0, skus:new Set() };
       o.qty+=r.quantity; o.val+=r.amount; if(r.product_code) o.skus.add(r.product_code);
     }
     let rows=Object.values(inv);
     const sq=invSearch.trim().toLowerCase();
-    if(sq) rows=rows.filter(o=>[o.inv,o.code,o.name,o.zone,o.region,o.state,o.city,o.sp].some(v=>String(v).toLowerCase().includes(sq)));
+    if(sq) rows=rows.filter(o=>[o.inv,o.code,o.name,o.zone,o.state,o.city,o.sp].some(v=>String(v).toLowerCase().includes(sq)));
     rows.sort((a,b)=> (a.date<b.date?1:a.date>b.date?-1:0) || String(b.inv).localeCompare(String(a.inv),undefined,{numeric:true}));
     let tQty=0,tVal=0; const tSku=new Set();
     rows.forEach(o=>{ tQty+=o.qty; tVal+=o.val; o.skus.forEach(s=>tSku.add(s)); });
     const fmtDate=iso=>{ if(!iso||iso.length<10) return '—'; const [y,m,d]=iso.split('-'); return d+' '+MON[+m-1]+' '+y.slice(2); };
-    const head=`<thead><tr><th>Date</th><th>Inv No</th><th>Cust Code</th><th>Cust Name</th><th>Zone</th><th>Region</th><th>State</th><th>City</th><th>Sales Person</th><th class="num">Qty</th><th class="num">Value</th><th class="num">ASP</th><th class="num">Products</th></tr></thead>`;
-    const body=rows.length? rows.map(o=>`<tr><td>${fmtDate(o.date)}</td><td class="code">${escapeHtml(o.inv)}</td><td class="code">${escapeHtml(o.code)}</td><td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.zone)}</td><td>${escapeHtml(o.region)}</td><td>${escapeHtml(o.state)}</td><td>${escapeHtml(o.city)}</td><td>${escapeHtml(o.sp)}</td><td class="num">${fmt(o.qty)}</td><td class="num val">${fmtRs(o.val)}</td><td class="num">${o.qty?fmtRs(o.val/o.qty):'—'}</td><td class="num">${fmt(o.skus.size)}</td></tr>`).join('')
-      : `<tr><td colspan="13" style="text-align:center;padding:22px;color:var(--text3)">No invoices match the current Year / Month / Search.</td></tr>`;
-    const total=rows.length?`<tr class="total-row"><td colspan="9">Total · ${fmt(rows.length)} invoices</td><td class="num">${fmt(tQty)}</td><td class="num">${fmtRs(tVal)}</td><td class="num">${tQty?fmtRs(tVal/tQty):'—'}</td><td class="num">${fmt(tSku.size)}</td></tr>`:'';
+    const head=`<thead><tr><th>Date</th><th>Inv No</th><th>Cust Code</th><th>Cust Name</th><th>Zone</th><th>State</th><th>City</th><th>Sales Person</th><th class="num">Qty</th><th class="num">Value</th><th class="num">ASP</th><th class="num">Products</th></tr></thead>`;
+    const body=rows.length? rows.map(o=>`<tr><td>${fmtDate(o.date)}</td><td class="code">${escapeHtml(o.inv)}</td><td class="code">${escapeHtml(o.code)}</td><td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.zone)}</td><td>${escapeHtml(o.state)}</td><td>${escapeHtml(o.city)}</td><td>${escapeHtml(o.sp)}</td><td class="num">${fmt(o.qty)}</td><td class="num val">${fmtRs(o.val)}</td><td class="num">${o.qty?fmtRs(o.val/o.qty):'—'}</td><td class="num">${fmt(o.skus.size)}</td></tr>`).join('')
+      : `<tr><td colspan="12" style="text-align:center;padding:22px;color:var(--text3)">No invoices match the current Year / Month / Search.</td></tr>`;
+    const total=rows.length?`<tr class="total-row"><td colspan="8">Total · ${fmt(rows.length)} invoices</td><td class="num">${fmt(tQty)}</td><td class="num">${fmtRs(tVal)}</td><td class="num">${tQty?fmtRs(tVal/tQty):'—'}</td><td class="num">${fmt(tSku.size)}</td></tr>`:'';
     document.getElementById('invTblHost').innerHTML=`<div class="inv-wrap"><table class="inv-tbl">${head}<tbody>${body}${total}</tbody></table></div>`;
   }
 
@@ -3278,7 +3277,6 @@ function zmomTargetByStoreMonth() {
   dimKeys.forEach(k => { if (k === kCode) return; let m = 0; for (const row of TARGET_RAW) { if (salesNames.has(String(row[k]))) m++; } if (m > bestN) { bestN = m; kName = k; } });
   const kZone = dimKeys.find(k => /zone/i.test(k));
   const kState = dimKeys.find(k => /state/i.test(k));
-  const kRegion = dimKeys.find(k => /region/i.test(k));
   const monthCols = keys.filter(k => monthRe.test(k))
     .map(k => { const [mm, yy] = k.split('-'); return { col: k, key: '20' + yy + '-' + ZMOM_MON3[mm.toLowerCase()] }; })
     .filter(mc => mc.key && /^\d{4}-\d{2}$/.test(mc.key));
@@ -3287,7 +3285,7 @@ function zmomTargetByStoreMonth() {
     const ct = out[code] || (out[code] = {});
     if (!meta[code]) meta[code] = {
       zone: kZone ? row[kZone] : '—', state: kState ? row[kState] : '—',
-      region: kRegion ? row[kRegion] : '—', code: code, name: kName ? String(row[kName]) : code,
+      code: code, name: kName ? String(row[kName]) : code,
     };
     for (const mc of monthCols) { const v = +row[mc.col] || 0; if (v) ct[mc.key] = (ct[mc.key] || 0) + v; }
   }
@@ -3309,7 +3307,6 @@ function renderTargetAch(){
   const dimKeys=keys.filter(k=>!monthRe.test(k));
   const kZone=dimKeys.find(k=>/zone/i.test(k))||dimKeys[0];
   const kState=dimKeys.find(k=>/state/i.test(k));
-  const kRegion=dimKeys.find(k=>/region/i.test(k));
   const salesCodes=new Set(RAW.map(r=>r.store_code));
   let kCode=null,best=-1;
   dimKeys.forEach(k=>{let m=0;for(const row of TARGET_RAW){if(salesCodes.has(String(row[k])))m++;}if(m>best){best=m;kCode=k;}});
