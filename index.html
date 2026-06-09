@@ -670,21 +670,22 @@
   .ta-grid{display:grid;grid-template-columns:300px 1fr;gap:16px;margin-bottom:8px;}
   .ta-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;}
   .ta-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:linear-gradient(150deg,#fff,#f5f8fb);}
-  .ta-hero-month{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--blue);}
+  .ta-hero-month{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--blue-dark);background:var(--blue-light);padding:4px 12px;border-radius:999px;}
   .ta-ring{position:relative;width:160px;height:160px;border-radius:50%;display:grid;place-items:center;}
   .ta-ring::after{content:"";position:absolute;inset:14px;background:var(--surface);border-radius:50%;box-shadow:inset 0 1px 4px rgba(0,0,0,.05);}
   .ta-ring-in{position:relative;z-index:1;text-align:center;}
   .ta-ring-pct{font-size:34px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
   .ta-ring-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-top:3px;}
-  .ta-hero-fig{display:flex;gap:18px;width:100%;justify-content:center;border-top:1px dashed var(--border2);padding-top:13px;}
-  .ta-fig{text-align:center;}
+  .ta-hero-fig{display:flex;gap:10px;width:100%;justify-content:center;align-items:stretch;background:var(--surface2);border:1px solid #ece8e0;border-radius:10px;padding:11px 8px;}
+  .ta-fig{flex:1;text-align:center;}
   .ta-fig .v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);}
   .ta-fig .k{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-top:2px;}
   .ta-fig.actual .v{color:var(--accent);} .ta-fig.target .v{color:var(--blue);}
-  .ta-hero-total{display:flex;align-items:center;justify-content:space-between;width:100%;border-top:1px dashed var(--border2);padding-top:11px;margin-top:1px;}
-  .ta-total-k{display:flex;flex-direction:column;gap:1px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1e1c18;background:#f0ede7;padding:6px 10px;border-radius:var(--rs);border:1px solid var(--border);}
-  .ta-total-note{font-size:8.5px;font-weight:600;letter-spacing:.1px;color:var(--text3);text-transform:none;opacity:.85;}
-  .ta-total-v{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);}
+  .ta-fig.target{border-left:1px solid var(--border);}
+  .ta-hero-total{display:flex;align-items:center;justify-content:space-between;width:100%;background:#f0ede7;border:1px solid var(--border);border-radius:10px;padding:9px 12px;}
+  .ta-total-k{display:flex;flex-direction:column;gap:1px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1e1c18;}
+  .ta-total-note{font-size:8.5px;font-weight:600;letter-spacing:.1px;color:#7a756c;text-transform:none;}
+  .ta-total-v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:#1e1c18;}
   .ta-bars-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
   .ta-bars-title{font-size:13px;font-weight:700;color:var(--text);}
   .ta-bars-legend{font-size:10.5px;color:var(--text3);display:flex;gap:12px;}
@@ -3421,14 +3422,15 @@ function renderTargetAch(){
 
   const overallPct=totT?totAch/totT*100:null;
   const ringColor=overallPct==null?'#c4bdb0':(overallPct>=100?'var(--green)':overallPct>=80?'var(--gold)':'var(--red)');
+  const ringGlow=overallPct==null?'196,189,176':(overallPct>=100?'45,122,78':overallPct>=80?'184,137,46':'184,60,66');
   const ringDeg=overallPct==null?0:Math.min(overallPct,100)*3.6;
-  const ring=`<div class="ta-ring" style="background:conic-gradient(${ringColor} ${ringDeg}deg,#e7e3da 0deg)">
+  const ring=`<div class="ta-ring" style="background:conic-gradient(${ringColor} ${ringDeg}deg,#e7e3da 0deg);box-shadow:0 0 0 6px rgba(${ringGlow},.06),0 6px 20px rgba(${ringGlow},.18)">
       <div class="ta-ring-in"><div class="ta-ring-pct" style="color:${ringColor}">${overallPct==null?'—':overallPct.toFixed(1)+'%'}</div><div class="ta-ring-lbl">vs Target</div></div>
     </div>`;
   const hero=`<div class="ta-card ta-hero">
       <div class="ta-hero-month">${monLabel}</div>${ring}
       <div class="ta-hero-fig">
-        <div class="ta-fig actual"><div class="v">${totT?fmtV(totAch):'—'}</div><div class="k">Achieved vs Target</div></div>
+        <div class="ta-fig actual"><div class="v">${totT?fmtV(totAch):'—'}</div><div class="k">Achieved</div></div>
         <div class="ta-fig target"><div class="v">${totT?fmtV(totT):'—'}</div><div class="k">Target</div></div>
       </div>
       <div class="ta-hero-total">
