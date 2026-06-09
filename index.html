@@ -3139,7 +3139,7 @@ function renderKpiReport(){
     z.stores++;
     for(let p=0;p<6;p++){ z.amt[p]+=s.amt[p]; z.qty[p]+=s.qty[p]; }
   });
-  let zlist=Object.values(zmap);
+  let zlist=Object.values(zmap).filter(z=>kpiZoneRank(z.zone)<99);
   zlist.forEach(z=>{ z.m=deriveM(z); });
   zlist.sort((a,b)=>kpiZoneRank(a.zone)-kpiZoneRank(b.zone));
 
@@ -3503,6 +3503,7 @@ function renderZoneMoM(){
       rowKey:r=>r.zone_name||'—',
       rowMeta:r=>({zone:r.zone_name||'—'}),
       useTarget:true, targetFn:zmomTargetByZoneMonth,
+      rowFilter:r=>kpiZoneRank(r.meta.zone)<99,
       sortRows:(a,b,fyS)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone)||(fyS[b.key]-fyS[a.key]),
       getFY:()=>zmomFY,  setFY:v=>{zmomFY=v;},
       getMetric:()=>zmomMetric, setMetric:v=>{zmomMetric=v;},
@@ -3641,7 +3642,7 @@ function renderProductMoM(){
   const qAt=(k,mk)=>(qty[k]&&qty[k][mk])||0, sAt=(k,mk)=>(sale[k]&&sale[k][mk])||0;
   const fyQ={}, fyS={};
   keysSet.forEach(k=>{ let q=0,s=0; fyMonths.forEach(mk=>{ q+=qAt(k,mk); s+=sAt(k,mk); }); fyQ[k]=q; fyS[k]=s; });
-  let rowsArr=[...keysSet].sort((a,b)=>fyS[b]-fyS[a]);
+  let rowsArr=[...keysSet].sort((a,b)=>String(a).localeCompare(String(b)));
   const prodQ=(prodSearch||'').trim().toLowerCase();
   if(prodQ) rowsArr=rowsArr.filter(k=>String(k).toLowerCase().includes(prodQ));
 
@@ -3865,7 +3866,7 @@ function renderSpTarget(){
   const q=(spSearch||'').trim().toLowerCase();
   if(q) sps=sps.filter(sp=>sp.toLowerCase().includes(q));
   const spTotT=sp=>periods.reduce((s,p)=>s+((tgt[sp]&&tgt[sp][p.id])||0),0);
-  sps.sort((a,b)=>spTotT(b)-spTotT(a)||a.localeCompare(b));
+  sps.sort((a,b)=>a.localeCompare(b));
 
   const fmtPct=p=>p==null?'\u2014':p.toFixed(1)+'%';
   const pctColor=p=>p==null?'var(--text3)':(p>=100?'var(--green)':p>=80?'var(--gold)':'var(--red)');
@@ -4575,6 +4576,7 @@ function buildMoM(cfg) {
     fyS[k] = s; fyT[k] = t; fyPrevS[k] = ps; fyAch[k] = an;
   });
   let rowsArr = [...keysSet].map(k => ({ key:k, meta: meta[k] || {} }));
+  if (cfg.rowFilter) rowsArr = rowsArr.filter(r => cfg.rowFilter(r));
   if (cfg.getSearch && cfg.getSearch()) {
     const q = cfg.getSearch().toLowerCase();
     rowsArr = rowsArr.filter(r => Object.values(r.meta).some(v => String(v).toLowerCase().includes(q)));
