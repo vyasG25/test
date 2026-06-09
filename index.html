@@ -1126,7 +1126,7 @@
       </button>
       <button class="tab-btn" data-tab="storemom">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9M3 9h18M9 20v-6h6v6"/></svg>
-        <span>Store Trends</span>
+        <span>Distibutor Trends</span>
       </button>
       <button class="tab-btn" data-tab="producttrends">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 8.4 12 13 3.4 8.4M12 13v8M20.6 8.4 12 3.8 3.4 8.4v7.2L12 20.2l8.6-4.6Z"/></svg>
@@ -1270,7 +1270,7 @@
 
     </div><!-- /tab-zonemom -->
 
-    <!-- ===== TAB: STORE TRENDS ===== -->
+    <!-- ===== TAB: Distibutor Trends ===== -->
     <div class="tab-panel" id="tab-storemom">
     <div class="sec-header">
       <div class="sec-title">
@@ -1624,11 +1624,11 @@ let uploadedFileCount = 0;
 // Month-on-Month Zone Performance state
 let zmomFY = null;            // selected fiscal-year start year (e.g. 2025 => FY25)
 let zmomMetric = 'overview';  // overview | sales | target | ach | contrib | mom | yoy
-let storeFY = null;           // independent FY selection for the Store Trends tab
-let storeMetric = 'overview'; // independent metric view for the Store Trends tab
-let storeSearch = '';         // Store Trends search term (raw)
+let storeFY = null;           // independent FY selection for the Distibutor Trends tab
+let storeMetric = 'overview'; // independent metric view for the Distibutor Trends tab
+let storeSearch = '';         // Distibutor Trends search term (raw)
 let storeSearchActive = false;
-// Store Trends local bt-bar filters (Zone)
+// Distibutor Trends local bt-bar filters (Zone)
 let storeFilt = { zone: new Set() };
 let prodFY = null;            // independent FY selection for the Product Trends tab
 let prodDim = 'brand';        // selected product dimension (brand|luggage|range|size|dept)
@@ -2374,8 +2374,8 @@ function renderKPI() {
     ], 'left') +
     statCard('Products & Stores', [
       { value: fmt(uniqueProducts),                  label: 'Unique Products', color: 'var(--accent2)', title: 'Distinct SKUs in sales data' },
-      { value: ss.hasData ? fmt(ss.active)   : '—',  label: 'Active Stores',   color: 'var(--green)',   title: 'Distinct stores marked Active in the current view' },
-      { value: ss.hasData ? fmt(ss.inactive) : '—',  label: 'Inactive Stores', color: 'var(--red)',     title: 'Distinct stores marked Inactive in the current view' },
+        { value: ss.hasData ? fmt(ss.active) : '—', label: 'Active Distributors', color: 'var(--green)', title: 'Distinct Distributors marked Active in the current view' },
+        { value: ss.hasData ? fmt(ss.inactive) : '—', label: 'Inactive Distributors', color: 'var(--red)', title: 'Distinct Distributors marked Inactive in the current view' },
     ], 'center');
 }
 
@@ -3127,7 +3127,7 @@ function zmomTargetByZoneMonth() {
   return { out, meta, hasTarget: true };
 }
 
-// Target aggregated by STORE CODE → monthKey (YYYY-MM), for Store Trends.
+// Target aggregated by STORE CODE → monthKey (YYYY-MM), for Distributor Trends.
 // The target file's store-code column (e.g. "4DM") matches the sales
 // AlternateStoreCode, which is what RAW.store_code holds. Independent of filters.
 function zmomTargetByStoreMonth() {
@@ -3357,7 +3357,7 @@ function renderZoneMoM(){
     }
   }
 }
-// ── Store Trends — bt-bar wrapper around buildMoM ──
+// ── Distributor Trends — bt-bar wrapper around buildMoM ──
 // Metric definitions mirrored from buildMoM for the bt-bar label.
 const STORE_METRICS = [
   {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'target',label:'Target'},
@@ -3393,7 +3393,7 @@ function renderStoreMoM(){
       <button class="kpi-reset" id="stReset" title="Clear search">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
         <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Jan–Dec</span>
-        <span class="bt-period-tag">Store Trends</span>
+        <span class="bt-period-tag">Distributor Trends</span>
       </div>
     </div>
     <div id="stMoMHost"></div>
