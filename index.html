@@ -1318,23 +1318,16 @@ let storeNameMap = {};   // store_code -> store_name
 let storeStatusMap = {}; // store_code -> 'active' | 'inactive' | '' (from sales data; latest record wins)
 
 // ── API URL configuration ──
-// All 9 sales JSON files + optional target file.
+// All sales JSON files + optional target file.
 // Place these JSON files in the same folder as index.html on your server.
 // isTarget:true  → treated as Target/budget data (kept in TARGET_RAW)
 // isTarget:false → treated as sales data (merged into RAW)
 const API_SOURCES = [
-  { url: "./2022(1).json",   isTarget: false },  // 2022 (Part 1)
-  { url: "./2023(1).json",   isTarget: false },  // 2023 (Part 1)
-  { url: "./2023(2).json",   isTarget: false },  // 2023 (Part 2)
   { url: "./2024(1).json",   isTarget: false },  // 2024 (Part 1)
-  { url: "./2024(2).json",   isTarget: false },  // 2024 (Part 2)
   { url: "./2025(1).json",   isTarget: false },  // 2025 (Part 1)
-  { url: "./2025(2).json",   isTarget: false },  // 2025 (Part 2)
-  { url: "./2025(3).json",   isTarget: false },  // 2025 (Part 3)
   { url: "./2026(1).json",   isTarget: false },  // 2026 (Part 1)
   { url: "./2026(2).json",   isTarget: false },  // 2026 (Part 2)
-  { url: "./2026(3).json",   isTarget: false },  // 2026 (Part 3)
-  { url: "./target.json", isTarget: true  },  // Uncomment if you have a target file
+  { url: "./target.json",    isTarget: true  },  // Uncomment if you have a target file
 ];
 
 // ── LOGIN ──────────────────────────────────────────────────────
@@ -3389,14 +3382,14 @@ function renderStoreMoM(){
   // ── Metric pills ──
   const mPills = STORE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===storeMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
 
-  // ── Single-row bt-bar: Year · View · Search · Reset · period badge (matches Product Trends) ──
+  // ── Single-row bt-bar: Search · Year · View · Reset · period badge ──
   host.innerHTML = `
     <div class="bt-bar">
-      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Search</label>
         <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
       <button class="kpi-reset" id="stReset" title="Clear search">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
         <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Jan–Dec</span>
@@ -3578,12 +3571,12 @@ function renderProductMoM(){
 
   host.innerHTML=`
     <div class="bt-bar">
-      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Search</label>
         <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Store</label><div class="bt-chips">${ptChip('store','Store')}</div></div>
       <button class="kpi-reset" id="ptReset" title="Clear all Product Trends filters">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
