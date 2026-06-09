@@ -482,6 +482,14 @@
   table.zmom tr.total-row td{font-weight:700;background:var(--blue-light);border-top:2px solid var(--blue-dark);}
   table.zmom tr.total-row td.zcol{background:var(--blue-light);color:var(--blue-dark);}
   table.zmom tr.total-row:hover td{background:var(--blue-light);}
+  /* Sales Person — Target vs Achievement table */
+  table.zmom td.sp-per{text-align:left;color:var(--text2);font-weight:600;}
+  table.zmom thead th.sp-per-h{text-align:left;}
+  table.zmom tr.sp-subtot td{background:var(--surface2);font-weight:700;}
+  table.zmom tr.sp-subtot td.zcol{background:var(--surface2);color:var(--text);}
+  table.zmom tr.sp-subtot td.sp-per{color:var(--text2);font-style:italic;font-weight:600;}
+  table.zmom tr.sp-subtot:hover td{background:var(--surface2);}
+  table.zmom tr.sp-grp-start td{border-top:2px solid var(--border2);}
 
   /* ── Invoice Register report ── */
   .inv-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;}
@@ -1152,6 +1160,10 @@
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>
         <span>Invoices</span>
       </button>
+      <button class="tab-btn" data-tab="sptarget">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+        <span>Salesperson</span>
+      </button>
     </div>
     </div><!-- /tab-nav-sticky -->
     <!-- ===== TAB: DASHBOARD ===== -->
@@ -1329,6 +1341,17 @@
     </div>
     <div id="secInvoices"></div>
     </div><!-- /tab-invoices -->
+
+    <!-- ===== TAB: SALESPERSON TARGET vs ACHIEVEMENT ===== -->
+    <div class="tab-panel" id="tab-sptarget">
+    <div class="sec-header">
+      <div class="sec-title">
+        Sales Person — Target vs Achievement
+        <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Target · Sales · Ach%</span>
+      </div>
+    </div>
+    <div id="secSpTarget"></div>
+    </div><!-- /tab-sptarget -->
 
   </div>
 </div>
@@ -1664,6 +1687,11 @@ let prodSearch = '';          // Product Trends search term (raw)
 let prodSearchActive = false;
 // Product Trends local bt-bar filters (Store)
 let prodFilt = { store: new Set() };
+// Sales Person — Target vs Achievement tab (independent: own Year + Monthly/Quarterly + Search)
+let spFY = null;              // selected calendar year for the Salesperson Target tab
+let spView = 'month';         // 'month' | 'quarter'
+let spSearch = '';            // sales-person search term (raw)
+let spSearchActive = false;
 // Weekly Trends (Month rows × Monthly-Week columns, per fiscal year)
 let weeklyFY = null;          // selected fiscal-year start year (e.g. 2025 => FY25)
 // Local Location & Stores + Product filters (empty Set = All). Independent of global filters.
@@ -2443,6 +2471,7 @@ const INDEP_TAB_RENDER = {
   producttrends: renderProductMoM,
   brandtrends:   renderBrandTrends,
   invoices:      renderInvoices,
+  sptarget:      renderSpTarget,
 };
 let _indepTabsDirty = new Set();
 // Call after a data load so each independent tab re-renders the next time it's viewed.
@@ -3764,6 +3793,152 @@ function renderProductMoM(){
 }
 
 
+// ── Sales Person — Target vs Achievement (monthly / quarterly) ──
+// Independent of the global filters (its own Year + Monthly/Quarterly + Search).
+// Logic mirrors the dashboard Target-vs-Achievement panel:
+//   • A sales person appears only for periods where they HAVE a target ("no target → no sale").
+//   • "Sales" counts only invoices billed against a store-month that carries a target
+//     (Include = Yes only), attributed to the sales person who owns that target.
+//   • A target with no matching sale shows Ach% = 0.  Ach% = Sales ÷ Target.
+function renderSpTarget(){
+  const host=document.getElementById('secSpTarget');
+  if(!host) return;
+  if(!RAW || !RAW.length){ host.innerHTML='<div class="no-data">Upload a sales workbook to see this report.</div>'; return; }
+  if(!TARGET_RAW || !TARGET_RAW.length){ host.innerHTML='<div class="no-data">Upload a <b>Target</b> workbook to see Sales Person Target vs Achievement.</div>'; return; }
+  if(!['month','quarter'].includes(spView)) spView='month';
+
+  // Locate target columns: month-named columns ("Apr-26") + dimension columns.
+  const tkeys=Object.keys(TARGET_RAW[0]||{});
+  const monthRe=/^[A-Za-z]{3}-\d{2}$/;
+  const monthCols=tkeys.filter(k=>monthRe.test(k))
+    .map(k=>{const [mm,yy]=k.split('-');return {col:k,key:'20'+yy+'-'+ZMOM_MON3[mm.toLowerCase()]};})
+    .filter(mc=>mc.key&&/^\d{4}-\d{2}$/.test(mc.key));
+  const dimKeys=tkeys.filter(k=>!monthRe.test(k));
+  const kCode=dimKeys.find(k=>/code/i.test(k))||dimKeys[0];
+  const kSP=dimKeys.find(k=>/sales.?person/i.test(k));
+  if(!kSP){ host.innerHTML='<div class="no-data">The Target file has no sales-person column.</div>'; return; }
+  if(!monthCols.length){ host.innerHTML='<div class="no-data">The Target file has no monthly target columns.</div>'; return; }
+
+  // Year pills from the years present in the target months.
+  const yrSet=new Set(monthCols.map(mc=>+mc.key.slice(0,4)));
+  const fyList=[...yrSet].sort((a,b)=>b-a);
+  let selFY=spFY;
+  if(selFY==null||!yrSet.has(selFY)){ selFY=fyList[0]; spFY=selFY; }
+
+  // Periods of the selected (calendar) year.
+  const fyMonths=[]; for(let i=1;i<=12;i++) fyMonths.push(selFY+'-'+String(i).padStart(2,'0'));
+  const periods = spView==='quarter'
+    ? [ {id:'Q1',label:'Q1',sub:'Jan–Mar',mons:fyMonths.slice(0,3)},
+        {id:'Q2',label:'Q2',sub:'Apr–Jun',mons:fyMonths.slice(3,6)},
+        {id:'Q3',label:'Q3',sub:'Jul–Sep',mons:fyMonths.slice(6,9)},
+        {id:'Q4',label:'Q4',sub:'Oct–Dec',mons:fyMonths.slice(9,12)} ]
+    : fyMonths.map(mk=>({id:mk,label:zmomMonLabel(mk),sub:'',mons:[mk]}));
+
+  // Target value per (store, month) → owning sales person; and target sums per SP per period.
+  const colByKey={}; monthCols.forEach(mc=>{ colByKey[mc.key]=mc.col; });
+  const targetOwner={};   // 'storeCode|YYYY-MM' → sales person
+  const tgt={};           // SP → { periodId: targetValue }
+  for(const row of TARGET_RAW){
+    const code=String(row[kCode]);
+    const sp=String(row[kSP]==null?'':row[kSP]).trim()||'\u2014';
+    fyMonths.forEach(mk=>{ const col=colByKey[mk]; if(col && (+row[col]||0)) targetOwner[code+'|'+mk]=sp; });
+    periods.forEach(p=>{
+      let v=0; p.mons.forEach(mk=>{ const col=colByKey[mk]; if(col) v+=(+row[col]||0); });
+      if(v) (tgt[sp]||(tgt[sp]={}))[p.id]=((tgt[sp]&&tgt[sp][p.id])||0)+v;
+    });
+  }
+
+  // Achievement: invoices (Include = Yes) billed against a target-bearing store-month.
+  const incOK=r=>{const v=String(r.include==null?'':r.include).trim().toLowerCase();return v===''||v==='yes';};
+  const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
+  const periodOfMonth={}; periods.forEach(p=>p.mons.forEach(mk=>{ periodOfMonth[mk]=p.id; }));
+  const ach={};           // SP → { periodId: salesValue }
+  for(let i=0;i<RAW.length;i++){
+    const r=RAW[i]; if(!incOK(r)) continue;
+    const mk=mkOf(r); const pid=mk?periodOfMonth[mk]:null; if(!pid) continue;
+    const owner=targetOwner[r.store_code+'|'+mk]; if(!owner) continue;
+    (ach[owner]||(ach[owner]={}))[pid]=((ach[owner]&&ach[owner][pid])||0)+(r.amount||0);
+  }
+
+  // Sales persons with any target this year, filtered by search, ranked by total target.
+  let sps=Object.keys(tgt);
+  const q=(spSearch||'').trim().toLowerCase();
+  if(q) sps=sps.filter(sp=>sp.toLowerCase().includes(q));
+  const spTotT=sp=>periods.reduce((s,p)=>s+((tgt[sp]&&tgt[sp][p.id])||0),0);
+  sps.sort((a,b)=>spTotT(b)-spTotT(a)||a.localeCompare(b));
+
+  const fmtPct=p=>p==null?'\u2014':p.toFixed(1)+'%';
+  const pctColor=p=>p==null?'var(--text3)':(p>=100?'var(--green)':p>=80?'var(--gold)':'var(--red)');
+  const dimW=180;
+
+  let body='', gT=0, gS=0;
+  if(!sps.length){
+    body=`<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">\u2014</td><td colspan="4" style="padding:18px;text-align:center;color:var(--text3)">No sales person has a target for ${selFY}${q?' matching \u201c'+escapeHtml(spSearch.trim())+'\u201d':''}.</td></tr>`;
+  } else {
+    for(const sp of sps){
+      const ps=periods.filter(p=>(tgt[sp]&&tgt[sp][p.id]));
+      let spT=0,spS=0;
+      ps.forEach((p,idx)=>{
+        const t=(tgt[sp]&&tgt[sp][p.id])||0;
+        const s=(ach[sp]&&ach[sp][p.id])||0;
+        const pct=t?s/t*100:null; spT+=t; spS+=s;
+        const periodLabel = spView==='quarter' ? (p.label+' \u00b7 '+p.sub) : p.label;
+        const nameCell = idx===0
+          ? `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(sp)}">${escapeHtml(sp)}</td>`
+          : `<td class="zcol zlast" style="left:0;min-width:${dimW}px"></td>`;
+        body+=`<tr class="${idx===0?'sp-grp-start':''}">${nameCell}<td class="sp-per">${escapeHtml(periodLabel)}</td><td class="zcell">${fmtV(t)}</td><td class="zcell">${s?fmtV(s):'\u2014'}</td><td class="zcell" style="color:${pctColor(pct)};font-weight:700">${fmtPct(pct)}</td></tr>`;
+      });
+      const spPct=spT?spS/spT*100:null; gT+=spT; gS+=spS;
+      if(ps.length>1){
+        body+=`<tr class="sp-subtot"><td class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(sp)}</td><td class="sp-per">All ${spView==='quarter'?'quarters':'months'}</td><td class="zcell">${fmtV(spT)}</td><td class="zcell">${spS?fmtV(spS):'\u2014'}</td><td class="zcell" style="color:${pctColor(spPct)}">${fmtPct(spPct)}</td></tr>`;
+      }
+    }
+  }
+  const gPct=gT?gS/gT*100:null;
+  const totalRow= sps.length?`<tr class="total-row"><td class="zcol zlast" style="left:0;min-width:${dimW}px">TOTAL</td><td class="sp-per">All sales persons</td><td class="zcell">${fmtV(gT)}</td><td class="zcell">${gS?fmtV(gS):'\u2014'}</td><td class="zcell" style="color:${pctColor(gPct)}">${fmtPct(gPct)}</td></tr>`:'';
+
+  const thead=`<thead><tr>
+    <th class="zcol zlast" style="left:0;min-width:${dimW}px">Sales Person</th>
+    <th class="sp-per-h">${spView==='quarter'?'Quarter':'Month'}</th>
+    <th>Target</th>
+    <th>Sales<span class="th-sub">against target</span></th>
+    <th>Ach %</th>
+  </tr></thead>`;
+
+  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
+  const REPS=[{k:'month',label:'Monthly'},{k:'quarter',label:'Quarterly'}];
+  const repPills=REPS.map(v=>`<button class="zmom-pill m-pill sp-rep${v.k===spView?' active':''}" data-rep="${v.k}">${v.label}</button>`).join('');
+
+  host.innerHTML=`
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">\u2315</span>
+          <input type="text" class="kpi-searchbox sp-search" placeholder="Search sales person\u2026" value="${escapeHtml(spSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Report</label><div class="bt-chips">${repPills}</div></div>
+      <button class="kpi-reset" id="spReset" title="Reset to latest year, monthly view">\u21ba Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> \u00b7 ${spView==='quarter'?'Quarterly':'Monthly'}</span>
+        <span class="bt-period-tag">Sales Person \u00b7 Target vs Ach</span>
+      </div>
+    </div>
+    <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}${totalRow}</tbody></table></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">${spView==='quarter'?'Quarters':'Months'} of ${zmomFyLabel(selFY)} \u00b7 grouped by sales person \u00b7 a person/period appears only where a target exists \u00b7 <b>Sales</b> = invoices billed against a target-bearing store (Include = Yes only); a target with no matching sale shows 0% \u00b7 Ach% = Sales \u00f7 Target \u00b7 Independent of the global filters.</div>`;
+
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ spFY=+b.dataset.fy; renderSpTarget(); }));
+  host.querySelectorAll('.sp-rep').forEach(b=>b.addEventListener('click',()=>{ spView=b.dataset.rep; renderSpTarget(); }));
+  const si=host.querySelector('.sp-search');
+  if(si){
+    si.addEventListener('input',()=>{ spSearch=si.value; spSearchActive=true; renderSpTarget(); });
+    si.addEventListener('focus',()=>{ spSearchActive=true; });
+    si.addEventListener('blur',()=>{ spSearchActive=false; });
+    if(spSearchActive){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
+  }
+  const rst=host.querySelector('#spReset');
+  if(rst) rst.addEventListener('click',()=>{ spFY=null; spView='month'; spSearch=''; spSearchActive=false; renderSpTarget(); });
+}
+
+
 // ── Weekly Trends (Month rows × Week-of-Month columns, per fiscal year) ──
 // Buckets every sale by its "Monthly Week" value (Wk-1…Wk-5). For each month it
 // shows Qty & Value per week, the month total, plus growth vs Last Year (same
@@ -4562,7 +4737,7 @@ function setup() {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
       ensureIndependentTab(tab);   // build the heavy trend tables only when first viewed
       const fb = document.getElementById('filterBar');
-      if (fb) fb.style.display = (tab === 'zonemom' || tab === 'kpi' || tab === 'storemom' || tab === 'producttrends' || tab === 'weeklytrends' || tab === 'dailytrends' || tab === 'brandtrends' || tab === 'invoices') ? 'none' : '';
+      if (fb) fb.style.display = (tab === 'zonemom' || tab === 'kpi' || tab === 'storemom' || tab === 'producttrends' || tab === 'weeklytrends' || tab === 'dailytrends' || tab === 'brandtrends' || tab === 'invoices' || tab === 'sptarget') ? 'none' : '';
       adjustStickyTops();
     });
   });
