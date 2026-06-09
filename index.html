@@ -1161,8 +1161,8 @@
         <span>Invoices</span>
       </button>
       <button class="tab-btn" data-tab="sptarget">
-        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
-        <span>Salesperson</span>
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/></svg>
+        <span>Sales Scorecard</span>
       </button>
     </div>
     </div><!-- /tab-nav-sticky -->
@@ -1346,7 +1346,7 @@
     <div class="tab-panel" id="tab-sptarget">
     <div class="sec-header">
       <div class="sec-title">
-        Sales Person — Target vs Achievement
+        Sales Scorecard — Target vs Achievement
         <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Target · Sales · Ach%</span>
       </div>
     </div>
@@ -3828,16 +3828,16 @@ function renderSpTarget(){
   // Periods of the selected (calendar) year.
   const fyMonths=[]; for(let i=1;i<=12;i++) fyMonths.push(selFY+'-'+String(i).padStart(2,'0'));
   const periods = spView==='quarter'
-    ? [ {id:'Q1',label:'Q1',sub:'Jan–Mar',mons:fyMonths.slice(0,3)},
-        {id:'Q2',label:'Q2',sub:'Apr–Jun',mons:fyMonths.slice(3,6)},
-        {id:'Q3',label:'Q3',sub:'Jul–Sep',mons:fyMonths.slice(6,9)},
-        {id:'Q4',label:'Q4',sub:'Oct–Dec',mons:fyMonths.slice(9,12)} ]
+    ? [ {id:'Q1',label:'Q1',sub:'Jan\u2013Mar',mons:fyMonths.slice(0,3)},
+        {id:'Q2',label:'Q2',sub:'Apr\u2013Jun',mons:fyMonths.slice(3,6)},
+        {id:'Q3',label:'Q3',sub:'Jul\u2013Sep',mons:fyMonths.slice(6,9)},
+        {id:'Q4',label:'Q4',sub:'Oct\u2013Dec',mons:fyMonths.slice(9,12)} ]
     : fyMonths.map(mk=>({id:mk,label:zmomMonLabel(mk),sub:'',mons:[mk]}));
 
-  // Target value per (store, month) → owning sales person; and target sums per SP per period.
+  // Target value per (store, month) -> owning sales person; and target sums per SP per period.
   const colByKey={}; monthCols.forEach(mc=>{ colByKey[mc.key]=mc.col; });
-  const targetOwner={};   // 'storeCode|YYYY-MM' → sales person
-  const tgt={};           // SP → { periodId: targetValue }
+  const targetOwner={};   // 'storeCode|YYYY-MM' -> sales person
+  const tgt={};           // SP -> { periodId: targetValue }
   for(const row of TARGET_RAW){
     const code=String(row[kCode]);
     const sp=String(row[kSP]==null?'':row[kSP]).trim()||'\u2014';
@@ -3852,7 +3852,7 @@ function renderSpTarget(){
   const incOK=r=>{const v=String(r.include==null?'':r.include).trim().toLowerCase();return v===''||v==='yes';};
   const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
   const periodOfMonth={}; periods.forEach(p=>p.mons.forEach(mk=>{ periodOfMonth[mk]=p.id; }));
-  const ach={};           // SP → { periodId: salesValue }
+  const ach={};           // SP -> { periodId: salesValue }
   for(let i=0;i<RAW.length;i++){
     const r=RAW[i]; if(!incOK(r)) continue;
     const mk=mkOf(r); const pid=mk?periodOfMonth[mk]:null; if(!pid) continue;
@@ -3869,41 +3869,51 @@ function renderSpTarget(){
 
   const fmtPct=p=>p==null?'\u2014':p.toFixed(1)+'%';
   const pctColor=p=>p==null?'var(--text3)':(p>=100?'var(--green)':p>=80?'var(--gold)':'var(--red)');
-  const dimW=180;
+  const dimW=190;
 
-  let body='', gT=0, gS=0;
+  // ── Column groups: leading Year-Total group, then each period (newest first). ──
+  const periodsRev=periods.slice().reverse();
+  const groups=[{id:'__FY__',label:zmomFyLabel(selFY)+' Total',isTot:true}]
+    .concat(periodsRev.map(p=>({ id:p.id, label:(spView==='quarter'?(p.label+' \u00b7 '+p.sub):zmomMonLabel(p.id)), isTot:false })));
+  const tOf=(sp,g)=> g.isTot ? periods.reduce((s,p)=>s+((tgt[sp]&&tgt[sp][p.id])||0),0) : ((tgt[sp]&&tgt[sp][g.id])||0);
+  const sOf=(sp,g)=> g.isTot ? periods.reduce((s,p)=>s+((ach[sp]&&ach[sp][p.id])||0),0) : ((ach[sp]&&ach[sp][g.id])||0);
+  const bandFY={b:'#b8892e',d:'#8a6420',l:'#f7ecca'};   // gold (year total)
+  const bandA ={b:'#3a6ea5',d:'#2b5a7e',l:'#eef4fb'};   // blue
+  const bandB ={b:'#4a7c59',d:'#2d5a3d',l:'#eef6f0'};   // green (alternate)
+  const bandOf=(g,gi)=> g.isTot?bandFY:((gi%2)?bandB:bandA);
+
+  // ── Two-row sticky header (group band + Target/Sales/Ach% sub-cols), Distributor-Trends style. ──
+  let grpRow=`<th class="dim" rowspan="2" style="left:0;min-width:${dimW}px">Sales Person</th>`;
+  let subRow='';
+  groups.forEach((g,gi)=>{ const c=bandOf(g,gi);
+    grpRow+=`<th class="gstart" colspan="3" style="background:linear-gradient(160deg,${c.b},${c.d})">${escapeHtml(g.label)}</th>`;
+    subRow+=`<th class="gstart" style="background:${c.l};color:${c.d}">Target</th><th style="background:${c.l};color:${c.d}">Sales</th><th style="background:${c.l};color:${c.d}">Ach%</th>`;
+  });
+  const thead=`<thead><tr class="grp">${grpRow}</tr><tr class="sub">${subRow}</tr></thead>`;
+
+  // ── Body: one row per sales person; cells per group = Target / Sales / Ach%. ──
+  const totT={}, totS={}; groups.forEach(g=>{ totT[g.id]=0; totS[g.id]=0; });
+  let body='';
   if(!sps.length){
-    body=`<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">\u2014</td><td colspan="4" style="padding:18px;text-align:center;color:var(--text3)">No sales person has a target for ${selFY}${q?' matching \u201c'+escapeHtml(spSearch.trim())+'\u201d':''}.</td></tr>`;
+    body=`<tr><td class="dim first last" style="left:0;min-width:${dimW}px">\u2014</td><td colspan="${groups.length*3}" style="padding:18px;text-align:center;color:var(--text3)">No sales person has a target for ${selFY}${q?' matching \u201c'+escapeHtml(spSearch.trim())+'\u201d':''}.</td></tr>`;
   } else {
-    for(const sp of sps){
-      const ps=periods.filter(p=>(tgt[sp]&&tgt[sp][p.id]));
-      let spT=0,spS=0;
-      ps.forEach((p,idx)=>{
-        const t=(tgt[sp]&&tgt[sp][p.id])||0;
-        const s=(ach[sp]&&ach[sp][p.id])||0;
-        const pct=t?s/t*100:null; spT+=t; spS+=s;
-        const periodLabel = spView==='quarter' ? (p.label+' \u00b7 '+p.sub) : p.label;
-        const nameCell = idx===0
-          ? `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(sp)}">${escapeHtml(sp)}</td>`
-          : `<td class="zcol zlast" style="left:0;min-width:${dimW}px"></td>`;
-        body+=`<tr class="${idx===0?'sp-grp-start':''}">${nameCell}<td class="sp-per">${escapeHtml(periodLabel)}</td><td class="zcell">${fmtV(t)}</td><td class="zcell">${s?fmtV(s):'\u2014'}</td><td class="zcell" style="color:${pctColor(pct)};font-weight:700">${fmtPct(pct)}</td></tr>`;
+    body=sps.map(sp=>{
+      let cells='';
+      groups.forEach(g=>{
+        const t=tOf(sp,g), s=sOf(sp,g), pct=t?s/t*100:null;
+        totT[g.id]+=t; totS[g.id]+=s;
+        cells+=`<td class="cy gstart">${t?fmtV(t):'\u2014'}</td><td class="cy">${s?fmtV(s):'\u2014'}</td><td class="cy" style="color:${pctColor(pct)};font-weight:800">${fmtPct(pct)}</td>`;
       });
-      const spPct=spT?spS/spT*100:null; gT+=spT; gS+=spS;
-      if(ps.length>1){
-        body+=`<tr class="sp-subtot"><td class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(sp)}</td><td class="sp-per">All ${spView==='quarter'?'quarters':'months'}</td><td class="zcell">${fmtV(spT)}</td><td class="zcell">${spS?fmtV(spS):'\u2014'}</td><td class="zcell" style="color:${pctColor(spPct)}">${fmtPct(spPct)}</td></tr>`;
-      }
-    }
+      return `<tr><td class="dim first last name" style="left:0;min-width:${dimW}px;max-width:${dimW}px" title="${escapeHtml(sp)}">${escapeHtml(sp)}</td>${cells}</tr>`;
+    }).join('');
   }
-  const gPct=gT?gS/gT*100:null;
-  const totalRow= sps.length?`<tr class="total-row"><td class="zcol zlast" style="left:0;min-width:${dimW}px">TOTAL</td><td class="sp-per">All sales persons</td><td class="zcell">${fmtV(gT)}</td><td class="zcell">${gS?fmtV(gS):'\u2014'}</td><td class="zcell" style="color:${pctColor(gPct)}">${fmtPct(gPct)}</td></tr>`:'';
-
-  const thead=`<thead><tr>
-    <th class="zcol zlast" style="left:0;min-width:${dimW}px">Sales Person</th>
-    <th class="sp-per-h">${spView==='quarter'?'Quarter':'Month'}</th>
-    <th>Target</th>
-    <th>Sales<span class="th-sub">against target</span></th>
-    <th>Ach %</th>
-  </tr></thead>`;
+  let totalRow='';
+  if(sps.length){
+    let cells='';
+    groups.forEach(g=>{ const t=totT[g.id], s=totS[g.id], pct=t?s/t*100:null;
+      cells+=`<td class="gstart">${t?fmtV(t):'\u2014'}</td><td>${s?fmtV(s):'\u2014'}</td><td style="color:${pctColor(pct)};font-weight:800">${fmtPct(pct)}</td>`; });
+    totalRow=`<tr class="total-row"><td class="dim first last" style="left:0;min-width:${dimW}px">TOTAL</td>${cells}</tr>`;
+  }
 
   const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
   const REPS=[{k:'month',label:'Monthly'},{k:'quarter',label:'Quarterly'}];
@@ -3922,8 +3932,8 @@ function renderSpTarget(){
         <span class="bt-period-tag">Sales Person \u00b7 Target vs Ach</span>
       </div>
     </div>
-    <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}${totalRow}</tbody></table></div>
-    <div style="margin-top:7px;font-size:11px;color:var(--text2);">${spView==='quarter'?'Quarters':'Months'} of ${zmomFyLabel(selFY)} \u00b7 grouped by sales person \u00b7 a person/period appears only where a target exists \u00b7 <b>Sales</b> = invoices billed against a target-bearing store (Include = Yes only); a target with no matching sale shows 0% \u00b7 Ach% = Sales \u00f7 Target \u00b7 Independent of the global filters.</div>`;
+    <div class="kpi-table-wrap" style="border-top:1px solid var(--border2);border-radius:var(--r);margin-top:2px;"><table class="kpi-rep">${thead}<tbody>${body}${totalRow}</tbody></table></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">${zmomFyLabel(selFY)} \u00b7 year total + each ${spView==='quarter'?'quarter':'month'} (newest first), each showing <b>Target</b>, <b>Sales</b> &amp; <b>Ach%</b> \u00b7 a sales person appears only where a target exists \u00b7 <b>Sales</b> = invoices billed against a target-bearing store (Include = Yes only); a target with no matching sale shows 0% \u00b7 Ach% = Sales \u00f7 Target \u00b7 Independent of the global filters.</div>`;
 
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ spFY=+b.dataset.fy; renderSpTarget(); }));
   host.querySelectorAll('.sp-rep').forEach(b=>b.addEventListener('click',()=>{ spView=b.dataset.rep; renderSpTarget(); }));
