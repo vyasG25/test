@@ -2858,6 +2858,7 @@ const KPI_DIMS = [
   { label:'State',      key:'state', w:120, cls:'muted' },
   { label:'City',       key:'city',  w:110, cls:'muted' },
   { label:'Store (Code · Name)', key:'store', w:210, cls:'' },
+  { label:'Sales Person', key:'salesperson', w:150, cls:'muted' },
 ];
 (function(){ let a=0; KPI_DIMS.forEach(d=>{ d.left=a; a+=d.w; }); })();
 const KPI_DIM_W = KPI_DIMS.reduce((s,d)=>s+d.w,0);
@@ -2922,7 +2923,7 @@ function renderKpiReport(){
   function ensure(r){
     let s=stores[r.store_code];
     if(!s) s=stores[r.store_code]={ code:r.store_code, name:r.store_name, zone:r.zone_name, state:r.state_name, city:r.city_name,
-      amt:z6(), qty:z6() };
+      salesperson:r.sales_person, amt:z6(), qty:z6() };
     return s;
   }
   function add(s,p,r){
@@ -2957,7 +2958,7 @@ function renderKpiReport(){
   // search filter — match any dimension column
   let list=allStores;
   if(kpiSearchTerm){
-    list=allStores.filter(s=>[s.zone,s.state,s.city,s.code,s.name]
+    list=allStores.filter(s=>[s.zone,s.state,s.city,s.code,s.name,s.salesperson]
       .some(v=>String(v||'').toLowerCase().includes(kpiSearchTerm)));
   }
   // sort: Zone order (North→East→West→South), then State, then City
@@ -3388,14 +3389,14 @@ function renderStoreMoM(){
   // ── Metric pills ──
   const mPills = STORE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===storeMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
 
-  // ── Single-row bt-bar: Search · Year · View · Reset · period badge ──
+  // ── Single-row bt-bar: Year · View · Search · Reset · period badge (matches Product Trends) ──
   host.innerHTML = `
     <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Search</label>
         <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
-      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
       <button class="kpi-reset" id="stReset" title="Clear search">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
         <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Jan–Dec</span>
