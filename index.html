@@ -2401,12 +2401,12 @@ function renderInvoices(){
       o.qty+=r.quantity; o.val+=r.amount; if(r.product_code) o.skus.add(r.product_code);
     }
     let rows=Object.values(inv);
+    const fmtDate=iso=>{ if(!iso||iso.length<10) return '—'; const [y,m,d]=iso.split('-'); return d+' '+MON[+m-1]+' '+y.slice(2); };
     const sq=invSearch.trim().toLowerCase();
-    if(sq) rows=rows.filter(o=>[o.inv,o.code,o.name,o.zone,o.state,o.city,o.sp].some(v=>String(v).toLowerCase().includes(sq)));
+    if(sq) rows=rows.filter(o=>[o.inv,o.code,o.name,o.zone,o.state,o.city,o.sp,fmtDate(o.date)].some(v=>String(v).toLowerCase().includes(sq)));
     rows.sort((a,b)=> (a.date<b.date?1:a.date>b.date?-1:0) || String(b.inv).localeCompare(String(a.inv),undefined,{numeric:true}));
     let tQty=0,tVal=0; const tSku=new Set();
     rows.forEach(o=>{ tQty+=o.qty; tVal+=o.val; o.skus.forEach(s=>tSku.add(s)); });
-    const fmtDate=iso=>{ if(!iso||iso.length<10) return '—'; const [y,m,d]=iso.split('-'); return d+' '+MON[+m-1]+' '+y.slice(2); };
     const head=`<thead><tr><th>Date</th><th>Inv No</th><th>Cust Code</th><th>Cust Name</th><th>Zone</th><th>State</th><th>City</th><th>Sales Person</th><th class="num">Qty</th><th class="num">Value</th><th class="num">ASP</th><th class="num">Products</th></tr></thead>`;
     const body=rows.length? rows.map(o=>`<tr><td>${fmtDate(o.date)}</td><td class="code">${escapeHtml(o.inv)}</td><td class="code">${escapeHtml(o.code)}</td><td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.zone)}</td><td>${escapeHtml(o.state)}</td><td>${escapeHtml(o.city)}</td><td>${escapeHtml(o.sp)}</td><td class="num">${fmt(o.qty)}</td><td class="num val">${fmtRs(o.val)}</td><td class="num">${o.qty?fmtRs(o.val/o.qty):'—'}</td><td class="num">${fmt(o.skus.size)}</td></tr>`).join('')
       : `<tr><td colspan="12" style="text-align:center;padding:22px;color:var(--text3)">No invoices match the current Year / Month / Search.</td></tr>`;
