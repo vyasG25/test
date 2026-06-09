@@ -681,6 +681,10 @@
   .ta-fig .v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);}
   .ta-fig .k{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-top:2px;}
   .ta-fig.actual .v{color:var(--accent);} .ta-fig.target .v{color:var(--blue);}
+  .ta-hero-total{display:flex;align-items:center;justify-content:space-between;width:100%;border-top:1px dashed var(--border2);padding-top:11px;margin-top:1px;}
+  .ta-total-k{display:flex;flex-direction:column;gap:1px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);}
+  .ta-total-note{font-size:8.5px;font-weight:600;letter-spacing:.1px;color:var(--text3);text-transform:none;opacity:.85;}
+  .ta-total-v{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);}
   .ta-bars-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
   .ta-bars-title{font-size:13px;font-weight:700;color:var(--text);}
   .ta-bars-legend{font-size:10.5px;color:var(--text3);display:flex;gap:12px;}
@@ -3419,13 +3423,17 @@ function renderTargetAch(){
   const ringColor=overallPct==null?'#c4bdb0':(overallPct>=100?'var(--green)':overallPct>=80?'var(--gold)':'var(--red)');
   const ringDeg=overallPct==null?0:Math.min(overallPct,100)*3.6;
   const ring=`<div class="ta-ring" style="background:conic-gradient(${ringColor} ${ringDeg}deg,#e7e3da 0deg)">
-      <div class="ta-ring-in"><div class="ta-ring-pct" style="color:${ringColor}">${overallPct==null?'—':overallPct.toFixed(1)+'%'}</div><div class="ta-ring-lbl">Achievement</div></div>
+      <div class="ta-ring-in"><div class="ta-ring-pct" style="color:${ringColor}">${overallPct==null?'—':overallPct.toFixed(1)+'%'}</div><div class="ta-ring-lbl">vs Target</div></div>
     </div>`;
   const hero=`<div class="ta-card ta-hero">
       <div class="ta-hero-month">${monLabel}</div>${ring}
       <div class="ta-hero-fig">
-        <div class="ta-fig actual"><div class="v">${fmtV(totA)}</div><div class="k">Achieved</div></div>
+        <div class="ta-fig actual"><div class="v">${totT?fmtV(totAch):'—'}</div><div class="k">Achieved vs Target</div></div>
         <div class="ta-fig target"><div class="v">${totT?fmtV(totT):'—'}</div><div class="k">Target</div></div>
+      </div>
+      <div class="ta-hero-total">
+        <div class="ta-total-k">Total Sales<span class="ta-total-note">incl. stores without a target</span></div>
+        <div class="ta-total-v">${fmtV(totA)}</div>
       </div></div>`;
 
   const maxV=Math.max(1,...zones.map(z=>Math.max(aAt(z),tAt(z))));
@@ -3448,7 +3456,7 @@ function renderTargetAch(){
 
   const note=aggCols.length?'':`<div style="margin-top:8px;font-size:11px;color:var(--red);">No target column found for ${monLabel} — showing achievement only.</div>`;
   host.innerHTML=`<div class="ta-grid">${hero}${bars}</div>${note}
-    <div style="margin-top:6px;font-size:11px;color:var(--text2);">${periodActive?'Aggregated across the selected FY / Quarter / Month(s)':'Latest month within the current selection'} · total sales (Include = Yes only) &amp; total target shown in full · Ach% = sales of stores that have a target ÷ total target · responds to FY / Quarter / Month / Zone / State / Store · ignores date-range &amp; product filters (Brand, SKU).</div>`;
+    <div style="margin-top:6px;font-size:11px;color:var(--text2);">${periodActive?'Aggregated across the selected FY / Quarter / Month(s)':'Latest month within the current selection'} · <b>Achieved vs Target</b> = sales of stores that carry a target · <b>Total Sales</b> = all sales incl. stores without a target (Include = Yes only) · <b>Ach%</b> = Achieved vs Target ÷ Target · responds to FY / Quarter / Month / Zone / State / Store · ignores date-range &amp; product filters (Brand, SKU).</div>`;
 }
 
 // ── Zone Trends — bt-bar wrapper around buildMoM ──
