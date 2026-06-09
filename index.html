@@ -1570,8 +1570,6 @@ async function loadDashboardData() {
           sales_person: str(row['sales_person']),
           inv_number: str(row['inv_number']),
           include: str(row['include']),
-          customer_type: str(row['customer_type']),
-          store_category: str(row['store_category']),
           status: str(row['status'])
         };
 
@@ -1633,37 +1631,35 @@ let uploadedFileCount = 0;
 // Month-on-Month Zone Performance state
 let zmomFY = null;            // selected fiscal-year start year (e.g. 2025 => FY25)
 let zmomMetric = 'overview';  // overview | sales | target | ach | contrib | mom | yoy
-// Zone Trends local bt-bar filters (Customer Type + Store Category)
-let zmomFilt = { customer: new Set(), category: new Set() };
 let storeFY = null;           // independent FY selection for the Store Trends tab
 let storeMetric = 'overview'; // independent metric view for the Store Trends tab
 let storeSearch = '';         // Store Trends search term (raw)
 let storeSearchActive = false;
-// Store Trends local bt-bar filters (Customer Type, Store Category, Zone)
-let storeFilt = { zone: new Set(), customer: new Set(), category: new Set() };
+// Store Trends local bt-bar filters (Zone)
+let storeFilt = { zone: new Set() };
 let prodFY = null;            // independent FY selection for the Product Trends tab
 let prodDim = 'brand';        // selected product dimension (brand|luggage|range|size|dept)
 let prodView = 'month';       // Product Trends column view: 'month' | 'quarter' | 'zone'
 let prodSearch = '';          // Product Trends search term (raw)
 let prodSearchActive = false;
-// Product Trends local bt-bar filters (Store, Customer Type, Store Category)
-let prodFilt = { store: new Set(), customer: new Set(), category: new Set() };
+// Product Trends local bt-bar filters (Store)
+let prodFilt = { store: new Set() };
 // Weekly Trends (Month rows × Monthly-Week columns, per fiscal year)
 let weeklyFY = null;          // selected fiscal-year start year (e.g. 2025 => FY25)
 // Local Location & Stores + Product filters (empty Set = All). Independent of global filters.
-let weeklyFilt = { zone:new Set(), state:new Set(), store:new Set(), customer:new Set(), category:new Set(), brand:new Set(), sku:new Set() };
+let weeklyFilt = { zone:new Set(), state:new Set(), store:new Set(), brand:new Set(), sku:new Set() };
 // Dashboard "Monthly Sales — Year on Year" report — fixed Qty·Value·ASP view (no toggle).
 // Daily Trends (Week rows × Day-of-week columns, per calendar year). Independent of global filters.
 let dailyYear = null;         // selected calendar year (e.g. 2026)
 let dailyMetric = 'all';      // 'all' | 'qty' | 'value' | 'asp'
-let dailyFilt = { zone:new Set(), state:new Set(), store:new Set(), customer:new Set(), category:new Set(), brand:new Set(), sku:new Set() };
+let dailyFilt = { zone:new Set(), state:new Set(), store:new Set(), brand:new Set(), sku:new Set() };
 // Brand Trends (Brand, current vs last — LFL same period)
 let brandMode = 'month';      // 'month' | 'fy'
 let brandMonth = null;        // selected month key 'YYYY-MM'
 let brandFY = null;           // selected FY start year (e.g. 2025 => FY25)
 let brandSearch = '';
 let brandSearchActive = false;
-let brandFilt = { store:new Set(), customer:new Set(), category:new Set() }; // empty Set = All
+let brandFilt = { store:new Set() }; // empty Set = All
 
 // ── Multi-select filter registry ──
 // Filters are organised into three groups shown as compact dropdown chips.
@@ -1705,7 +1701,7 @@ function debouncedApply() { if (filterTimer) clearTimeout(filterTimer); filterTi
 // Expected column names (will auto-detect header row)
 const EXPECTED_COLS = ["Calendar Day","New Store","Store Name",
   "Article Code","Article Description","Brand","Sales Qty","MRP Sales","CY","FY","Quarter",
-  "Month","Week","Monthly Week","Zone","State","City","Customer Type","Store Category"];
+  "Month","Week","Monthly Week","Zone","State","City"];
 
 // ═══════════════════════════════════════════════════════════════
 // VIEW STATE
@@ -2862,8 +2858,6 @@ const KPI_DIMS = [
   { label:'State',      key:'state', w:120, cls:'muted' },
   { label:'City',       key:'city',  w:110, cls:'muted' },
   { label:'Store (Code · Name)', key:'store', w:210, cls:'' },
-  { label:'Customer Type',  key:'customer', w:120, cls:'muted' },
-  { label:'Store Category', key:'category', w:130, cls:'muted' },
 ];
 (function(){ let a=0; KPI_DIMS.forEach(d=>{ d.left=a; a+=d.w; }); })();
 const KPI_DIM_W = KPI_DIMS.reduce((s,d)=>s+d.w,0);
@@ -2928,7 +2922,7 @@ function renderKpiReport(){
   function ensure(r){
     let s=stores[r.store_code];
     if(!s) s=stores[r.store_code]={ code:r.store_code, name:r.store_name, zone:r.zone_name, state:r.state_name, city:r.city_name,
-      customer:r.customer_type, category:r.store_category, amt:z6(), qty:z6() };
+      amt:z6(), qty:z6() };
     return s;
   }
   function add(s,p,r){
@@ -2963,7 +2957,7 @@ function renderKpiReport(){
   // search filter — match any dimension column
   let list=allStores;
   if(kpiSearchTerm){
-    list=allStores.filter(s=>[s.zone,s.state,s.city,s.code,s.name,s.customer,s.category]
+    list=allStores.filter(s=>[s.zone,s.state,s.city,s.code,s.name]
       .some(v=>String(v||'').toLowerCase().includes(kpiSearchTerm)));
   }
   // sort: Zone order (North→East→West→South), then State, then City
@@ -3200,9 +3194,13 @@ function renderTargetAch(){
   // It still responds to the period (FY/Quarter/Month) and the
   // geography (Zone/State/Store) selections.
   const TA_FILTER_KEYS=['fy','quarter','month','zone','state','store'];
+  // Achievement counts only sales flagged Include = "Yes" in the source JSON.
+  // (Empty/missing include is treated as included, for older files without the column.)
+  const incOK = r => { const v=String(r.include==null?'':r.include).trim().toLowerCase(); return v==='' || v==='yes'; };
   const taRows=[];
   for(let i=0;i<RAW.length;i++){
-    const r=RAW[i]; let ok=true;
+    const r=RAW[i]; if(!incOK(r)) continue;
+    let ok=true;
     for(const key of TA_FILTER_KEYS){
       const sel=selected[key];
       if(sel && sel.size>0 && !sel.has(r[FMAP[key].field])){ ok=false; break; }
@@ -3298,7 +3296,7 @@ function renderTargetAch(){
 
   const note=aggCols.length?'':`<div style="margin-top:8px;font-size:11px;color:var(--red);">No target column found for ${monLabel} — showing achievement only.</div>`;
   host.innerHTML=`<div class="ta-grid">${hero}${bars}</div>${note}
-    <div style="margin-top:6px;font-size:11px;color:var(--text2);">${periodActive?'Aggregated across the selected FY / Quarter / Month(s)':'Latest month within the current selection'} · total sales &amp; total target shown in full · Ach% = sales of stores that have a target ÷ total target · responds to FY / Quarter / Month / Zone / State / Store · ignores date-range &amp; product filters (Brand, SKU).</div>`;
+    <div style="margin-top:6px;font-size:11px;color:var(--text2);">${periodActive?'Aggregated across the selected FY / Quarter / Month(s)':'Latest month within the current selection'} · total sales (Include = Yes only) &amp; total target shown in full · Ach% = sales of stores that have a target ÷ total target · responds to FY / Quarter / Month / Zone / State / Store · ignores date-range &amp; product filters (Brand, SKU).</div>`;
 }
 
 // ── Zone Trends — bt-bar wrapper around buildMoM ──
@@ -3311,21 +3309,7 @@ function renderZoneMoM(){
   if (!host) return;
   if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
 
-  // ── Build option lists from full RAW ──
-  const custOpts = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
-  const catOpts  = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
-  [...zmomFilt.customer].forEach(v=>{ if(!custOpts.includes(v)) zmomFilt.customer.delete(v); });
-  [...zmomFilt.category].forEach(v=>{ if(!catOpts.includes(v)) zmomFilt.category.delete(v); });
-
-  // ── Chip builder ──
-  const allOpts = { customer: custOpts, category: catOpts };
-  function zmChip(key, label) {
-    const n = zmomFilt[key].size;
-    const badge = `<span class="mc-badge" id="zmbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
-    return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="zmbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="zmpanel-${key}"><input type="text" class="ms-search" id="zmsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="zmlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-zmact="all" data-zmk="${key}">Select All</button><button class="ms-action-btn" data-zmact="clear" data-zmk="${key}">Clear All</button></div></div></div>`;
-  }
-
-  // ── FY list (from full RAW so pills stay stable while filters change) ──
+  // ── FY list (from full RAW so pills stay stable) ──
   const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return y; };
   const fySet = new Set();
   for (const r of RAW) {
@@ -3339,15 +3323,11 @@ function renderZoneMoM(){
   // ── Metric pills ──
   const mPills = ZONE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===zmomMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
 
-  const hasActive = zmomFilt.customer.size || zmomFilt.category.size;
-  // ── Single-row bt-bar: Year · View · Customer Type · Store Category · Reset · period badge
+  // ── Single-row bt-bar: Year · View · period badge (no local filters) ──
   host.innerHTML = `
     <div class="bt-bar">
       <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${zmChip('customer','Customer Type')}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${zmChip('category','Store Category')}</div></div>
-      <button class="kpi-reset" id="zmReset" title="Clear all Zone Trends filters">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
         <span class="bt-period-rng"><b>${zmomFyLabel(zmomFY)}</b> · Jan–Dec</span>
         <span class="bt-period-tag">Zone Trends</span>
@@ -3360,61 +3340,11 @@ function renderZoneMoM(){
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ zmomFY=+b.dataset.fy; renderZoneMoM(); }));
   // ── Wire Metric pills ──
   host.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ zmomMetric=b.dataset.metric; renderZoneMoM(); }));
-  // ── Wire Reset ──
-  const rb = host.querySelector('#zmReset');
-  if (rb) rb.addEventListener('click',()=>{ zmomFilt.customer.clear(); zmomFilt.category.clear(); renderZoneMoM(); });
-
-  // ── Wire filter chips ──
-  ['customer','category'].forEach(key=>{
-    const btn    = host.querySelector('#zmbtn-'   + key);
-    const panel  = host.querySelector('#zmpanel-' + key);
-    const search = host.querySelector('#zmsearch-'+ key);
-    const list   = host.querySelector('#zmlist-'  + key);
-    const badgeEl= host.querySelector('#zmbadge-' + key);
-    if (!btn || !panel) return;
-    btn.addEventListener('click', ()=>{
-      const open = panel.classList.contains('open');
-      host.querySelectorAll('.mc-panel.open').forEach(p=>{ p.classList.remove('open'); });
-      host.querySelectorAll('.mc-btn.open').forEach(b=>{ b.classList.remove('open'); });
-      if (!open){ panel.classList.add('open'); btn.classList.add('open'); if(search) setTimeout(()=>search.focus(),0); }
-    });
-    function renderZmList(sq){
-      sq=(sq||'').trim().toLowerCase();
-      const items=allOpts[key].filter(o=>!sq||o.toLowerCase().includes(sq));
-      list.innerHTML=items.length
-        ?items.map(o=>`<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${zmomFilt[key].has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join('')
-        :'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
-      list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
-        const v=cb.dataset.v; if(cb.checked) zmomFilt[key].add(v); else zmomFilt[key].delete(v);
-        // Update the green count badge + active state immediately (like Weekly Trends)
-        const n=zmomFilt[key].size;
-        if(badgeEl){ badgeEl.textContent=n; badgeEl.style.display=n?'inline-flex':'none'; }
-        btn.classList.toggle('active', !!n);
-        rebuildZoneTable();
-      }));
-    }
-    if (search) search.addEventListener('input',()=>renderZmList(search.value));
-    renderZmList('');
-  });
-  host.querySelectorAll('.ms-action-btn[data-zmk]').forEach(b=>b.addEventListener('click',()=>{
-    const key=b.dataset.zmk, sb=host.querySelector('#zmsearch-'+key);
-    if(b.dataset.zmact==='all'){
-      const sq=(sb&&sb.value?sb.value:'').trim().toLowerCase();
-      (sq?allOpts[key].filter(o=>o.toLowerCase().includes(sq)):allOpts[key]).forEach(v=>zmomFilt[key].add(v));
-    } else { zmomFilt[key].clear(); if(sb) sb.value=''; }
-    renderZoneMoM();
-  }));
 
   // ── Build table ──
   rebuildZoneTable();
 
   function rebuildZoneTable(){
-    const fRAW = (zmomFilt.customer.size || zmomFilt.category.size)
-      ? RAW.filter(r=>
-          (!zmomFilt.customer.size || zmomFilt.customer.has(String(r.customer_type))) &&
-          (!zmomFilt.category.size || zmomFilt.category.has(String(r.store_category))))
-      : RAW;
-    const saved = RAW; RAW = fRAW;
     buildMoM({
       hostId:'zmMoMHost', mode:'zone', hideControls:true,
       dims:[{label:'Zone',key:'zone',w:104}],
@@ -3425,7 +3355,6 @@ function renderZoneMoM(){
       getFY:()=>zmomFY,  setFY:v=>{zmomFY=v;},
       getMetric:()=>zmomMetric, setMetric:v=>{zmomMetric=v;},
     });
-    RAW = saved;
     // Re-wire buildMoM's own FY/metric pills so they update the bt-bar state too
     const h = document.getElementById('zmMoMHost');
     if (h) {
@@ -3499,10 +3428,9 @@ function renderStoreMoM(){
     buildMoM({
       hostId:'stMoMHost', mode:'store', wrapDims:true, hideControls:true,
       dims:[{label:'Zone',key:'zone',w:74},{label:'State',key:'state',w:100},{label:'City',key:'city',w:100},
-            {label:'Store Code',key:'code',w:84},{label:'Store Name',key:'name',w:150},
-            {label:'Customer Type',key:'customer',w:118},{label:'Store Category',key:'category',w:120}],
+            {label:'Store Code',key:'code',w:84},{label:'Store Name',key:'name',w:150}],
       rowKey:r=>r.store_code||r.store_name||'—',
-      rowMeta:r=>({zone:r.zone_name||'—',state:r.state_name||'—',city:r.city_name||'—',code:r.store_code||'—',name:r.store_name||'—',customer:r.customer_type||'—',category:r.store_category||'—'}),
+      rowMeta:r=>({zone:r.zone_name||'—',state:r.state_name||'—',city:r.city_name||'—',code:r.store_code||'—',name:r.store_name||'—'}),
       useTarget:true, targetFn:zmomTargetByStoreMonth,
       sortRows:(a,b)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone)
         ||String(a.meta.state).localeCompare(String(b.meta.state))
@@ -3527,20 +3455,13 @@ function renderProductMoM(){
   const dimCfg = PROD_DIMS.find(d=>d.k===prodDim) || PROD_DIMS[0];
   const field = dimCfg.field;
 
-  // Build Store, Customer Type + Store Category option lists from full RAW
+  // Build Store option list from full RAW
   const storeOpts = [...new Set(RAW.map(r=>r.store_name).filter(v=>v!=null&&v!==''))].sort();
-  const custOpts = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
-  const catOpts  = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
   [...prodFilt.store].forEach(v=>{if(!storeOpts.includes(v)) prodFilt.store.delete(v);});
-  [...prodFilt.customer].forEach(v=>{if(!custOpts.includes(v)) prodFilt.customer.delete(v);});
-  [...prodFilt.category].forEach(v=>{if(!catOpts.includes(v)) prodFilt.category.delete(v);});
 
   // Apply filters
-  const workRAW = (prodFilt.store.size||prodFilt.customer.size||prodFilt.category.size)
-    ? RAW.filter(r=>
-        (!prodFilt.store.size||prodFilt.store.has(String(r.store_name)))&&
-        (!prodFilt.customer.size||prodFilt.customer.has(String(r.customer_type)))&&
-        (!prodFilt.category.size||prodFilt.category.has(String(r.store_category))))
+  const workRAW = prodFilt.store.size
+    ? RAW.filter(r=>prodFilt.store.has(String(r.store_name)))
     : RAW;
 
   if(!['month','quarter','zone'].includes(prodView)) prodView='month';
@@ -3636,43 +3557,37 @@ function renderProductMoM(){
     ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
     : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
 
-  // bt-bar controls (Row 1: FY + View + Dimension + Search | Row 2: Customer Type + Store Category)
+  // bt-bar controls (single row: Year + View + Dimension + Search + Store + Reset)
   const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}" title="${f}">${zmomFyLabel(f)}</button>`).join('');
   const dimPills=PROD_DIMS.map(d=>`<button class="zmom-pill m-pill${d.k===prodDim?' active':''}" data-dim="${d.k}">${d.label}</button>`).join('');
   const VIEWS=[{k:'month',label:'Month'},{k:'quarter',label:'Quarter'},{k:'zone',label:'Zone'}];
   const viewPills=VIEWS.map(v=>`<button class="zmom-pill v-pill${v.k===prodView?' active':''}" data-view="${v.k}">${v.label}</button>`).join('');
 
-  const allPtOpts={store:storeOpts, customer:custOpts, category:catOpts};
+  const allPtOpts={store:storeOpts};
   function ptChip(key, label){
     const n=prodFilt[key].size;
     const badge=`<span class="mc-badge" id="ptbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
     return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="ptbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="ptpanel-${key}"><input type="text" class="ms-search" id="ptsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="ptlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-ptact="all" data-ptk="${key}">Select All</button><button class="ms-action-btn" data-ptact="clear" data-ptk="${key}">Clear All</button></div></div></div>`;
   }
   const note = prodView==='quarter'
-    ? `Quarters of ${zmomFyLabel(selFY)} (Q1 Apr–Jun … Q4 Jan–Mar), newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
+    ? `Quarters of ${zmomFyLabel(selFY)} (Q1 Jan–Mar … Q4 Oct–Dec), newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
     : prodView==='zone'
     ? `Zones across ${zmomFyLabel(selFY)} (Jan→Dec) · North · East · West · South · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
     : `Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`;
 
   host.innerHTML=`
-    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
-        <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
-        <div class="bt-period" style="margin-left:auto;">
-          <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Jan–Dec</span>
-          <span class="bt-period-tag">Product Trends</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
-        <div class="bt-fg"><label class="bt-flabel">Search</label>
-          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
-            <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
-        <div class="bt-fg"><label class="bt-flabel">Store</label><div class="bt-chips">${ptChip('store','Store')}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${ptChip('customer','Customer Type')}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${ptChip('category','Store Category')}</div></div>
-        <button class="kpi-reset" id="ptReset" title="Clear all Product Trends filters">↺ Reset</button>
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Store</label><div class="bt-chips">${ptChip('store','Store')}</div></div>
+      <button class="kpi-reset" id="ptReset" title="Clear all Product Trends filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Jan–Dec</span>
+        <span class="bt-period-tag">Product Trends</span>
       </div>
     </div>
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
@@ -3689,9 +3604,9 @@ function renderProductMoM(){
     if(prodSearchActive){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
   }
   const prst=host.querySelector('#ptReset');
-  if(prst) prst.addEventListener('click',()=>{ prodFilt.store.clear(); prodFilt.customer.clear(); prodFilt.category.clear(); prodSearch=''; prodSearchActive=false; renderProductMoM(); });
+  if(prst) prst.addEventListener('click',()=>{ prodFilt.store.clear(); prodSearch=''; prodSearchActive=false; renderProductMoM(); });
 
-  ['store','customer','category'].forEach(key=>{
+  ['store'].forEach(key=>{
     const btn=host.querySelector('#ptbtn-'+key), panel=host.querySelector('#ptpanel-'+key);
     const search=host.querySelector('#ptsearch-'+key), list=host.querySelector('#ptlist-'+key);
     if(!btn||!panel) return;
@@ -3737,8 +3652,6 @@ const WT_FILTERS = [
   { key:'zone',     label:'Zone',           field:'zone_name',     group:'loc'  },
   { key:'state',    label:'State',          field:'state_name',    group:'loc'  },
   { key:'store',    label:'Store',          field:'store_name',    group:'loc'  },
-  { key:'customer', label:'Customer Type',  field:'customer_type', group:'loc'  },
-  { key:'category', label:'Store Category', field:'store_category',group:'loc'  },
   { key:'brand',    label:'Brand',          field:'brand_name',    group:'prod' },
   { key:'sku',      label:'SKU',            field:'product_code',  group:'prod' },
 ];
@@ -3771,8 +3684,6 @@ function renderWeeklyTrends(){
     if(weeklyFilt.zone.size     && !weeklyFilt.zone.has(String(r.zone_name)))         return false;
     if(weeklyFilt.state.size    && !weeklyFilt.state.has(String(r.state_name)))       return false;
     if(weeklyFilt.store.size    && !weeklyFilt.store.has(String(r.store_name)))       return false;
-    if(weeklyFilt.customer.size && !weeklyFilt.customer.has(String(r.customer_type))) return false;
-    if(weeklyFilt.category.size && !weeklyFilt.category.has(String(r.store_category)))return false;
     if(weeklyFilt.brand.size    && !weeklyFilt.brand.has(String(r.brand_name)))       return false;
     if(weeklyFilt.sku.size      && !weeklyFilt.sku.has(String(r.product_code)))       return false;
     return true;
@@ -3970,8 +3881,6 @@ function renderDailyTrends(){
        (!dailyFilt.zone.size     || dailyFilt.zone.has(String(r.zone_name)))
     && (!dailyFilt.state.size    || dailyFilt.state.has(String(r.state_name)))
     && (!dailyFilt.store.size    || dailyFilt.store.has(String(r.store_name)))
-    && (!dailyFilt.customer.size || dailyFilt.customer.has(String(r.customer_type)))
-    && (!dailyFilt.category.size || dailyFilt.category.has(String(r.store_category)))
     && (!dailyFilt.brand.size    || dailyFilt.brand.has(String(r.brand_name)))
     && (!dailyFilt.sku.size      || dailyFilt.sku.has(String(r.product_code)));
 
@@ -4077,19 +3986,15 @@ function renderDailyTrends(){
   const prodChips = WT_FILTERS.filter(f=>f.group==='prod').map(chip).join('');
 
   host.innerHTML = `
-    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
-        <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yearPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
-        <button class="kpi-reset" id="dtReset" title="Clear all Location &amp; Product filters">↺ Reset</button>
-        <div class="bt-period" style="margin-left:auto;">
-          <span class="bt-period-rng" title="${fyTitle}"><b>${fyLbl}</b> · by week</span>
-          <span class="bt-period-tag">Daily Trends</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
-        <div class="bt-fg"><label class="bt-flabel">Location &amp; Stores</label><div class="bt-chips">${locChips}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Product</label><div class="bt-chips">${prodChips}</div></div>
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yearPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Location &amp; Stores</label><div class="bt-chips">${locChips}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Product</label><div class="bt-chips">${prodChips}</div></div>
+      <button class="kpi-reset" id="dtReset" title="Clear all Location &amp; Product filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng" title="${fyTitle}"><b>${fyLbl}</b> · by week</span>
+        <span class="bt-period-tag">Daily Trends</span>
       </div>
     </div>
     <div id="dailyTableHost"></div>
@@ -4169,8 +4074,6 @@ function renderBrandTrends(){
   // Multi-select dimension filters (Store shows store NAME). Empty Set = All (active by default).
   const BT_FILTERS=[
     {key:'store',    label:'Store',          field:'store_name'},
-    {key:'customer', label:'Customer Type',  field:'customer_type'},
-    {key:'category', label:'Store Category', field:'store_category'},
   ];
   const optSets={store:new Set(),customer:new Set(),category:new Set()};
   for(const r of RAW){ BT_FILTERS.forEach(f=>{ const v=r[f.field]; if(v!=null && v!=='') optSets[f.key].add(String(v)); }); }
@@ -4178,8 +4081,6 @@ function renderBrandTrends(){
   BT_FILTERS.forEach(f=>{ [...brandFilt[f.key]].forEach(v=>{ if(!optSets[f.key].has(v)) brandFilt[f.key].delete(v); }); });
   const passFilters=r=>{
     if(brandFilt.store.size && !brandFilt.store.has(String(r.store_name))) return false;
-    if(brandFilt.customer.size && !brandFilt.customer.has(String(r.customer_type))) return false;
-    if(brandFilt.category.size && !brandFilt.category.has(String(r.store_category))) return false;
     return true;
   };
 
@@ -4272,7 +4173,7 @@ function renderBrandTrends(){
   host.querySelectorAll('.seg-opt').forEach(b=>b.addEventListener('click',()=>{ brandMode=b.dataset.mode; renderBrandTrends(); }));
   const msel=host.querySelector('#btMonth'); if(msel) msel.addEventListener('change',()=>{ brandMonth=msel.value; renderBrandTrends(); });
   const fsel=host.querySelector('#btFY'); if(fsel) fsel.addEventListener('change',()=>{ brandFY=+fsel.value; renderBrandTrends(); });
-  host.querySelector('#btReset').addEventListener('click',()=>{ brandMode='month'; brandMonth=latestMK; brandFY=fyOf(latestMK); brandSearch=''; brandFilt={store:new Set(),customer:new Set(),category:new Set()}; renderBrandTrends(); });
+  host.querySelector('#btReset').addEventListener('click',()=>{ brandMode='month'; brandMonth=latestMK; brandFY=fyOf(latestMK); brandSearch=''; brandFilt={store:new Set()}; renderBrandTrends(); });
 
   // Search → table only (keeps focus + open panels)
   const si=host.querySelector('.brand-search');
