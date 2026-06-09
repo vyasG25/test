@@ -483,6 +483,18 @@
   table.zmom tr.total-row td.zcol{background:var(--blue-light);color:var(--blue-dark);}
   table.zmom tr.total-row:hover td{background:var(--blue-light);}
 
+  /* ── Invoice Register report ── */
+  .inv-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;}
+  table.inv-tbl{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;}
+  table.inv-tbl th,table.inv-tbl td{padding:10px 13px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;}
+  table.inv-tbl thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;box-shadow:inset 0 -2px 0 rgba(43,90,126,.22);}
+  table.inv-tbl th.num,table.inv-tbl td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  table.inv-tbl td.code{color:var(--blue-dark);font-weight:700;}
+  table.inv-tbl td.val{font-weight:700;color:var(--text);}
+  table.inv-tbl tbody tr:hover td{background:var(--bg);}
+  table.inv-tbl tr.total-row td{font-weight:700;background:var(--blue-light);color:var(--blue-dark);border-top:2px solid var(--blue-dark);position:sticky;bottom:0;z-index:5;}
+  table.inv-tbl tr.total-row:hover td{background:var(--blue-light);}
+
   /* rich overview cell */
   .zc{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;min-width:192px;}
   .zc.fy{min-width:150px;}
@@ -1136,6 +1148,10 @@
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         <span>Brand Trends</span>
       </button>
+      <button class="tab-btn" data-tab="invoices">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>
+        <span>Invoices</span>
+      </button>
     </div>
     </div><!-- /tab-nav-sticky -->
     <!-- ===== TAB: DASHBOARD ===== -->
@@ -1302,6 +1318,17 @@
     </div>
     <div id="secBrandTrends"></div>
     </div><!-- /tab-brandtrends -->
+
+    <!-- ===== TAB: INVOICES ===== -->
+    <div class="tab-panel" id="tab-invoices">
+    <div class="sec-header">
+      <div class="sec-title">
+        Invoice Register
+        <span class="sec-badge" style="background:var(--blue-light);color:var(--blue-dark)">Invoice-wise · latest first</span>
+      </div>
+    </div>
+    <div id="secInvoices"></div>
+    </div><!-- /tab-invoices -->
 
   </div>
 </div>
@@ -1559,6 +1586,7 @@ async function loadDashboardData() {
           zone_name: str(row['zone']),
           state_name: str(row['state']),
           city_name: str(row['city']),
+          region_name: str(row['region']),
           brand_name: str(row['brand']),
           sales_person: str(row['sales_person']),
           inv_number: str(row['inv_number']),
@@ -1653,6 +1681,10 @@ let brandFY = null;           // selected FY start year (e.g. 2025 => FY25)
 let brandSearch = '';
 let brandSearchActive = false;
 let brandFilt = { store:new Set() }; // empty Set = All
+// Invoice Register tab (invoice-wise report; independent of global filters)
+let invYear = null;            // selected calendar year (pill toggle, like Zone Trends)
+let invMonths = new Set();     // selected month-keys 'YYYY-MM' (empty = all months of the year)
+let invSearch = '';            // free-text search across invoice columns
 
 // ── Multi-select filter registry ──
 // Filters are organised into three groups shown as compact dropdown chips.
@@ -2305,6 +2337,105 @@ function renderAll() {
 // each has its own local controls). Re-rendering these heavy tables on every global
 // filter change is what made the Dashboard tab lag 3–5s. Instead they are rendered
 // lazily the first time their tab is opened, and re-armed after each data (re)load.
+// ── Invoice Register — invoice-wise report (independent of the global filters) ──
+// One row per invoice (grouped by Inv No), latest dates first, with a totals row.
+function renderInvoices(){
+  const host=document.getElementById('secInvoices');
+  if(!host) return;
+  if(!RAW || !RAW.length){ host.innerHTML='<div class="no-data">Upload a sales workbook to see the Invoice Register.</div>'; return; }
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const yrOf=r=> r.bill_date ? +r.bill_date.slice(0,4) : (r.cy?+r.cy:null);
+  const mkOf=r=> r.bill_date ? r.bill_date.slice(0,7) : '';
+
+  // ── Year pills (calendar years across all data) ──
+  const ySet=new Set();
+  for(const r of RAW){ const y=yrOf(r); if(y) ySet.add(y); }
+  const yList=[...ySet].sort((a,b)=>b-a);
+  if(invYear==null || !ySet.has(invYear)) invYear=yList[0];
+
+  // ── Month options within the selected year ──
+  const monthSet=new Set();
+  for(const r of RAW){ if(yrOf(r)===invYear){ const mk=mkOf(r); if(mk) monthSet.add(mk); } }
+  const monthOpts=[...monthSet].sort();
+  [...invMonths].forEach(m=>{ if(!monthSet.has(m)) invMonths.delete(m); });
+
+  const yPills=yList.map(y=>`<button class="zmom-pill fy-pill${y===invYear?' active':''}" data-invyear="${y}">${y}</button>`).join('');
+  const mBadge=`<span class="mc-badge" id="invMbadge" style="display:${invMonths.size?'inline-flex':'none'}">${invMonths.size}</span>`;
+  const monthChip=`<div class="mc bt-chip"><button class="mc-btn${invMonths.size?' active':''}" id="invMbtn" type="button"><span>Month</span>${mBadge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="invMpanel"><input type="text" class="ms-search" id="invMsearch" placeholder="Search month…"><div class="ms-list" id="invMlist"></div><div class="ms-actions"><button class="ms-action-btn" data-invmact="all">Select All</button><button class="ms-action-btn" data-invmact="clear">Clear All</button></div></div></div>`;
+
+  host.innerHTML=`
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:250px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox inv-search" placeholder="Search invoice, customer, zone, sales person…" value="${escapeHtml(invSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Month</label><div class="bt-chips">${monthChip}</div></div>
+      <button class="kpi-reset" id="invReset" title="Clear search & month filter">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${invYear}</b> · invoice-wise</span>
+        <span class="bt-period-tag">Invoices</span>
+      </div>
+    </div>
+    <div id="invTblHost"></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">One row per invoice (grouped by Inv No), newest dates first · Qty &amp; Value summed across the invoice's line items · ASP = Value ÷ Qty · Products = distinct SKUs on the invoice · independent of the global filters.</div>`;
+
+  function updateInvMonthBadge(){ const b=document.getElementById('invMbadge'); if(!b) return; const n=invMonths.size; b.textContent=n; b.style.display=n?'inline-flex':'none'; const btn=document.getElementById('invMbtn'); if(btn) btn.classList.toggle('active',!!n); }
+  function renderInvMonthList(sq){
+    const list=document.getElementById('invMlist'); if(!list) return;
+    sq=(sq||'').trim().toLowerCase();
+    const items=monthOpts.filter(mk=>!sq||zmomMonLabel(mk).toLowerCase().includes(sq));
+    list.innerHTML=items.length?items.map(mk=>`<label class="ms-item"><input type="checkbox" data-v="${mk}" ${invMonths.has(mk)?'checked':''}><span>${zmomMonLabel(mk)}</span></label>`).join(''):'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
+    list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{ const v=cb.dataset.v; if(cb.checked) invMonths.add(v); else invMonths.delete(v); updateInvMonthBadge(); paint(); }));
+  }
+
+  function paint(){
+    const inv={};
+    for(const r of RAW){
+      if(yrOf(r)!==invYear) continue;
+      const mk=mkOf(r);
+      if(invMonths.size && !invMonths.has(mk)) continue;
+      const key=r.inv_number || (r.store_code+'|'+r.bill_date);
+      let o=inv[key];
+      if(!o) o=inv[key]={ inv:r.inv_number||'—', date:r.bill_date||'', code:r.store_code||'—', name:r.store_name||'—',
+        zone:r.zone_name||'—', region:r.region_name||'—', state:r.state_name||'—', city:r.city_name||'—',
+        sp:r.sales_person||'—', qty:0, val:0, skus:new Set() };
+      o.qty+=r.quantity; o.val+=r.amount; if(r.product_code) o.skus.add(r.product_code);
+    }
+    let rows=Object.values(inv);
+    const sq=invSearch.trim().toLowerCase();
+    if(sq) rows=rows.filter(o=>[o.inv,o.code,o.name,o.zone,o.region,o.state,o.city,o.sp].some(v=>String(v).toLowerCase().includes(sq)));
+    rows.sort((a,b)=> (a.date<b.date?1:a.date>b.date?-1:0) || String(b.inv).localeCompare(String(a.inv),undefined,{numeric:true}));
+    let tQty=0,tVal=0; const tSku=new Set();
+    rows.forEach(o=>{ tQty+=o.qty; tVal+=o.val; o.skus.forEach(s=>tSku.add(s)); });
+    const fmtDate=iso=>{ if(!iso||iso.length<10) return '—'; const [y,m,d]=iso.split('-'); return d+' '+MON[+m-1]+' '+y.slice(2); };
+    const head=`<thead><tr><th>Date</th><th>Inv No</th><th>Cust Code</th><th>Cust Name</th><th>Zone</th><th>Region</th><th>State</th><th>City</th><th>Sales Person</th><th class="num">Qty</th><th class="num">Value</th><th class="num">ASP</th><th class="num">Products</th></tr></thead>`;
+    const body=rows.length? rows.map(o=>`<tr><td>${fmtDate(o.date)}</td><td class="code">${escapeHtml(o.inv)}</td><td class="code">${escapeHtml(o.code)}</td><td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.zone)}</td><td>${escapeHtml(o.region)}</td><td>${escapeHtml(o.state)}</td><td>${escapeHtml(o.city)}</td><td>${escapeHtml(o.sp)}</td><td class="num">${fmt(o.qty)}</td><td class="num val">${fmtRs(o.val)}</td><td class="num">${o.qty?fmtRs(o.val/o.qty):'—'}</td><td class="num">${fmt(o.skus.size)}</td></tr>`).join('')
+      : `<tr><td colspan="13" style="text-align:center;padding:22px;color:var(--text3)">No invoices match the current Year / Month / Search.</td></tr>`;
+    const total=rows.length?`<tr class="total-row"><td colspan="9">Total · ${fmt(rows.length)} invoices</td><td class="num">${fmt(tQty)}</td><td class="num">${fmtRs(tVal)}</td><td class="num">${tQty?fmtRs(tVal/tQty):'—'}</td><td class="num">${fmt(tSku.size)}</td></tr>`:'';
+    document.getElementById('invTblHost').innerHTML=`<div class="inv-wrap"><table class="inv-tbl">${head}<tbody>${body}${total}</tbody></table></div>`;
+  }
+
+  // ── Wire controls ──
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ invYear=+b.dataset.invyear; invMonths.clear(); renderInvoices(); }));
+  const si=host.querySelector('.inv-search');
+  if(si){ si.addEventListener('input',()=>{ invSearch=si.value; paint(); }); }
+  const mbtn=document.getElementById('invMbtn'), mpanel=document.getElementById('invMpanel'), msearch=document.getElementById('invMsearch');
+  if(mbtn&&mpanel){
+    mbtn.addEventListener('click',()=>{ const open=mpanel.classList.contains('open'); closeAllPanels(); if(!open){ mpanel.classList.add('open'); mbtn.classList.add('open'); if(msearch) setTimeout(()=>msearch.focus(),0); } });
+    if(msearch) msearch.addEventListener('input',()=>renderInvMonthList(msearch.value));
+    renderInvMonthList('');
+  }
+  host.querySelectorAll('.ms-action-btn[data-invmact]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.invmact==='all'){ const sq=(msearch&&msearch.value?msearch.value:'').trim().toLowerCase(); (sq?monthOpts.filter(mk=>zmomMonLabel(mk).toLowerCase().includes(sq)):monthOpts).forEach(mk=>invMonths.add(mk)); }
+    else { invMonths.clear(); if(msearch) msearch.value=''; }
+    updateInvMonthBadge(); renderInvMonthList(msearch?msearch.value:''); paint();
+  }));
+  const rb=document.getElementById('invReset');
+  if(rb) rb.addEventListener('click',()=>{ invMonths.clear(); invSearch=''; renderInvoices(); });
+
+  paint();
+}
+
 const INDEP_TAB_RENDER = {
   weeklytrends:  renderWeeklyTrends,
   dailytrends:   renderDailyTrends,
@@ -2312,6 +2443,7 @@ const INDEP_TAB_RENDER = {
   storemom:      renderStoreMoM,
   producttrends: renderProductMoM,
   brandtrends:   renderBrandTrends,
+  invoices:      renderInvoices,
 };
 let _indepTabsDirty = new Set();
 // Call after a data load so each independent tab re-renders the next time it's viewed.
@@ -4433,7 +4565,7 @@ function setup() {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
       ensureIndependentTab(tab);   // build the heavy trend tables only when first viewed
       const fb = document.getElementById('filterBar');
-      if (fb) fb.style.display = (tab === 'zonemom' || tab === 'kpi' || tab === 'storemom' || tab === 'producttrends' || tab === 'weeklytrends' || tab === 'dailytrends' || tab === 'brandtrends') ? 'none' : '';
+      if (fb) fb.style.display = (tab === 'zonemom' || tab === 'kpi' || tab === 'storemom' || tab === 'producttrends' || tab === 'weeklytrends' || tab === 'dailytrends' || tab === 'brandtrends' || tab === 'invoices') ? 'none' : '';
       adjustStickyTops();
     });
   });
