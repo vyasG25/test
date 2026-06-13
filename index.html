@@ -118,8 +118,6 @@
 
   /* SUMMARY TABLE */
   .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;}
-  .table-wrap-sticky{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:75vh;}
-  .table-wrap-sticky thead th{position:sticky;top:0;z-index:10;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   thead th{padding:9px 13px;text-align:left;font-size:11px;font-weight:700;color:var(--blue-dark);text-transform:uppercase;letter-spacing:.5px;background:var(--blue-light);border-bottom:1px solid #cfe0ef;white-space:nowrap;position:sticky;top:0;z-index:10;}
   thead th.th-right{text-align:right;}
@@ -143,21 +141,11 @@
   .tr-grandtotal .td-green{color:#3a8a5c;}
   .tr-grandtotal .td-red{color:var(--red);}
 
-  /* PILL */
-  .pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
-  .pg{background:var(--green-light);color:#5aa279;}
-  .py{background:var(--gold-light);color:var(--gold);}
-  .pr{background:var(--red-light);color:var(--red);}
 
   /* ACCOUNT TYPE HEADER ROW */
   .tr-account-header td{background:var(--accent);color:#fff;font-weight:700;font-size:12px;letter-spacing:.4px;}
   .tr-account-header:hover td{background:var(--blue-dark);}
 
-  /* COMPARATIVES PLACEHOLDER */
-  .phase2-ph{background:var(--surface2);border:2px dashed var(--border2);border-radius:var(--r);padding:60px;text-align:center;color:var(--text3);}
-  .phase2-icon{font-size:48px;margin-bottom:16px;}
-  .phase2-title{font-family:'Fraunces',serif;font-size:22px;color:var(--text2);margin-bottom:8px;}
-  .phase2-desc{font-size:14px;line-height:1.6;max-width:440px;margin:0 auto;}
 
   /* COMPARATIVE YOY TABLE */
   .yoy-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
@@ -197,12 +185,7 @@
   .year-table-wrap .tr-grandtotal td{background:var(--blue-light) !important;color:var(--blue-dark) !important;font-weight:700;border-top:2px solid var(--blue);}
   .year-table-wrap .tr-grandtotal:hover td{background:#ddebf6 !important;}
 
-  /* LOADING */
-  @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  @keyframes loadLogoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(78,124,89,.3);}50%{transform:scale(1.05);box-shadow:0 0 0 14px rgba(78,124,89,0);}}
-  @keyframes loadSpin{to{transform:rotate(360deg);}}
-  @keyframes loadDot{0%,80%,100%{opacity:.25;transform:scale(.8);}40%{opacity:1;transform:scale(1.1);}}
-  .no-data{padding:28px;text-align:center;color:var(--text3);font-size:14px;}
+  /* LOADING */  .no-data{padding:28px;text-align:center;color:var(--text3);font-size:14px;}
 
   @media(max-width:768px){
     .top-bar,.filter-bar{padding:10px 14px;}
@@ -215,21 +198,10 @@
   .brand-name{display:flex;align-items:center;line-height:1;}
   .brand-wordmark-img{height:auto;width:auto;display:block;}
   .brand-wordmark-text{font-family:'Nunito',sans-serif;font-style:italic;font-weight:800;font-size:23px;letter-spacing:-.5px;color:#1d81c4;}
-  /* ── ANIMATIONS ── */
-  @keyframes spin{to{transform:rotate(360deg);}}
-  @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  @keyframes loadLogoIn{0%{opacity:0;transform:translateY(16px) scale(.93);}100%{opacity:1;transform:translateY(0) scale(1);}}
-  @keyframes loadRise{0%{opacity:0;transform:translateY(18px);}100%{opacity:1;transform:translateY(0);}}
-  @keyframes orbDrift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(80px,-56px) scale(1.22);}}
-  @keyframes orbDrift2{0%,100%{transform:translate(0,0) scale(1.08);}50%{transform:translate(-90px,64px) scale(.85);}}
-  @keyframes orbDrift3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(54px,76px) scale(1.28);}}
-  @keyframes orbDrift4{0%,100%{transform:translate(0,0) scale(1.04);}50%{transform:translate(-60px,-44px) scale(.9);}}
-  @keyframes gridDrift{0%{background-position:0 0;}100%{background-position:46px 46px;}}
+  /* ── ANIMATIONS ── */  @keyframes loadLogoIn{0%{opacity:0;transform:translateY(16px) scale(.93);}100%{opacity:1;transform:translateY(0) scale(1);}}
+  @keyframes loadRise{0%{opacity:0;transform:translateY(18px);}100%{opacity:1;transform:translateY(0);}}  @keyframes gridDrift{0%{background-position:0 0;}100%{background-position:46px 46px;}}
   @keyframes ringSpinSlow{to{transform:rotate(360deg);}}
-  @keyframes checkDraw{from{stroke-dashoffset:48;}to{stroke-dashoffset:0;}}
-  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-  @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  /* Product card floater animations — each drifts on its own unique path */
+  @keyframes checkDraw{from{stroke-dashoffset:48;}to{stroke-dashoffset:0;}}  /* Product card floater animations — each drifts on its own unique path */
   @keyframes cardFloat1{0%,100%{transform:translate(0,0) rotate(-6deg);}33%{transform:translate(14px,-22px) rotate(-4deg);}66%{transform:translate(-8px,12px) rotate(-8deg);}}
   @keyframes cardFloat2{0%,100%{transform:translate(0,0) rotate(8deg);}33%{transform:translate(-18px,16px) rotate(6deg);}66%{transform:translate(10px,-14px) rotate(10deg);}}
   @keyframes cardFloat3{0%,100%{transform:translate(0,0) rotate(-3deg);}40%{transform:translate(20px,18px) rotate(-6deg);}80%{transform:translate(-12px,-8px) rotate(-1deg);}}
@@ -238,8 +210,6 @@
   @keyframes cardFloat6{0%,100%{transform:translate(0,0) rotate(4deg);}35%{transform:translate(-20px,10px) rotate(6deg);}70%{transform:translate(12px,-16px) rotate(2deg);}}
   @keyframes cardFloat7{0%,100%{transform:translate(0,0) rotate(-7deg);}50%{transform:translate(18px,-12px) rotate(-5deg);}}
   @keyframes cardFloat8{0%,100%{transform:translate(0,0) rotate(11deg);}40%{transform:translate(-10px,18px) rotate(9deg);}80%{transform:translate(14px,-8px) rotate(13deg);}}
-  @keyframes shimmer{0%,100%{opacity:.13;}50%{opacity:.22;}}
-
   /* ── ANIMATED LOADING OVERLAY ── */
   #loadingOverlay{overflow:hidden;background:#f3f1ed;}
   .load-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
@@ -699,18 +669,100 @@
 <script>
 'use strict';
 
+// ════════════════════════════════════════════════════════════════════════
+// CONFIG & STATE
+// ════════════════════════════════════════════════════════════════════════
 const DATA_URL = './data.json';
-let RAW = [];
-let YEARS = [];
-let SHEETS = [];
-let PARTIES = [];
-let LATEST_YEAR = null;
 
-// ── LOGIN ───────────────────────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════
-// LOADING OVERLAY HELPERS  (ported from Hamleys dashboard)
-// ═══════════════════════════════════════════════════════════════
+let RAW         = [];
+let YEARS       = [];
+let SHEETS      = [];
+let PARTIES     = [];
+let LATEST_YEAR = null;
+let currentTab  = 'dashboard';
+
+// ════════════════════════════════════════════════════════════════════════
+// FORMATTING UTILITIES
+// ════════════════════════════════════════════════════════════════════════
+function fmtNum(v, decimals=0) {
+  if (v === null || v === undefined) return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  if (decimals === 0) return n.toLocaleString('en-US', {maximumFractionDigits:0});
+  return n.toLocaleString('en-US', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+}
+
+function fmtVal(v) {
+  if (v === null || v === undefined) return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  return (n * 100).toFixed(1) + '%';
+}
+
+function fmtGrowth(v) {
+  if (v === null || v === undefined) return '<span class="td-muted">—</span>';
+  const n = parseFloat(v);
+  if (isNaN(n) || n === 0) return '<span class="td-muted">—</span>';
+  if (n <= -1) return '<span class="td-muted">—</span>';
+  const pct  = (n * 100).toFixed(1) + '%';
+  const cls  = n >= 0 ? 'td-green' : 'td-red';
+  const arrow = n >= 0 ? '▲' : '▼';
+  return `<span class="${cls}">${arrow} ${pct}</span>`;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// DATA AGGREGATION
+// ════════════════════════════════════════════════════════════════════════
+function initTotals() {
+  return {
+    on_order_units: 0, ytd_shipped: 0, total_units: 0,
+    on_order_value: 0, ytd_shipped_value: 0, total_value: 0,
+    order_count: 0, lytd_shipped_qty: 0, lytd_shipped_value: 0,
+    share_sum: 0, ly_growth_qty_avg: null, ly_growth_value_avg: null,
+    _lyq_count: 0, _lyv_count: 0, _lyq_sum: 0, _lyv_sum: 0
+  };
+}
+
+function accumulateTotals(t, r) {
+  t.on_order_units     += r.on_order_units     || 0;
+  t.ytd_shipped        += r.ytd_shipped        || 0;
+  t.total_units        += r.total_units        || 0;
+  t.on_order_value     += r.on_order_value     || 0;
+  t.ytd_shipped_value  += r.ytd_shipped_value  || 0;
+  t.total_value        += r.total_value        || 0;
+  t.order_count        += r.order_count        || 0;
+  t.lytd_shipped_qty   += r.lytd_shipped_qty   || 0;
+  t.lytd_shipped_value += r.lytd_shipped_value || 0;
+  t.share_sum          += r.share              || 0;
+  if (r.ly_growth_qty  && r.ly_growth_qty  !== 0 && r.ly_growth_qty  > -1) { t._lyq_sum += r.ly_growth_qty;  t._lyq_count++; }
+  if (r.ly_growth_value && r.ly_growth_value !== 0 && r.ly_growth_value > -1) { t._lyv_sum += r.ly_growth_value; t._lyv_count++; }
+  t.ly_growth_qty_avg   = t._lyq_count  ? t._lyq_sum  / t._lyq_count  : null;
+  t.ly_growth_value_avg = t._lyv_count  ? t._lyv_sum  / t._lyv_count  : null;
+}
+
+function totalise(rows) {
+  const t = initTotals();
+  rows.forEach(r => accumulateTotals(t, r));
+  return t;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// LOADING OVERLAY
+// ════════════════════════════════════════════════════════════════════════
 let _msgTO = null;
+
 function setLoadingMsg(main, sub, instant) {
   const s = document.getElementById('loadingStatus');
   const ss = document.getElementById('loadingSubStatus');
@@ -737,8 +789,8 @@ const LOADING_STAGES = [
   { p: 83, main: 'Computing performance metrics',  sub: 'Aggregating KPIs, growth & shares' },
   { p: 93, main: 'Finalizing your dashboard',      sub: 'Preparing your workspace' },
 ];
-const _LOAD_CAP = 96;                 // creeps toward this until the real load finishes
-const _LOAD_CIRC = 2 * Math.PI * 50;  // ring circumference (r = 50)
+const _LOAD_CAP  = 96;                 // creeps toward this until the real load finishes
+const _LOAD_CIRC = 2 * Math.PI * 50;   // ring circumference (r = 50)
 let _loadCycle = null, _loadProgress = 0, _loadStageIdx = -1;
 
 function _renderLoadSteps() {
@@ -799,7 +851,6 @@ function stopLoadingCycle() {
   if (_loadCycle) { clearInterval(_loadCycle); _loadCycle = null; }
 }
 
-// Show the final outcome: state = 'success' | 'error'.
 function finishLoading(state, main, sub) {
   stopLoadingCycle();
   const arc   = document.getElementById('loadArc');
@@ -828,6 +879,9 @@ function finishLoading(state, main, sub) {
   }
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// AUTHENTICATION
+// ════════════════════════════════════════════════════════════════════════
 async function attemptLogin() {
   const userInput = document.getElementById('loginUser').value.trim();
   const passInput = document.getElementById('loginPass').value;
@@ -891,7 +945,9 @@ function logout() {
   if (ft) ft.style.display = 'none';
 }
 
-// ── DATA LOAD ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════
+// DATA LOADING
+// ════════════════════════════════════════════════════════════════════════
 async function loadData() {
   const response = await fetch(DATA_URL + '?_=' + Date.now());
   // Capture file's Last-Modified timestamp from response headers
@@ -932,7 +988,9 @@ async function loadData() {
   if (indicator) indicator.classList.add('visible');
 }
 
-// ── BUILD YEAR TABS ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════════════════════
 function buildTabs() {
   const tabBar  = document.getElementById('tabBar');
   const main    = document.querySelector('.main');
@@ -954,7 +1012,49 @@ function buildTabs() {
   });
 }
 
-// ── PARTY MULTI-SELECT ──────────────────────────────────────────────────────
+function setupTabListeners() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+}
+
+function switchTab(tabName) {
+  currentTab = tabName;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabName));
+
+  // Show/hide filter bar: for year tabs and comparatives
+  const isYearTab = tabName.startsWith('year-');
+  const isComparative = tabName === 'comparatives';
+  document.getElementById('filterBar').style.display = (isYearTab || isComparative) ? 'flex' : 'none';
+  // Adjust tab bar sticky top
+  document.querySelector('.tab-nav-sticky').style.top = (isYearTab || isComparative) ? '108px' : '60px';
+
+  renderActiveTab();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// FILTERS · ACCOUNT TYPE & PARTY
+// ════════════════════════════════════════════════════════════════════════
+function populateAccountTypeFilter() {
+  const sel = document.getElementById('accountTypeFilter');
+  // Clear existing options except the first "All" option
+  while (sel.options.length > 1) sel.remove(1);
+  sel.value = '';
+  SHEETS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    sel.appendChild(opt);
+  });
+}
+
+function onAccountTypeChange() {
+  const accountType = document.getElementById('accountTypeFilter').value;
+  buildPartyList(accountType);
+  applyFilters();
+}
+
 function buildPartyList(accountType) {
   const list = document.getElementById('partyList');
   list.innerHTML = '';
@@ -1016,7 +1116,7 @@ function clearAllParties() {
   onPartyChange();
 }
 
-// Close party panel when clicking outside
+// Close the party panel when clicking outside it
 document.addEventListener('click', (e) => {
   const wrap = document.querySelector('.party-dropdown-wrap');
   if (wrap && !wrap.contains(e.target)) {
@@ -1025,50 +1125,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ── ACCOUNT TYPE FILTER ─────────────────────────────────────────────────────
-function populateAccountTypeFilter() {
-  const sel = document.getElementById('accountTypeFilter');
-  // Clear existing options except the first "All" option
-  while (sel.options.length > 1) sel.remove(1);
-  sel.value = '';
-  SHEETS.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    sel.appendChild(opt);
-  });
-}
-
-function onAccountTypeChange() {
-  const accountType = document.getElementById('accountTypeFilter').value;
-  buildPartyList(accountType);
-  applyFilters();
-}
-
-// ── TAB LISTENERS ───────────────────────────────────────────────────────────
-function setupTabListeners() {
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-  });
-}
-
-let currentTab = 'dashboard';
-function switchTab(tabName) {
-  currentTab = tabName;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabName));
-
-  // Show/hide filter bar: for year tabs and comparatives
-  const isYearTab = tabName.startsWith('year-');
-  const isComparative = tabName === 'comparatives';
-  document.getElementById('filterBar').style.display = (isYearTab || isComparative) ? 'flex' : 'none';
-  // Adjust tab bar sticky top
-  document.querySelector('.tab-nav-sticky').style.top = (isYearTab || isComparative) ? '108px' : '60px';
-
-  renderActiveTab();
-}
-
-// ── FILTERS ─────────────────────────────────────────────────────────────────
 function getFilters() {
   return {
     accountType: document.getElementById('accountTypeFilter').value,
@@ -1088,7 +1144,9 @@ function resetFilters() {
   renderActiveTab();
 }
 
-// ── RENDER ALL ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════
+// RENDER ORCHESTRATION
+// ════════════════════════════════════════════════════════════════════════
 function renderAll() {
   renderDashboard();
   renderComparatives({ accountType: '', parties: PARTIES });
@@ -1110,7 +1168,9 @@ function renderActiveTab() {
   }
 }
 
-// ── DASHBOARD TAB ─────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════
+// DASHBOARD TAB
+// ════════════════════════════════════════════════════════════════════════
 function renderDashboard() {
   renderDashKpis();
   renderDashSummary();
@@ -1138,15 +1198,15 @@ function renderDashKpis() {
 
   const grid = document.getElementById('dashKpiGrid');
   grid.innerHTML = `
-    ${kpiCard('💰 Total Revenue', fmtVal(curTotal), LATEST_YEAR, null, LATEST_YEAR)}
-    ${kpiCard('📦 YTD Shipped Value', fmtVal(curShipped), LATEST_YEAR, ytdGrowth, 'vs LYTD')}
-    ${kpiCard('⏳ On Order Value', fmtVal(curOnOrder), LATEST_YEAR, null, LATEST_YEAR)}
-    ${kpiCard('🔢 Total Units', fmtNum(curUnits, 0), LATEST_YEAR, null, LATEST_YEAR)}
-    ${kpiCard('📋 Order Count', fmtNum(curOrders,0), LATEST_YEAR, null, LATEST_YEAR)}
+    ${kpiCard('💰 Total Revenue', fmtVal(curTotal), null, LATEST_YEAR)}
+    ${kpiCard('📦 YTD Shipped Value', fmtVal(curShipped), ytdGrowth, 'vs LYTD')}
+    ${kpiCard('⏳ On Order Value', fmtVal(curOnOrder), null, LATEST_YEAR)}
+    ${kpiCard('🔢 Total Units', fmtNum(curUnits, 0), null, LATEST_YEAR)}
+    ${kpiCard('📋 Order Count', fmtNum(curOrders,0), null, LATEST_YEAR)}
   `;
 }
 
-function kpiCard(label, value, year, growth, sub) {
+function kpiCard(label, value, growth, sub) {
   let badge = '';
   if (growth !== null && growth !== undefined) {
     const cls = growth >= 0 ? 'up' : 'dn';
@@ -1284,7 +1344,6 @@ function renderDashSummary() {
   container.innerHTML = html;
 }
 
-// Dashboard summary row with custom share and growth
 function dashSummaryRow(label, t, isLatest, share, lyGrowthQty, lyGrowthValue) {
   return `<tr>
     <td class="td-bold">${esc(label)}</td>
@@ -1302,7 +1361,9 @@ function dashSummaryRow(label, t, isLatest, share, lyGrowthQty, lyGrowthValue) {
   </tr>`;
 }
 
-// ── COMPARATIVES TAB ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════
+// COMPARATIVES TAB
+// ════════════════════════════════════════════════════════════════════════
 function renderComparatives(filters) {
   const container = document.getElementById('comparativesContent');
 
@@ -1426,7 +1487,9 @@ function renderComparatives(filters) {
   container.innerHTML = html;
 }
 
-// ── YEAR TAB ─────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════
+// YEAR TAB
+// ════════════════════════════════════════════════════════════════════════
 function renderYearTab(year, container, filters) {
   const isLatest = year === LATEST_YEAR;
 
@@ -1525,7 +1588,7 @@ function renderYearTab(year, container, filters) {
       if (prevGT.ytd_shipped_value > 0) gtGrowthVal = (filteredTotals.ytd_shipped_value - prevGT.ytd_shipped_value) / prevGT.ytd_shipped_value;
     }
 
-    html += grandTotalRow('GRAND TOTAL', filteredTotals, isLatest, false, gtGrowthQty, gtGrowthVal);
+    html += grandTotalRow('GRAND TOTAL', filteredTotals, isLatest, gtGrowthQty, gtGrowthVal);
   }
 
   html += `</tbody></table></div>`;
@@ -1534,7 +1597,6 @@ function renderYearTab(year, container, filters) {
   fixStickyOffsets(container);
 }
 
-// Compute left offsets for sticky columns based on actual rendered widths
 function fixStickyOffsets(container) {
   const table = container.querySelector('.year-table-wrap table');
   if (!table) return;
@@ -1545,24 +1607,6 @@ function fixStickyOffsets(container) {
   table.querySelectorAll('.sticky-col-0').forEach(el => { el.style.left = '0px'; });
   table.querySelectorAll('.sticky-col-1').forEach(el => { el.style.left = w0 + 'px'; });
   table.querySelectorAll('.sticky-col-2').forEach(el => { el.style.left = (w0 + w1) + 'px'; });
-}
-
-// ── ROW RENDERERS ─────────────────────────────────────────────────────────────
-function summaryRow(label, t, isLatest) {
-  return `<tr>
-    <td class="td-bold">${esc(label)}</td>
-    <td class="td-right">${fmtNum(t.on_order_units)}</td>
-    <td class="td-right">${fmtNum(t.ytd_shipped)}</td>
-    <td class="td-right td-accent">${fmtNum(t.total_units)}</td>
-    <td class="td-right">${fmtVal(t.on_order_value)}</td>
-    <td class="td-right">${fmtVal(t.ytd_shipped_value)}</td>
-    <td class="td-right td-accent">${fmtVal(t.total_value)}</td>
-    <td class="td-right">${fmtNum(t.order_count,0)}</td>
-    ${isLatest ? `<td class="td-right td-muted">${fmtNum(t.lytd_shipped_qty)}</td><td class="td-right td-muted">${fmtVal(t.lytd_shipped_value)}</td>` : ''}
-    <td class="td-right">${fmtGrowth(t.ly_growth_qty_avg)}</td>
-    <td class="td-right">${fmtGrowth(t.ly_growth_value_avg)}</td>
-    <td class="td-right">${fmtPct(t.share_sum)}</td>
-  </tr>`;
 }
 
 function detailRow(r, isLatest) {
@@ -1603,27 +1647,9 @@ function subTotalRow(label, t, isLatest, lyGrowthQty, lyGrowthVal) {
   </tr>`;
 }
 
-function grandTotalRow(label, t, isLatest, useSummaryColspan, lyGrowthQty, lyGrowthVal) {
+function grandTotalRow(label, t, isLatest, lyGrowthQty, lyGrowthVal) {
   const gQty = (lyGrowthQty !== undefined && lyGrowthQty !== null) ? fmtGrowth(lyGrowthQty) : '';
   const gVal = (lyGrowthVal !== undefined && lyGrowthVal !== null) ? fmtGrowth(lyGrowthVal) : '';
-  if (useSummaryColspan) {
-    // In Dashboard summary table (no detail columns)
-    return `<tr class="tr-grandtotal">
-      <td>${label}</td>
-      <td class="td-right">${fmtNum(t.on_order_units)}</td>
-      <td class="td-right">${fmtNum(t.ytd_shipped)}</td>
-      <td class="td-right">${fmtNum(t.total_units)}</td>
-      <td class="td-right">${fmtVal(t.on_order_value)}</td>
-      <td class="td-right">${fmtVal(t.ytd_shipped_value)}</td>
-      <td class="td-right">${fmtVal(t.total_value)}</td>
-      <td class="td-right">${fmtNum(t.order_count,0)}</td>
-      ${isLatest ? `<td class="td-right">${fmtNum(t.lytd_shipped_qty)}</td><td class="td-right">${fmtVal(t.lytd_shipped_value)}</td>` : ''}
-      <td class="td-right">${gQty}</td>
-      <td class="td-right">${gVal}</td>
-      <td class="td-right">100%</td>
-    </tr>`;
-  }
-  // Year tab (has Party + country cols)
   return `<tr class="tr-grandtotal">
     <td class="sticky-col sticky-col-0">${label}</td>
     <td class="sticky-col sticky-col-1"></td>
@@ -1642,79 +1668,9 @@ function grandTotalRow(label, t, isLatest, useSummaryColspan, lyGrowthQty, lyGro
   </tr>`;
 }
 
-// ── AGGREGATION HELPERS ───────────────────────────────────────────────────────
-function initTotals() {
-  return {
-    on_order_units: 0, ytd_shipped: 0, total_units: 0,
-    on_order_value: 0, ytd_shipped_value: 0, total_value: 0,
-    order_count: 0, lytd_shipped_qty: 0, lytd_shipped_value: 0,
-    share_sum: 0, ly_growth_qty_avg: null, ly_growth_value_avg: null,
-    _lyq_count: 0, _lyv_count: 0, _lyq_sum: 0, _lyv_sum: 0
-  };
-}
-
-function accumulateTotals(t, r) {
-  t.on_order_units     += r.on_order_units     || 0;
-  t.ytd_shipped        += r.ytd_shipped        || 0;
-  t.total_units        += r.total_units        || 0;
-  t.on_order_value     += r.on_order_value     || 0;
-  t.ytd_shipped_value  += r.ytd_shipped_value  || 0;
-  t.total_value        += r.total_value        || 0;
-  t.order_count        += r.order_count        || 0;
-  t.lytd_shipped_qty   += r.lytd_shipped_qty   || 0;
-  t.lytd_shipped_value += r.lytd_shipped_value || 0;
-  t.share_sum          += r.share              || 0;
-  if (r.ly_growth_qty  && r.ly_growth_qty  !== 0 && r.ly_growth_qty  > -1) { t._lyq_sum += r.ly_growth_qty;  t._lyq_count++; }
-  if (r.ly_growth_value && r.ly_growth_value !== 0 && r.ly_growth_value > -1) { t._lyv_sum += r.ly_growth_value; t._lyv_count++; }
-  t.ly_growth_qty_avg   = t._lyq_count  ? t._lyq_sum  / t._lyq_count  : null;
-  t.ly_growth_value_avg = t._lyv_count  ? t._lyv_sum  / t._lyv_count  : null;
-}
-
-function totalise(rows) {
-  const t = initTotals();
-  rows.forEach(r => accumulateTotals(t, r));
-  return t;
-}
-
-// ── FORMAT HELPERS ────────────────────────────────────────────────────────────
-function fmtNum(v, decimals=0) {
-  if (v === null || v === undefined) return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  if (decimals === 0) return n.toLocaleString('en-US', {maximumFractionDigits:0});
-  return n.toLocaleString('en-US', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
-}
-
-function fmtVal(v) {
-  if (v === null || v === undefined) return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-function fmtPct(v) {
-  if (v === null || v === undefined) return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  return (n * 100).toFixed(1) + '%';
-}
-
-function fmtGrowth(v) {
-  if (v === null || v === undefined) return '<span class="td-muted">—</span>';
-  const n = parseFloat(v);
-  if (isNaN(n) || n === 0) return '<span class="td-muted">—</span>';
-  if (n <= -1) return '<span class="td-muted">—</span>';
-  const pct  = (n * 100).toFixed(1) + '%';
-  const cls  = n >= 0 ? 'td-green' : 'td-red';
-  const arrow = n >= 0 ? '▲' : '▼';
-  return `<span class="${cls}">${arrow} ${pct}</span>`;
-}
-
-function esc(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
+// ════════════════════════════════════════════════════════════════════════
+// REFRESH
+// ════════════════════════════════════════════════════════════════════════
 function setRefreshState(loading) {
   const btn = document.getElementById('refreshBtn');
   const icon = document.getElementById('refreshIcon');
@@ -1742,23 +1698,22 @@ async function refreshData() {
   }
 }
 
-// ── EXCEL EXPORT ──────────────────────────────────────────────────────────────
-// The button always exports a complete workbook snapshot (all data, unfiltered):
-//   Sheet 1 "Dashboard"    → per-year Revenue Summary tables, then the YoY summary below
-//   Sheet 2 "Comparative"  → the year-over-year comparative table
-//   Sheet 3+ "<year>"      → each year's party-level detail on its own sheet
+// ════════════════════════════════════════════════════════════════════════
+// EXCEL EXPORT
+// ════════════════════════════════════════════════════════════════════════
+// The Download button always exports a complete workbook snapshot (all data, unfiltered):
+//   Sheet 1 "Dashboard"   → KPI cards row, then per-year Revenue Summary tables
+//   Sheet 2 "Comparative" → the year-over-year comparative table
+//   Sheet 3+ "<year>"     → each year's party-level detail on its own sheet
 const XLS_FMT = { num: '#,##0', val: '$#,##0.00', pct: '0.0%', text: null };
 
-// Convert a growth fraction into a cell value (blank when not meaningful — mirrors fmtGrowth)
-function gCell(v) {
+function growthCell(v) {
   if (v === null || v === undefined) return '';
   const n = parseFloat(v);
   if (isNaN(n) || n === 0 || n <= -1) return '';
   return n;
 }
 
-// Build a worksheet from an array-of-arrays + a parallel grid of Excel number-format codes.
-// fmtGrid[r][c] is a format code (or null/undefined). Only applied to numeric cells.
 function aoaToSheetGrid(aoa, fmtGrid, colWidths) {
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   const range = XLSX.utils.decode_range(ws['!ref']);
@@ -1775,8 +1730,6 @@ function aoaToSheetGrid(aoa, fmtGrid, colWidths) {
   return ws;
 }
 
-// ── BLOCK: one year's Revenue Summary (by account type) ──
-// Returns { aoa, fmt } so it can be stacked onto the Dashboard sheet.
 function blockYearSummary(year) {
   const isLatest = year === LATEST_YEAR;
   const yearData = RAW.filter(d => d.year === year);
@@ -1818,7 +1771,7 @@ function blockYearSummary(year) {
     const row = [sheet, t.on_order_units, t.ytd_shipped, t.total_units,
       t.on_order_value, t.ytd_shipped_value, t.total_value, t.order_count];
     if (isLatest) row.push(t.lytd_shipped_qty, t.lytd_shipped_value);
-    row.push(gCell(gQty), gCell(gVal), share);
+    row.push(growthCell(gQty), growthCell(gVal), share);
     aoa.push(row);
     fmt.push(fmtRow);
   });
@@ -1837,15 +1790,13 @@ function blockYearSummary(year) {
   const gtRow = ['TOTAL', grand.on_order_units, grand.ytd_shipped, grand.total_units,
     grand.on_order_value, grand.ytd_shipped_value, grand.total_value, grand.order_count];
   if (isLatest) gtRow.push(grand.lytd_shipped_qty, grand.lytd_shipped_value);
-  gtRow.push(gCell(gtQty), gCell(gtVal), 1);
+  gtRow.push(growthCell(gtQty), growthCell(gtVal), 1);
   aoa.push(gtRow);
   fmt.push(fmtRow);
 
   return { aoa, fmt };
 }
 
-// ── BLOCK: the year-over-year comparative table (all accounts, all data) ──
-// Returns { aoa, fmt }.
 function blockComparative() {
   const data = RAW;
   const yearsDesc = YEARS.slice().reverse();
@@ -1886,8 +1837,8 @@ function blockComparative() {
       const frow = [null];
       yearsDesc.forEach(year => {
         const t = yearTotals[year];
-        if (key === 'ly_growth_qty')        row.push(gCell(calcGrowth(year).gQty));
-        else if (key === 'ly_growth_value') row.push(gCell(calcGrowth(year).gVal));
+        if (key === 'ly_growth_qty')        row.push(growthCell(calcGrowth(year).gQty));
+        else if (key === 'ly_growth_value') row.push(growthCell(calcGrowth(year).gVal));
         else if (key === 'share')           row.push(1);
         else                                row.push(t[key] || 0);
         frow.push(code);
@@ -1900,8 +1851,6 @@ function blockComparative() {
   return { aoa, fmt, ncols: headers.length };
 }
 
-// ── BLOCK: the 5 KPI "cards" (latest year) laid out across one row ──
-// Returns { aoa, fmt }: a title row, a row of labels, and a row of values.
 function blockKpiCards() {
   const ly = RAW.filter(d => d.year === LATEST_YEAR);
   const sum = (k) => ly.reduce((a, b) => a + (b[k] || 0), 0);
@@ -1914,7 +1863,6 @@ function blockKpiCards() {
   };
 }
 
-// ── SHEET 1: Dashboard (KPI cards row, then per-year summaries stacked, then YoY summary) ──
 function composeDashboardSheet() {
   const aoa = [], fmt = [];
   const push = (b) => b.aoa.forEach((r, i) => { aoa.push(r); fmt.push(b.fmt[i] || []); });
@@ -1934,14 +1882,12 @@ function composeDashboardSheet() {
   return { name: 'Dashboard', ws: aoaToSheetGrid(aoa, fmt, widths) };
 }
 
-// ── SHEET 2: Comparative ──
 function composeComparativeSheet() {
   const b = blockComparative();
   const widths = Array.from({ length: b.ncols }, (_, i) => ({ wch: i === 0 ? 22 : 16 }));
   return { name: 'Comparative', ws: aoaToSheetGrid(b.aoa, b.fmt, widths) };
 }
 
-// ── SHEET 3+: one sheet per year (party-level detail, all data) ──
 function composeYearSheet(year) {
   const isLatest = year === LATEST_YEAR;
   const data = RAW.filter(d => d.year === year);
@@ -1971,7 +1917,7 @@ function composeYearSheet(year) {
       const row = [r.sheet, r.country, r.retailer, r.on_order_units, r.ytd_shipped,
         r.total_units, r.on_order_value, r.ytd_shipped_value, r.total_value, r.order_count];
       if (isLatest) row.push(r.lytd_shipped_qty, r.lytd_shipped_value);
-      row.push(gCell(r.ly_growth_qty), gCell(r.ly_growth_value), (r.share || 0));
+      row.push(growthCell(r.ly_growth_qty), growthCell(r.ly_growth_value), (r.share || 0));
       aoa.push(row); fmt.push(fmtRow);
     });
 
@@ -1990,7 +1936,7 @@ function composeYearSheet(year) {
     const stRow = ['∑ ' + sheet + ' Total', '', '', st.on_order_units, st.ytd_shipped,
       st.total_units, st.on_order_value, st.ytd_shipped_value, st.total_value, st.order_count];
     if (isLatest) stRow.push(st.lytd_shipped_qty, st.lytd_shipped_value);
-    stRow.push(gCell(sQty), gCell(sVal), st.share_sum);
+    stRow.push(growthCell(sQty), growthCell(sVal), st.share_sum);
     aoa.push(stRow); fmt.push(fmtRow);
   });
 
@@ -2010,7 +1956,7 @@ function composeYearSheet(year) {
     const gtRow = ['GRAND TOTAL', '', '', gt.on_order_units, gt.ytd_shipped,
       gt.total_units, gt.on_order_value, gt.ytd_shipped_value, gt.total_value, gt.order_count];
     if (isLatest) gtRow.push(gt.lytd_shipped_qty, gt.lytd_shipped_value);
-    gtRow.push(gCell(gQty), gCell(gVal), 1);
+    gtRow.push(growthCell(gQty), growthCell(gVal), 1);
     aoa.push(gtRow); fmt.push(fmtRow);
   }
 
@@ -2021,7 +1967,6 @@ function colWidthsFromHeaders(headers) {
   return headers.map(h => ({ wch: Math.max(12, String(h).length + 2) }));
 }
 
-// ── Main download handler — builds the complete workbook ──
 function downloadExcel() {
   if (typeof XLSX === 'undefined') {
     alert('The Excel library could not be loaded. Please check your internet connection and try again.');
@@ -2049,6 +1994,9 @@ function downloadExcel() {
   }
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ════════════════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loginUser').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('loginPass').focus();
