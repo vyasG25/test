@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skillmatics — Hamleys Sales Dashboard</title>
+<title>Skillmatics GT Sales Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700&family=Nunito:ital,wght@1,700;1,800;1,900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 <!-- Data is uploaded as JSON files — no Excel parser needed (pure client-side JSON.parse) -->
 <style>
@@ -482,6 +482,26 @@
   table.zmom tr.total-row td{font-weight:700;background:var(--blue-light);border-top:2px solid var(--blue-dark);}
   table.zmom tr.total-row td.zcol{background:var(--blue-light);color:var(--blue-dark);}
   table.zmom tr.total-row:hover td{background:var(--blue-light);}
+  /* Sales Person — Target vs Achievement table */
+  table.zmom td.sp-per{text-align:left;color:var(--text2);font-weight:600;}
+  table.zmom thead th.sp-per-h{text-align:left;}
+  table.zmom tr.sp-subtot td{background:var(--surface2);font-weight:700;}
+  table.zmom tr.sp-subtot td.zcol{background:var(--surface2);color:var(--text);}
+  table.zmom tr.sp-subtot td.sp-per{color:var(--text2);font-style:italic;font-weight:600;}
+  table.zmom tr.sp-subtot:hover td{background:var(--surface2);}
+  table.zmom tr.sp-grp-start td{border-top:2px solid var(--border2);}
+
+  /* ── Invoice Register report ── */
+  .inv-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;}
+  table.inv-tbl{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;}
+  table.inv-tbl th,table.inv-tbl td{padding:10px 13px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;}
+  table.inv-tbl thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;box-shadow:inset 0 -2px 0 rgba(43,90,126,.22);}
+  table.inv-tbl th.num,table.inv-tbl td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  table.inv-tbl td.code{color:var(--blue-dark);font-weight:700;}
+  table.inv-tbl td.val{font-weight:700;color:var(--text);}
+  table.inv-tbl tbody tr:hover td{background:var(--bg);}
+  table.inv-tbl tr.total-row td{font-weight:700;background:var(--blue-light);color:var(--blue-dark);border-top:2px solid var(--blue-dark);position:sticky;bottom:0;z-index:5;}
+  table.inv-tbl tr.total-row:hover td{background:var(--blue-light);}
 
   /* rich overview cell */
   .zc{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;min-width:192px;}
@@ -928,7 +948,7 @@
         <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" style="height:40px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
         <span class="brand-wordmark-text" style="display:none;font-size:26px;">Skillmatics</span>
       </div>
-      <div class="lp-badge"><b></b>Hamleys Sales Dashboard</div>
+      <div class="lp-badge"><b></b>Skillmatics GT Sales Dashboard</div>
       <div class="lp-heading">Welcome back</div>
       <div class="lp-sub">Sign in to access your live sales workspace.</div>
 
@@ -1068,7 +1088,7 @@
         <span class="brand-wordmark-text" style="display:none">Skillmatics</span>
       </div>
     <div class="brand-divider"></div>
-    <div class="brand-title">Hamleys Sales Dashboard</div>
+    <div class="brand-title">Skillmatics GT Sales Dashboard</div>
   </div>
   <div class="header-right">
     <div class="hdr-status">
@@ -1126,7 +1146,7 @@
       </button>
       <button class="tab-btn" data-tab="storemom">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9M3 9h18M9 20v-6h6v6"/></svg>
-        <span>Store Trends</span>
+        <span>Distibutor Trends</span>
       </button>
       <button class="tab-btn" data-tab="producttrends">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 8.4 12 13 3.4 8.4M12 13v8M20.6 8.4 12 3.8 3.4 8.4v7.2L12 20.2l8.6-4.6Z"/></svg>
@@ -1135,6 +1155,14 @@
       <button class="tab-btn" data-tab="brandtrends">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         <span>Brand Trends</span>
+      </button>
+      <button class="tab-btn" data-tab="invoices">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>
+        <span>Invoices</span>
+      </button>
+      <button class="tab-btn" data-tab="sptarget">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/></svg>
+        <span>Sales Scorecard</span>
       </button>
     </div>
     </div><!-- /tab-nav-sticky -->
@@ -1210,7 +1238,7 @@
           </div>
         </div>
         <div class="kpi-fg">
-          <label class="kpi-flabel">Year (FY)</label>
+          <label class="kpi-flabel">Year</label>
           <select class="filter-select kpi-select" id="kpiFY"></select>
         </div>
         <div class="kpi-fg">
@@ -1270,7 +1298,7 @@
 
     </div><!-- /tab-zonemom -->
 
-    <!-- ===== TAB: STORE TRENDS ===== -->
+    <!-- ===== TAB: Distibutor Trends ===== -->
     <div class="tab-panel" id="tab-storemom">
     <div class="sec-header">
       <div class="sec-title">
@@ -1303,6 +1331,28 @@
     <div id="secBrandTrends"></div>
     </div><!-- /tab-brandtrends -->
 
+    <!-- ===== TAB: INVOICES ===== -->
+    <div class="tab-panel" id="tab-invoices">
+    <div class="sec-header">
+      <div class="sec-title">
+        Invoice Register
+        <span class="sec-badge" style="background:var(--blue-light);color:var(--blue-dark)">Invoice-wise · latest first</span>
+      </div>
+    </div>
+    <div id="secInvoices"></div>
+    </div><!-- /tab-invoices -->
+
+    <!-- ===== TAB: SALESPERSON TARGET vs ACHIEVEMENT ===== -->
+    <div class="tab-panel" id="tab-sptarget">
+    <div class="sec-header">
+      <div class="sec-title">
+        Sales Scorecard — Target vs Achievement
+        <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Target · Sales · Ach%</span>
+      </div>
+    </div>
+    <div id="secSpTarget"></div>
+    </div><!-- /tab-sptarget -->
+
   </div>
 </div>
 
@@ -1318,23 +1368,16 @@ let storeNameMap = {};   // store_code -> store_name
 let storeStatusMap = {}; // store_code -> 'active' | 'inactive' | '' (from sales data; latest record wins)
 
 // ── API URL configuration ──
-// All 9 sales JSON files + optional target file.
+// All sales JSON files + optional target file.
 // Place these JSON files in the same folder as index.html on your server.
 // isTarget:true  → treated as Target/budget data (kept in TARGET_RAW)
 // isTarget:false → treated as sales data (merged into RAW)
 const API_SOURCES = [
-  { url: "./2022(1).json",   isTarget: false },  // 2022 (Part 1)
-  { url: "./2023(1).json",   isTarget: false },  // 2023 (Part 1)
-  { url: "./2023(2).json",   isTarget: false },  // 2023 (Part 2)
   { url: "./2024(1).json",   isTarget: false },  // 2024 (Part 1)
-  { url: "./2024(2).json",   isTarget: false },  // 2024 (Part 2)
   { url: "./2025(1).json",   isTarget: false },  // 2025 (Part 1)
-  { url: "./2025(2).json",   isTarget: false },  // 2025 (Part 2)
-  { url: "./2025(3).json",   isTarget: false },  // 2025 (Part 3)
   { url: "./2026(1).json",   isTarget: false },  // 2026 (Part 1)
   { url: "./2026(2).json",   isTarget: false },  // 2026 (Part 2)
-  { url: "./2026(3).json",   isTarget: false },  // 2026 (Part 3)
-  { url: "./target.json", isTarget: true  },  // Uncomment if you have a target file
+  { url: "./target.json",    isTarget: true  },  // Uncomment if you have a target file
 ];
 
 // ── LOGIN ──────────────────────────────────────────────────────
@@ -1450,6 +1493,8 @@ async function loadDashboardData() {
     // We use res.text() + parseJsonText() (not res.json()) so that malformed
     // exports with missing commas between objects ("}{" → "},{") are repaired
     // before parsing — the same robust path the old file-upload handler used.
+    const salesSources  = API_SOURCES.filter(s => !s.isTarget);
+    const targetSources = API_SOURCES.filter(s =>  s.isTarget);
     const total = API_SOURCES.length;
 
     async function fetchSource(src) {
@@ -1541,37 +1586,36 @@ async function loadDashboardData() {
       for (let ri = 0, len = records.length; ri < len; ri++) {
         const row = records[ri];
         if (!row) continue;
-        const cy = row['cy'];
+        const cy = (row['year'] != null ? row['year'] : row['cy']);
         if (cy === '' || cy == null) continue;
 
-        const ac = strU(row['sku_code']), ad = strU(row['sku_name']);
+        // UPPER+trim every text dimension so case/space variants group as one
+        // (see up()). SKU label is built from the already-normalized code & name.
+        const ac = up(row['sku_code']), ad = up(row['sku_name']);
         const sku = ac && ad ? (ac + ' - ' + ad) : (ac || ad);
 
         RAW[writeIdx++] = {
-          cy: str(cy),
-          fy: strU(row['fy']),
-          quarter: strU(row['quarter']),
-          month: strU(row['month']),
-          week: strU(row['week']),
-          monthly_week: strU(row['monthly_week']),
+          cy: str(cy),                                  // calendar year (was 'cy'/'fy'; now JSON 'year')
+          quarter: up(row['quarter']),
+          month: up(row['month']),
+          week: up(row['week']),
+          monthly_week: up(row['monthly_week']),
           bill_date: excelDateToISO(row['date']),
-          quantity: +row['qty'] || 0,
+          quantity: +(row['quantity'] != null ? row['quantity'] : row['qty']) || 0,
           amount: +row['value'] || 0,
-          family: strU(row['family']),
-          cls: strU(row['class']),
-          brick: strU(row['brick']),
           article_code: ac,
           article_desc: ad,
           product_code: sku,
-          store_name: strU(row['store_name']),
-          store_code: strU(row['store_code']),
-          zone_name: strU(row['zone']),
-          state_name: strU(row['state']),
-          city_name: strU(row['city']),
-          brand_name: strU(row['brand']),
-          customer_type: strU(row['customer_type']),
-          store_category: strU(row['store_category']),
-          status: strU(row['status'])
+          store_name: up(row['customer_name'] != null ? row['customer_name'] : row['store_name']),
+          store_code: up(row['customer_code'] != null ? row['customer_code'] : row['store_code']),
+          zone_name: up(row['zone']),
+          state_name: up(row['state']),
+          city_name: up(row['city']),
+          brand_name: up(row['brand']),
+          sales_person: up(row['sales_person']),
+          inv_number: up(row['inv_number']),
+          include: up(row['include']),
+          status: up(row['status'])
         };
 
         sinceLastYield++;
@@ -1621,48 +1665,55 @@ async function loadDashboardData() {
 // Periods are fixed (current/last week, current/last month, current quarter, current year).
 const TOP_FIELDS = [
   { key: 'brand_name',   label: 'Brand' },
-  { key: 'family',       label: 'Family' },
-  { key: 'brick',        label: 'Brick' },
-  { key: 'cls',          label: 'Class' },
   { key: 'product_code', label: 'SKU' },
 ];
 let topGroupField = 'product_code'; // default: SKU (Article Code - Article Description)
 let topMetric = 'qty'; // 'qty' | 'value' — Top Performers ranking metric (default Qty)
+let detailSortCol = 'qty';
+let detailSortDir = 'desc';
+let uploadedFileCount = 0;
 
 // Month-on-Month Zone Performance state
 let zmomFY = null;            // selected fiscal-year start year (e.g. 2025 => FY25)
 let zmomMetric = 'overview';  // overview | sales | target | ach | contrib | mom | yoy
-// Zone Trends local bt-bar filters (Customer Type + Store Category)
-let zmomFilt = { customer: new Set(), category: new Set() };
-let storeFY = null;           // independent FY selection for the Store Trends tab
-let storeMetric = 'overview'; // independent metric view for the Store Trends tab
-let storeSearch = '';         // Store Trends search term (raw)
+let storeFY = null;           // independent FY selection for the Distibutor Trends tab
+let storeMetric = 'overview'; // independent metric view for the Distibutor Trends tab
+let storeSearch = '';         // Distibutor Trends search term (raw)
 let storeSearchActive = false;
-// Store Trends local bt-bar filters (Customer Type, Store Category, Zone)
-let storeFilt = { zone: new Set(), customer: new Set(), category: new Set() };
+// Distibutor Trends local bt-bar filters (Zone)
+let storeFilt = { zone: new Set() };
 let prodFY = null;            // independent FY selection for the Product Trends tab
-let prodDim = 'brand';        // selected product dimension (brand|family|cls|brick|sku)
+let prodDim = 'brand';        // selected product dimension (brand|luggage|range|size|dept)
 let prodView = 'month';       // Product Trends column view: 'month' | 'quarter' | 'zone'
 let prodSearch = '';          // Product Trends search term (raw)
 let prodSearchActive = false;
-// Product Trends local bt-bar filters (Store, Customer Type, Store Category)
-let prodFilt = { store: new Set(), customer: new Set(), category: new Set() };
+// Product Trends local bt-bar filters (Store)
+let prodFilt = { store: new Set() };
+// Sales Person — Target vs Achievement tab (independent: own Year + Monthly/Quarterly + Search)
+let spFY = null;              // selected calendar year for the Salesperson Target tab
+let spView = 'month';         // 'month' | 'quarter'
+let spSearch = '';            // sales-person search term (raw)
+let spSearchActive = false;
 // Weekly Trends (Month rows × Monthly-Week columns, per fiscal year)
 let weeklyFY = null;          // selected fiscal-year start year (e.g. 2025 => FY25)
 // Local Location & Stores + Product filters (empty Set = All). Independent of global filters.
-let weeklyFilt = { zone:new Set(), state:new Set(), store:new Set(), customer:new Set(), category:new Set(), brand:new Set(), family:new Set(), cls:new Set(), brick:new Set(), sku:new Set() };
+let weeklyFilt = { zone:new Set(), state:new Set(), store:new Set(), brand:new Set(), sku:new Set() };
 // Dashboard "Monthly Sales — Year on Year" report — fixed Qty·Value·ASP view (no toggle).
 // Daily Trends (Week rows × Day-of-week columns, per calendar year). Independent of global filters.
 let dailyYear = null;         // selected calendar year (e.g. 2026)
 let dailyMetric = 'all';      // 'all' | 'qty' | 'value' | 'asp'
-let dailyFilt = { zone:new Set(), state:new Set(), store:new Set(), customer:new Set(), category:new Set(), brand:new Set(), family:new Set(), cls:new Set(), brick:new Set(), sku:new Set() };
+let dailyFilt = { zone:new Set(), state:new Set(), store:new Set(), brand:new Set(), sku:new Set() };
 // Brand Trends (Brand, current vs last — LFL same period)
 let brandMode = 'month';      // 'month' | 'fy'
 let brandMonth = null;        // selected month key 'YYYY-MM'
 let brandFY = null;           // selected FY start year (e.g. 2025 => FY25)
 let brandSearch = '';
 let brandSearchActive = false;
-let brandFilt = { store:new Set(), family:new Set(), cls:new Set(), brick:new Set(), customer:new Set(), category:new Set() }; // empty Set = All
+let brandFilt = { store:new Set() }; // empty Set = All
+// Invoice Register tab (invoice-wise report; independent of global filters)
+let invYear = null;            // selected calendar year (pill toggle, like Zone Trends)
+let invMonths = new Set();     // selected month-keys 'YYYY-MM' (empty = all months of the year)
+let invSearch = '';            // free-text search across invoice columns
 
 // ── Multi-select filter registry ──
 // Filters are organised into three groups shown as compact dropdown chips.
@@ -1670,11 +1721,11 @@ let brandFilt = { store:new Set(), family:new Set(), cls:new Set(), brick:new Se
 const GROUPS = [
   { key:'period',   label:'Period' },              // From/To date + FY/Quarter/Month
   { key:'location', label:'Location & Stores' },    // Zone/State/Store
-  { key:'product',  label:'Product' },              // Brand/Family/Class/Brick
+  { key:'product',  label:'Product' },              // Brand/SKU
 ];
 const FILTERS = [
   // Period
-  { key:'fy',      label:'FY',           field:'fy',           ph:'All FY',       parents:[],               group:'period' },
+  { key:'fy',      label:'Year',         field:'cy',           ph:'All Years',    parents:[],               group:'period' },
   { key:'quarter', label:'Quarter',      field:'quarter',      ph:'All Quarters', parents:['fy'],           group:'period' },
   { key:'month',   label:'Month',        field:'month',        ph:'All Months',   parents:['fy','quarter'], group:'period' },
   // Location & Stores
@@ -1683,9 +1734,6 @@ const FILTERS = [
   { key:'store',   label:'Store',        field:'store_code',   ph:'All Stores',   parents:['zone','state'],  group:'location', isStore:true },
   // Product
   { key:'brand',   label:'Brand',        field:'brand_name',   ph:'All Brands',   parents:[],               group:'product' },
-  { key:'family',  label:'Family',       field:'family',       ph:'All Families', parents:[],               group:'product' },
-  { key:'cls',     label:'Class',        field:'cls',          ph:'All Classes',  parents:[],               group:'product' },
-  { key:'brick',   label:'Brick',        field:'brick',        ph:'All Bricks',   parents:[],               group:'product' },
   { key:'sku',     label:'SKU',          field:'product_code', ph:'All SKUs',     parents:[],               group:'product' },
 ];
 const FMAP = Object.fromEntries(FILTERS.map(f => [f.key, f]));
@@ -1703,6 +1751,19 @@ const popSel = { month: null, quarter: null, fy: null };
 
 let filterTimer = null;
 function debouncedApply() { if (filterTimer) clearTimeout(filterTimer); filterTimer = setTimeout(applyFilters, 150); }
+
+// Expected column names (will auto-detect header row)
+const EXPECTED_COLS = ["Calendar Day","New Store","Store Name",
+  "Article Code","Article Description","Brand","Sales Qty","MRP Sales","CY","FY","Quarter",
+  "Month","Week","Monthly Week","Zone","State","City"];
+
+// ═══════════════════════════════════════════════════════════════
+// VIEW STATE
+// ═══════════════════════════════════════════════════════════════
+function showDashboard() {
+  document.getElementById('dashboardContent').style.display = 'block';
+  document.getElementById('dashboardContent').classList.add('visible');
+}
 
 // ═══════════════════════════════════════════════════════════════
 // LOADING OVERLAY HELPERS
@@ -1840,11 +1901,11 @@ function yieldToUI() { return new Promise(resolve => setTimeout(resolve, 0)); }
 // Fast string coerce — avoids repeated String() + trim()
 function str(v) { return v == null ? '' : typeof v === 'string' ? v : String(v); }
 
-// Case/whitespace-normalising coerce. Trims and UPPER-CASEs so that values that
-// differ only by letter case ("North"/"NORTH"/"north") or stray padding (" North ")
-// collapse to a single canonical value and never split into duplicate rows in any
-// of the connected reports. Applied to the dimension/label fields at ingestion.
-function strU(v) { return v == null ? '' : String(v).trim().toUpperCase(); }
+// Canonicalize a dimension value so the SAME entity written in different cases
+// or with stray padding ("North" / "NORTH" / " north ") collapses into ONE group
+// across every connected report. UPPER + trim is the single canonical form, which
+// stops case/space variants from producing duplicate rows in the dashboards.
+function up(v) { return v == null ? '' : (typeof v === 'string' ? v : String(v)).trim().toUpperCase(); }
 
 // Pre-computed date cache for Excel serial → ISO conversion (avoids repeated Date creation)
 const _dateCache = new Map();
@@ -1915,9 +1976,12 @@ function buildTargetFromJson(records, fileName) {
     const month = String(rec[kMonth] == null ? '' : rec[kMonth]).trim();
     if (!month) continue;
     monthSet.add(month);
-    const storeKey = (kCode ? strU(rec[kCode]) : '') + '|' + (kName ? strU(rec[kName]) : '');
+    // Store key + dimension values are canonicalized with up() so they match the
+    // (now UPPER+trim) sales store_code / store_name / zone / state, keeping the
+    // Target-vs-Achievement joins intact. Month columns & numeric values untouched.
+    const storeKey = (kCode ? up(rec[kCode]) : '') + '|' + (kName ? up(rec[kName]) : '');
     let row = rowMap.get(storeKey);
-    if (!row) { row = {}; for (const dk of dimKeys) row[dk] = rec[dk]; rowMap.set(storeKey, row); }
+    if (!row) { row = {}; for (const dk of dimKeys) row[dk] = up(rec[dk]); rowMap.set(storeKey, row); }
     row[month] = (row[month] || 0) + (+rec[kValue] || 0);
   }
   // Ensure every store has every month column (default 0) so month detection is stable.
@@ -1946,6 +2010,13 @@ function buildTargetFromJson(records, fileName) {
 function fmt(n) { return n == null ? '—' : Number(n).toLocaleString('en-IN'); }
 function fmtRs(n) { return (n == null || !isFinite(n)) ? '—' : '₹' + Math.round(n).toLocaleString('en-IN'); }
 function fmtV(n) { if (n == null) return '—'; if (Math.abs(n) >= 10000000) return '₹' + (n/10000000).toFixed(2) + ' Cr'; if (Math.abs(n) >= 100000) return '₹' + (n/100000).toFixed(2) + ' L'; if (Math.abs(n) >= 1000) return '₹' + (n/1000).toFixed(1) + 'K'; return '₹' + fmt(n); }
+function fmtPct(cur, prev) {
+  if (!prev || prev === 0) return '<span class="pop-badge na">N/A</span>';
+  const pct = ((cur - prev) / Math.abs(prev) * 100).toFixed(1);
+  const cls = pct >= 0 ? 'up' : 'dn';
+  const arrow = pct >= 0 ? '▲' : '▼';
+  return `<span class="pop-badge ${cls}">${arrow} ${Math.abs(pct)}%</span>`;
+}
 function fmtDate(d) { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2138,7 +2209,7 @@ function refreshDependents(key) {
     const sb = document.getElementById('mc-search-' + dk);
     renderList(cfg, sb ? sb.value : '');
     updateTrigger(cfg);
-    refreshDependents(dk); // recurse (e.g. zone -> state -> region -> store)
+    refreshDependents(dk); // recurse (e.g. zone -> state -> store)
   }
 }
 
@@ -2304,6 +2375,105 @@ function renderAll() {
 // each has its own local controls). Re-rendering these heavy tables on every global
 // filter change is what made the Dashboard tab lag 3–5s. Instead they are rendered
 // lazily the first time their tab is opened, and re-armed after each data (re)load.
+// ── Invoice Register — invoice-wise report (independent of the global filters) ──
+// One row per invoice (grouped by Inv No), latest dates first, with a totals row.
+function renderInvoices(){
+  const host=document.getElementById('secInvoices');
+  if(!host) return;
+  if(!RAW || !RAW.length){ host.innerHTML='<div class="no-data">Upload a sales workbook to see the Invoice Register.</div>'; return; }
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const yrOf=r=> r.bill_date ? +r.bill_date.slice(0,4) : (r.cy?+r.cy:null);
+  const mkOf=r=> r.bill_date ? r.bill_date.slice(0,7) : '';
+
+  // ── Year pills (calendar years across all data) ──
+  const ySet=new Set();
+  for(const r of RAW){ const y=yrOf(r); if(y) ySet.add(y); }
+  const yList=[...ySet].sort((a,b)=>b-a);
+  if(invYear==null || !ySet.has(invYear)) invYear=yList[0];
+
+  // ── Month options within the selected year ──
+  const monthSet=new Set();
+  for(const r of RAW){ if(yrOf(r)===invYear){ const mk=mkOf(r); if(mk) monthSet.add(mk); } }
+  const monthOpts=[...monthSet].sort();
+  [...invMonths].forEach(m=>{ if(!monthSet.has(m)) invMonths.delete(m); });
+
+  const yPills=yList.map(y=>`<button class="zmom-pill fy-pill${y===invYear?' active':''}" data-invyear="${y}">${y}</button>`).join('');
+  const mBadge=`<span class="mc-badge" id="invMbadge" style="display:${invMonths.size?'inline-flex':'none'}">${invMonths.size}</span>`;
+  const monthChip=`<div class="mc bt-chip"><button class="mc-btn${invMonths.size?' active':''}" id="invMbtn" type="button"><span>Month</span>${mBadge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="invMpanel"><input type="text" class="ms-search" id="invMsearch" placeholder="Search month…"><div class="ms-list" id="invMlist"></div><div class="ms-actions"><button class="ms-action-btn" data-invmact="all">Select All</button><button class="ms-action-btn" data-invmact="clear">Clear All</button></div></div></div>`;
+
+  host.innerHTML=`
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:250px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox inv-search" placeholder="Search invoice, customer, zone, sales person…" value="${escapeHtml(invSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Month</label><div class="bt-chips">${monthChip}</div></div>
+      <button class="kpi-reset" id="invReset" title="Clear search & month filter">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${invYear}</b> · invoice-wise</span>
+        <span class="bt-period-tag">Invoices</span>
+      </div>
+    </div>
+    <div id="invTblHost"></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">One row per invoice (grouped by Inv No), newest dates first · Qty &amp; Value summed across the invoice's line items · ASP = Value ÷ Qty · Products = distinct SKUs on the invoice · independent of the global filters.</div>`;
+
+  function updateInvMonthBadge(){ const b=document.getElementById('invMbadge'); if(!b) return; const n=invMonths.size; b.textContent=n; b.style.display=n?'inline-flex':'none'; const btn=document.getElementById('invMbtn'); if(btn) btn.classList.toggle('active',!!n); }
+  function renderInvMonthList(sq){
+    const list=document.getElementById('invMlist'); if(!list) return;
+    sq=(sq||'').trim().toLowerCase();
+    const items=monthOpts.filter(mk=>!sq||zmomMonLabel(mk).toLowerCase().includes(sq));
+    list.innerHTML=items.length?items.map(mk=>`<label class="ms-item"><input type="checkbox" data-v="${mk}" ${invMonths.has(mk)?'checked':''}><span>${zmomMonLabel(mk)}</span></label>`).join(''):'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
+    list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{ const v=cb.dataset.v; if(cb.checked) invMonths.add(v); else invMonths.delete(v); updateInvMonthBadge(); paint(); }));
+  }
+
+  function paint(){
+    const inv={};
+    for(const r of RAW){
+      if(yrOf(r)!==invYear) continue;
+      const mk=mkOf(r);
+      if(invMonths.size && !invMonths.has(mk)) continue;
+      const key=r.inv_number || (r.store_code+'|'+r.bill_date);
+      let o=inv[key];
+      if(!o) o=inv[key]={ inv:r.inv_number||'—', date:r.bill_date||'', code:r.store_code||'—', name:r.store_name||'—',
+        zone:r.zone_name||'—', state:r.state_name||'—', city:r.city_name||'—',
+        sp:r.sales_person||'—', qty:0, val:0, skus:new Set() };
+      o.qty+=r.quantity; o.val+=r.amount; if(r.product_code) o.skus.add(r.product_code);
+    }
+    let rows=Object.values(inv);
+    const fmtDate=iso=>{ if(!iso||iso.length<10) return '—'; const [y,m,d]=iso.split('-'); return d+' '+MON[+m-1]+' '+y.slice(2); };
+    const sq=invSearch.trim().toLowerCase();
+    if(sq) rows=rows.filter(o=>[o.inv,o.code,o.name,o.zone,o.state,o.city,o.sp,fmtDate(o.date)].some(v=>String(v).toLowerCase().includes(sq)));
+    rows.sort((a,b)=> (a.date<b.date?1:a.date>b.date?-1:0) || String(b.inv).localeCompare(String(a.inv),undefined,{numeric:true}));
+    let tQty=0,tVal=0; const tSku=new Set();
+    rows.forEach(o=>{ tQty+=o.qty; tVal+=o.val; o.skus.forEach(s=>tSku.add(s)); });
+    const head=`<thead><tr><th>Date</th><th>Inv No</th><th>Cust Code</th><th>Cust Name</th><th>Zone</th><th>State</th><th>City</th><th>Sales Person</th><th class="num">Qty</th><th class="num">Value</th><th class="num">ASP</th><th class="num">Products</th></tr></thead>`;
+    const body=rows.length? rows.map(o=>`<tr><td>${fmtDate(o.date)}</td><td class="code">${escapeHtml(o.inv)}</td><td class="code">${escapeHtml(o.code)}</td><td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.zone)}</td><td>${escapeHtml(o.state)}</td><td>${escapeHtml(o.city)}</td><td>${escapeHtml(o.sp)}</td><td class="num">${fmt(o.qty)}</td><td class="num val">${fmtRs(o.val)}</td><td class="num">${o.qty?fmtRs(o.val/o.qty):'—'}</td><td class="num">${fmt(o.skus.size)}</td></tr>`).join('')
+      : `<tr><td colspan="12" style="text-align:center;padding:22px;color:var(--text3)">No invoices match the current Year / Month / Search.</td></tr>`;
+    const total=rows.length?`<tr class="total-row"><td colspan="8">Total · ${fmt(rows.length)} invoices</td><td class="num">${fmt(tQty)}</td><td class="num">${fmtRs(tVal)}</td><td class="num">${tQty?fmtRs(tVal/tQty):'—'}</td><td class="num">${fmt(tSku.size)}</td></tr>`:'';
+    document.getElementById('invTblHost').innerHTML=`<div class="inv-wrap"><table class="inv-tbl">${head}<tbody>${body}${total}</tbody></table></div>`;
+  }
+
+  // ── Wire controls ──
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ invYear=+b.dataset.invyear; invMonths.clear(); renderInvoices(); }));
+  const si=host.querySelector('.inv-search');
+  if(si){ si.addEventListener('input',()=>{ invSearch=si.value; paint(); }); }
+  const mbtn=document.getElementById('invMbtn'), mpanel=document.getElementById('invMpanel'), msearch=document.getElementById('invMsearch');
+  if(mbtn&&mpanel){
+    mbtn.addEventListener('click',()=>{ const open=mpanel.classList.contains('open'); closeAllPanels(); if(!open){ mpanel.classList.add('open'); mbtn.classList.add('open'); if(msearch) setTimeout(()=>msearch.focus(),0); } });
+    if(msearch) msearch.addEventListener('input',()=>renderInvMonthList(msearch.value));
+    renderInvMonthList('');
+  }
+  host.querySelectorAll('.ms-action-btn[data-invmact]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.invmact==='all'){ const sq=(msearch&&msearch.value?msearch.value:'').trim().toLowerCase(); (sq?monthOpts.filter(mk=>zmomMonLabel(mk).toLowerCase().includes(sq)):monthOpts).forEach(mk=>invMonths.add(mk)); }
+    else { invMonths.clear(); if(msearch) msearch.value=''; }
+    updateInvMonthBadge(); renderInvMonthList(msearch?msearch.value:''); paint();
+  }));
+  const rb=document.getElementById('invReset');
+  if(rb) rb.addEventListener('click',()=>{ invMonths.clear(); invSearch=''; renderInvoices(); });
+
+  paint();
+}
+
 const INDEP_TAB_RENDER = {
   weeklytrends:  renderWeeklyTrends,
   dailytrends:   renderDailyTrends,
@@ -2311,6 +2481,8 @@ const INDEP_TAB_RENDER = {
   storemom:      renderStoreMoM,
   producttrends: renderProductMoM,
   brandtrends:   renderBrandTrends,
+  invoices:      renderInvoices,
+  sptarget:      renderSpTarget,
 };
 let _indepTabsDirty = new Set();
 // Call after a data load so each independent tab re-renders the next time it's viewed.
@@ -2373,8 +2545,8 @@ function renderKPI() {
     ], 'left') +
     statCard('Products & Stores', [
       { value: fmt(uniqueProducts),                  label: 'Unique Products', color: 'var(--accent2)', title: 'Distinct SKUs in sales data' },
-      { value: ss.hasData ? fmt(ss.active)   : '—',  label: 'Active Stores',   color: 'var(--green)',   title: 'Distinct stores marked Active in the current view' },
-      { value: ss.hasData ? fmt(ss.inactive) : '—',  label: 'Inactive Stores', color: 'var(--red)',     title: 'Distinct stores marked Inactive in the current view' },
+        { value: ss.hasData ? fmt(ss.active) : '—', label: 'Active Distributors', color: 'var(--green)', title: 'Distinct Distributors marked Active in the current view' },
+        { value: ss.hasData ? fmt(ss.inactive) : '—', label: 'Inactive Distributors', color: 'var(--red)', title: 'Distinct Distributors marked Inactive in the current view' },
     ], 'center');
 }
 
@@ -2433,10 +2605,10 @@ function renderPOP() {
     if (!bd) continue;
     monthsSet.add(bd.slice(0, 7));                                  // YYYY-MM
     const mo = +bd.slice(5, 7), y = +bd.slice(0, 4);
-    const fyq = mo >= 4 ? y : y - 1;                                 // fiscal year of this date
-    const fq = Math.floor(((mo - 4 + 12) % 12) / 3) + 1;            // fiscal quarter (Q1=Apr–Jun … Q4=Jan–Mar)
-    qSet.add(fyq + '-Q' + fq);                                       // {fiscalYear}-Q{n}
-    fySet.add(fyq);                                                  // fiscal year (Apr start)
+    const fyq = y;                                                   // calendar year of this date
+    const fq = Math.floor((mo - 1) / 3) + 1;                         // calendar quarter (Q1=Jan–Mar … Q4=Oct–Dec)
+    qSet.add(fyq + '-Q' + fq);                                       // {year}-Q{n}
+    fySet.add(fyq);                                                  // calendar year
   }
   const months = [...monthsSet].sort().reverse();
   const quarters = [...qSet].sort().reverse();
@@ -2449,24 +2621,24 @@ function renderPOP() {
 
   // ── Label helpers ──
   const monthName = (y, m0) => D(y, m0, 1).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
-  const fyLabel = fy => `FY ${fy}-${String((fy + 1) % 100).padStart(2, '0')}`;
-  const qLabel = (fy, q) => `Q${q} FY${String(fy).slice(2)}-${String((fy + 1) % 100).padStart(2, '0')}`;
+  const fyLabel = fy => String(fy);
+  const qLabel = (fy, q) => `Q${q} ${fy}`;
 
   // ── Month-to-Date ──
   const [my, mm] = (popSel.month || '1970-01').split('-').map(Number);
   const mPair = computePair(D(my, mm - 1, 1), D(my, mm, 0), D(my, mm - 2, 1), D(my, mm - 1, 0));
   const monthOpts = months.map(v => { const [y, m] = v.split('-').map(Number); return { value: v, label: monthName(y, m - 1) }; });
 
-  // ── Quarter-to-Date ── (fiscal quarters: Q1 = Apr–Jun … Q4 = Jan–Mar)
-  const qy = +(popSel.quarter || '1970-Q1').slice(0, 4);   // fiscal year of selected quarter
-  const qn = +(popSel.quarter || '1970-Q1').slice(-1);     // fiscal quarter 1–4
-  const qStartM = 3 + (qn - 1) * 3;                         // months from Jan to quarter start (Apr=3); Date.UTC normalises overflow into the next year
+  // ── Quarter-to-Date ── (calendar quarters: Q1 = Jan–Mar … Q4 = Oct–Dec)
+  const qy = +(popSel.quarter || '1970-Q1').slice(0, 4);   // calendar year of selected quarter
+  const qn = +(popSel.quarter || '1970-Q1').slice(-1);     // calendar quarter 1–4
+  const qStartM = (qn - 1) * 3;                            // month index of quarter start (Q1→Jan=0)
   const qPair = computePair(D(qy, qStartM, 1), D(qy, qStartM + 3, 0), D(qy, qStartM - 3, 1), D(qy, qStartM, 0));
   const quarterOpts = quarters.map(v => ({ value: v, label: qLabel(+v.slice(0, 4), +v.slice(-1)) }));
 
-  // ── Year-to-Date (FY) ── (April start)
+  // ── Year-to-Date ── (calendar year: Jan 1 → Dec 31)
   const fy = +(popSel.fy || 1970);
-  const yPair = computePair(D(fy, 3, 1), D(fy + 1, 2, 31), D(fy - 1, 3, 1), D(fy, 2, 31));
+  const yPair = computePair(D(fy, 0, 1), D(fy, 11, 31), D(fy - 1, 0, 1), D(fy - 1, 11, 31));
   const fyOpts = fys.map(v => ({ value: v, label: fyLabel(+v) }));
 
   // ── Renderers ──
@@ -2553,11 +2725,11 @@ function renderPOP() {
 
   el.innerHTML =
     popCard({ title:'Month-to-Date', key:'month', opts:monthOpts, current:popSel.month,
-      curLabel:monthName(my, mm - 1), P:mPair, c:'var(--accent)', cl:'var(--accent-light)' }) +
+      curLabel:monthName(my, mm - 1), prevLabel:monthName(my, mm - 2), P:mPair, c:'var(--accent)', cl:'var(--accent-light)' }) +
     popCard({ title:'Quarter-to-Date', key:'quarter', opts:quarterOpts, current:popSel.quarter,
-      curLabel:qLabel(qy, qn), P:qPair, c:'var(--blue)', cl:'var(--blue-light)' }) +
-    popCard({ title:'Year-to-Date (FY)', key:'fy', opts:fyOpts, current:popSel.fy,
-      curLabel:fyLabel(fy), P:yPair, c:'var(--red)', cl:'var(--red-light)' });
+      curLabel:qLabel(qy, qn), prevLabel:qLabel(qn === 1 ? qy - 1 : qy, qn === 1 ? 4 : qn - 1), P:qPair, c:'var(--blue)', cl:'var(--blue-light)' }) +
+    popCard({ title:'Year-to-Date', key:'fy', opts:fyOpts, current:popSel.fy,
+      curLabel:fyLabel(fy), prevLabel:fyLabel(fy - 1), P:yPair, c:'var(--red)', cl:'var(--red-light)' });
 
   // Fill / re-filter a period dropdown's list. Checkbox items (same as global
   // filters) but single-select: picking one sets the period and re-renders.
@@ -2596,7 +2768,7 @@ function renderTopSKU() {
   const grid = document.getElementById('secTop');
   const togEl = document.getElementById('skuToggle');
 
-  // Toggle buttons (Brand / Family / Brick / Class / SKU)
+  // Toggle buttons (Brand / SKU)
   // followed by a separate Qty/Value pill that selects the ranking metric.
   if (togEl) {
     togEl.innerHTML = TOP_FIELDS.map(f =>
@@ -2635,9 +2807,9 @@ function renderTopSKU() {
   for (let i = 0; i < pool.length; i++) if (pool[i].bill_date > maxD) maxD = pool[i].bill_date;
   const y = +maxD.slice(0, 4), m = +maxD.slice(5, 7);
   const curYM = maxD.slice(0, 7);
-  // Financial quarter (Q1 = Apr–Jun, Q2 = Jul–Sep, Q3 = Oct–Dec, Q4 = Jan–Mar).
-  const fy = m >= 4 ? y : y - 1;                          // fiscal year (April start)
-  const fq = Math.floor(((m - 4 + 12) % 12) / 3) + 1;    // fiscal quarter 1–4
+  // Calendar quarter (Q1 = Jan–Mar, Q2 = Apr–Jun, Q3 = Jul–Sep, Q4 = Oct–Dec).
+  const fy = y;                                          // calendar year
+  const fq = Math.floor((m - 1) / 3) + 1;                // calendar quarter 1–4
 
   const prevYM = (() => { let yy = y, mm = m - 1; if (mm < 1) { mm = 12; yy--; } return yy + '-' + String(mm).padStart(2, '0'); })();
 
@@ -2663,7 +2835,7 @@ function renderTopSKU() {
     { ico: '🗓️', label: `LAST WEEK (${wkLabel(lastWeek)})`,    test: r => lastWeek && weekKeyOf(r) === lastWeek },
     { ico: '📅', label: `CURRENT MONTH (${curYM})`,            test: r => r.bill_date.slice(0, 7) === curYM },
     { ico: '📆', label: `LAST MONTH (${prevYM})`,              test: r => r.bill_date.slice(0, 7) === prevYM },
-    { ico: '📊', label: `CURRENT QUARTER (${fy}-Q${fq})`,      test: r => { const ry = +r.bill_date.slice(0, 4), rm = +r.bill_date.slice(5, 7); const rfy = rm >= 4 ? ry : ry - 1; const rfq = Math.floor(((rm - 4 + 12) % 12) / 3) + 1; return rfy === fy && rfq === fq; } },
+    { ico: '📊', label: `CURRENT QUARTER (${fy}-Q${fq})`,      test: r => { const ry = +r.bill_date.slice(0, 4), rm = +r.bill_date.slice(5, 7); const rfy = ry; const rfq = Math.floor((rm - 1) / 3) + 1; return rfy === fy && rfq === fq; } },
     { ico: '📈', label: `CURRENT YEAR (${y})`,                 test: r => +r.bill_date.slice(0, 4) === y },
   ];
 
@@ -2704,7 +2876,7 @@ function renderTopSKU() {
 // ── C2: Top Performer banner (gold) ──
 // Single top performer drawn from `filtered` (the globally filtered dataset, so
 // it respects From/To dates and every active filter). Grouped by the toggle in
-// use (Brand / Family / Brick / Class / SKU) and
+// use (Brand / SKU) and
 // ranked by the active Qty/Value pill. Metric definitions match the Executive
 // KPI cards: ASP = Sales ÷ Qty.
 function renderTopPerformer() {
@@ -2850,9 +3022,10 @@ const KPI_DIMS = [
   { label:'State',      key:'state', w:120, cls:'muted' },
   { label:'City',       key:'city',  w:110, cls:'muted' },
   { label:'Store (Code · Name)', key:'store', w:210, cls:'' },
-  { label:'Customer Type',  key:'customer', w:120, cls:'muted' },
-  { label:'Store Category', key:'category', w:130, cls:'muted' },
+  { label:'Sales Person', key:'salesperson', w:150, cls:'muted' },
 ];
+(function(){ let a=0; KPI_DIMS.forEach(d=>{ d.left=a; a+=d.w; }); })();
+const KPI_DIM_W = KPI_DIMS.reduce((s,d)=>s+d.w,0);
 let kpiVisible = new Set(KPI_GROUPS.map(g=>g.key)); // all groups on by default
 let kpiDefaults = { fy:null, month:null, week:null };
 let kpiSearchTerm = '';
@@ -2868,7 +3041,7 @@ function kpiWeekNum(w){ const m=/(\d+)/.exec(w||''); return m?+m[1]:99999; }
 function initKpiTab(){
   if(!RAW.length) return;
   const fySet=new Set(), monSet=new Set(), wkSet=new Set();
-  for(let i=0;i<RAW.length;i++){ const r=RAW[i]; if(r.fy)fySet.add(r.fy); if(r.month)monSet.add(r.month); if(r.week)wkSet.add(r.week); }
+  for(let i=0;i<RAW.length;i++){ const r=RAW[i]; if(r.cy)fySet.add(r.cy); if(r.month)monSet.add(r.month); if(r.week)wkSet.add(r.week); }
   const fys=[...fySet].sort((a,b)=>b.localeCompare(a));                 // newest first
   const mons=[...monSet].sort((a,b)=>(monthSortKey(b)||0)-(monthSortKey(a)||0)); // newest first
   const wks=[...wkSet].sort((a,b)=>kpiWeekNum(a)-kpiWeekNum(b));        // Week 1..n
@@ -2879,7 +3052,7 @@ function initKpiTab(){
 
   // defaults = period of the most recent bill date
   let defFY=fys[0], defMon=mons[0], defWk=wks[wks.length-1];
-  if(dataMaxDate){ for(let i=0;i<RAW.length;i++){ if(RAW[i].bill_date===dataMaxDate){ const r=RAW[i]; if(r.fy)defFY=r.fy; if(r.month)defMon=r.month; if(r.week)defWk=r.week; break; } } }
+  if(dataMaxDate){ for(let i=0;i<RAW.length;i++){ if(RAW[i].bill_date===dataMaxDate){ const r=RAW[i]; if(r.cy)defFY=r.cy; if(r.month)defMon=r.month; if(r.week)defWk=r.week; break; } } }
   kpiDefaults={ fy:defFY, month:defMon, week:defWk };
   if(fys.includes(defFY)) fySel.value=defFY; if(mons.includes(defMon)) monSel.value=defMon; if(wks.includes(defWk)) wkSel.value=defWk;
 
@@ -2914,7 +3087,7 @@ function renderKpiReport(){
   function ensure(r){
     let s=stores[r.store_code];
     if(!s) s=stores[r.store_code]={ code:r.store_code, name:r.store_name, zone:r.zone_name, state:r.state_name, city:r.city_name,
-      customer:r.customer_type, category:r.store_category, amt:z6(), qty:z6() };
+      salesperson:r.sales_person, amt:z6(), qty:z6() };
     return s;
   }
   function add(s,p,r){
@@ -2922,8 +3095,8 @@ function renderKpiReport(){
   }
   for(let i=0,n=RAW.length;i<n;i++){
     const r=RAW[i];
-    const cw=r.fy===selFY&&r.week===selWk, lw=r.fy===lyFY&&r.week===selWk,
-          cm=r.month===selMon, lm=r.month===lyMon, cy=r.fy===selFY, ly=r.fy===lyFY;
+    const cw=r.cy===selFY&&r.week===selWk, lw=r.cy===lyFY&&r.week===selWk,
+          cm=r.month===selMon, lm=r.month===lyMon, cy=r.cy===selFY, ly=r.cy===lyFY;
     if(!(cw||lw||cm||lm||cy||ly)) continue;
     const s=ensure(r);
     if(cw)add(s,0,r); if(lw)add(s,1,r); if(cm)add(s,2,r); if(lm)add(s,3,r); if(cy)add(s,4,r); if(ly)add(s,5,r);
@@ -2949,7 +3122,7 @@ function renderKpiReport(){
   // search filter — match any dimension column
   let list=allStores;
   if(kpiSearchTerm){
-    list=allStores.filter(s=>[s.zone,s.state,s.city,s.code,s.name,s.customer,s.category]
+    list=allStores.filter(s=>[s.zone,s.state,s.city,s.code,s.name,s.salesperson]
       .some(v=>String(v||'').toLowerCase().includes(kpiSearchTerm)));
   }
   // sort: Zone order (North→East→West→South), then State, then City
@@ -2977,7 +3150,7 @@ function renderKpiReport(){
     z.stores++;
     for(let p=0;p<6;p++){ z.amt[p]+=s.amt[p]; z.qty[p]+=s.qty[p]; }
   });
-  let zlist=Object.values(zmap);
+  let zlist=Object.values(zmap).filter(z=>kpiZoneRank(z.zone)<99);
   zlist.forEach(z=>{ z.m=deriveM(z); });
   zlist.sort((a,b)=>kpiZoneRank(a.zone)-kpiZoneRank(b.zone));
 
@@ -3101,7 +3274,7 @@ function zmomMonLabel(key) {
   const [y, m] = key.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
 }
-function zmomFyLabel(fy) { return 'FY' + String(fy % 100).padStart(2, '0'); }
+function zmomFyLabel(fy) { return String(fy); }
 
 // Target aggregated by zone → monthKey (YYYY-MM). Independent of global filters.
 function zmomTargetByZoneMonth() {
@@ -3125,7 +3298,7 @@ function zmomTargetByZoneMonth() {
   return { out, meta, hasTarget: true };
 }
 
-// Target aggregated by STORE CODE → monthKey (YYYY-MM), for Store Trends.
+// Target aggregated by STORE CODE → monthKey (YYYY-MM), for Distributor Trends.
 // The target file's store-code column (e.g. "4DM") matches the sales
 // AlternateStoreCode, which is what RAW.store_code holds. Independent of filters.
 function zmomTargetByStoreMonth() {
@@ -3138,22 +3311,21 @@ function zmomTargetByStoreMonth() {
   const salesNames = new Set(RAW.map(r => r.store_name));
   // Store-code column = dim with best overlap against sales store_code.
   let kCode = null, bestC = -1;
-  dimKeys.forEach(k => { let m = 0; for (const row of TARGET_RAW) { if (salesCodes.has(strU(row[k]))) m++; } if (m > bestC) { bestC = m; kCode = k; } });
+  dimKeys.forEach(k => { let m = 0; for (const row of TARGET_RAW) { if (salesCodes.has(String(row[k]))) m++; } if (m > bestC) { bestC = m; kCode = k; } });
   // Store-name column = remaining dim with best overlap against sales store_name.
   let kName = null, bestN = -1;
-  dimKeys.forEach(k => { if (k === kCode) return; let m = 0; for (const row of TARGET_RAW) { if (salesNames.has(strU(row[k]))) m++; } if (m > bestN) { bestN = m; kName = k; } });
+  dimKeys.forEach(k => { if (k === kCode) return; let m = 0; for (const row of TARGET_RAW) { if (salesNames.has(String(row[k]))) m++; } if (m > bestN) { bestN = m; kName = k; } });
   const kZone = dimKeys.find(k => /zone/i.test(k));
   const kState = dimKeys.find(k => /state/i.test(k));
-  const kRegion = dimKeys.find(k => /region/i.test(k));
   const monthCols = keys.filter(k => monthRe.test(k))
     .map(k => { const [mm, yy] = k.split('-'); return { col: k, key: '20' + yy + '-' + ZMOM_MON3[mm.toLowerCase()] }; })
     .filter(mc => mc.key && /^\d{4}-\d{2}$/.test(mc.key));
   for (const row of TARGET_RAW) {
-    const code = strU(row[kCode]); if (!code) continue;
+    const code = String(row[kCode]); if (!code) continue;
     const ct = out[code] || (out[code] = {});
     if (!meta[code]) meta[code] = {
       zone: kZone ? row[kZone] : '—', state: kState ? row[kState] : '—',
-      region: kRegion ? row[kRegion] : '—', code: code, name: kName ? strU(row[kName]) : code,
+      code: code, name: kName ? String(row[kName]) : code,
     };
     for (const mc of monthCols) { const v = +row[mc.col] || 0; if (v) ct[mc.key] = (ct[mc.key] || 0) + v; }
   }
@@ -3175,20 +3347,23 @@ function renderTargetAch(){
   const dimKeys=keys.filter(k=>!monthRe.test(k));
   const kZone=dimKeys.find(k=>/zone/i.test(k))||dimKeys[0];
   const kState=dimKeys.find(k=>/state/i.test(k));
-  const kRegion=dimKeys.find(k=>/region/i.test(k));
   const salesCodes=new Set(RAW.map(r=>r.store_code));
   let kCode=null,best=-1;
-  dimKeys.forEach(k=>{let m=0;for(const row of TARGET_RAW){if(salesCodes.has(strU(row[k])))m++;}if(m>best){best=m;kCode=k;}});
+  dimKeys.forEach(k=>{let m=0;for(const row of TARGET_RAW){if(salesCodes.has(String(row[k])))m++;}if(m>best){best=m;kCode=k;}});
 
   const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
   // Targets are defined per store and per month, so this panel deliberately ignores
-  // the From/To date pickers and the product filters (Brand, Family, Class,
-  // Brick). It still responds to the period (FY/Quarter/Month) and the
+  // the From/To date pickers and the product filters (Brand, SKU).
+  // It still responds to the period (FY/Quarter/Month) and the
   // geography (Zone/State/Store) selections.
   const TA_FILTER_KEYS=['fy','quarter','month','zone','state','store'];
+  // Achievement counts only sales flagged Include = "Yes" in the source JSON.
+  // (Empty/missing include is treated as included, for older files without the column.)
+  const incOK = r => { const v=String(r.include==null?'':r.include).trim().toLowerCase(); return v==='' || v==='yes'; };
   const taRows=[];
   for(let i=0;i<RAW.length;i++){
-    const r=RAW[i]; let ok=true;
+    const r=RAW[i]; if(!incOK(r)) continue;
+    let ok=true;
     for(const key of TA_FILTER_KEYS){
       const sel=selected[key];
       if(sel && sel.size>0 && !sel.has(r[FMAP[key].field])){ ok=false; break; }
@@ -3225,7 +3400,7 @@ function renderTargetAch(){
   const tgtZ={}, tgtStoreMonth=new Set();
   for(const mc of aggCols){
     for(const row of TARGET_RAW){
-      const code=strU(row[kCode]);
+      const code=String(row[kCode]);
       if(selected.zone.size && !selZoneNorm.has(zNorm(row[kZone]))) continue;
       if(kState && selected.state.size && !selected.state.has(row[kState])) continue;
       if(selected.store.size && !selected.store.has(code)) continue;
@@ -3284,12 +3459,12 @@ function renderTargetAch(){
 
   const note=aggCols.length?'':`<div style="margin-top:8px;font-size:11px;color:var(--red);">No target column found for ${monLabel} — showing achievement only.</div>`;
   host.innerHTML=`<div class="ta-grid">${hero}${bars}</div>${note}
-    <div style="margin-top:6px;font-size:11px;color:var(--text2);">${periodActive?'Aggregated across the selected FY / Quarter / Month(s)':'Latest month within the current selection'} · total sales &amp; total target shown in full · Ach% = sales of stores that have a target ÷ total target · responds to FY / Quarter / Month / Zone / State / Store · ignores date-range &amp; product filters (Brand, Family, Class, Brick).</div>`;
+    <div style="margin-top:6px;font-size:11px;color:var(--text2);">${periodActive?'Aggregated across the selected FY / Quarter / Month(s)':'Latest month within the current selection'} · total sales (Include = Yes only) &amp; total target shown in full · Ach% = sales of stores that have a target ÷ total target · responds to FY / Quarter / Month / Zone / State / Store · ignores date-range &amp; product filters (Brand, SKU).</div>`;
 }
 
 // ── Zone Trends — bt-bar wrapper around buildMoM ──
 const ZONE_METRICS = [
-  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'target',label:'Target'},
+  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'achval',label:'Ach ₹'},{k:'target',label:'Target'},
   {k:'ach',label:'Ach %'},{k:'contrib',label:'Contrib %'},{k:'mom',label:'MoM'},{k:'yoy',label:'YoY'},
 ];
 function renderZoneMoM(){
@@ -3297,22 +3472,8 @@ function renderZoneMoM(){
   if (!host) return;
   if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
 
-  // ── Build option lists from full RAW ──
-  const custOpts = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
-  const catOpts  = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
-  [...zmomFilt.customer].forEach(v=>{ if(!custOpts.includes(v)) zmomFilt.customer.delete(v); });
-  [...zmomFilt.category].forEach(v=>{ if(!catOpts.includes(v)) zmomFilt.category.delete(v); });
-
-  // ── Chip builder ──
-  const allOpts = { customer: custOpts, category: catOpts };
-  function zmChip(key, label) {
-    const n = zmomFilt[key].size;
-    const badge = `<span class="mc-badge" id="zmbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
-    return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="zmbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="zmpanel-${key}"><input type="text" class="ms-search" id="zmsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="zmlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-zmact="all" data-zmk="${key}">Select All</button><button class="ms-action-btn" data-zmact="clear" data-zmk="${key}">Clear All</button></div></div></div>`;
-  }
-
-  // ── FY list (from full RAW so pills stay stable while filters change) ──
-  const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return m>=4?y:y-1; };
+  // ── FY list (from full RAW so pills stay stable) ──
+  const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return y; };
   const fySet = new Set();
   for (const r of RAW) {
     const mk = (r.month && /^\d{4}-\d{2}$/.test(r.month)) ? r.month : (r.bill_date ? r.bill_date.slice(0,7) : '');
@@ -3325,93 +3486,39 @@ function renderZoneMoM(){
   // ── Metric pills ──
   const mPills = ZONE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===zmomMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
 
-  const hasActive = zmomFilt.customer.size || zmomFilt.category.size;
-  // ── Single-row bt-bar: Fiscal Year · View · Customer Type · Store Category · Reset · period badge
+  // ── Single-row bt-bar: Year · View · period badge (no local filters) ──
   host.innerHTML = `
     <div class="bt-bar">
-      <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${zmChip('customer','Customer Type')}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${zmChip('category','Store Category')}</div></div>
-      <button class="kpi-reset" id="zmReset" title="Clear all Zone Trends filters">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
-        <span class="bt-period-rng"><b>${zmomFyLabel(zmomFY)}</b> · Apr–Mar</span>
+        <span class="bt-period-rng"><b>${zmomFyLabel(zmomFY)}</b> · Jan–Dec</span>
         <span class="bt-period-tag">Zone Trends</span>
       </div>
     </div>
     <div id="zmMoMHost"></div>
-    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Apr→Mar of ${zmomFyLabel(zmomFY)}, newest first · per zone · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`;
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(zmomFY)}, newest first · per zone · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`;
 
   // ── Wire FY pills ──
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ zmomFY=+b.dataset.fy; renderZoneMoM(); }));
   // ── Wire Metric pills ──
   host.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ zmomMetric=b.dataset.metric; renderZoneMoM(); }));
-  // ── Wire Reset ──
-  const rb = host.querySelector('#zmReset');
-  if (rb) rb.addEventListener('click',()=>{ zmomFilt.customer.clear(); zmomFilt.category.clear(); renderZoneMoM(); });
-
-  // ── Wire filter chips ──
-  ['customer','category'].forEach(key=>{
-    const btn    = host.querySelector('#zmbtn-'   + key);
-    const panel  = host.querySelector('#zmpanel-' + key);
-    const search = host.querySelector('#zmsearch-'+ key);
-    const list   = host.querySelector('#zmlist-'  + key);
-    const badgeEl= host.querySelector('#zmbadge-' + key);
-    if (!btn || !panel) return;
-    btn.addEventListener('click', ()=>{
-      const open = panel.classList.contains('open');
-      host.querySelectorAll('.mc-panel.open').forEach(p=>{ p.classList.remove('open'); });
-      host.querySelectorAll('.mc-btn.open').forEach(b=>{ b.classList.remove('open'); });
-      if (!open){ panel.classList.add('open'); btn.classList.add('open'); if(search) setTimeout(()=>search.focus(),0); }
-    });
-    function renderZmList(sq){
-      sq=(sq||'').trim().toLowerCase();
-      const items=allOpts[key].filter(o=>!sq||o.toLowerCase().includes(sq));
-      list.innerHTML=items.length
-        ?items.map(o=>`<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${zmomFilt[key].has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join('')
-        :'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
-      list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
-        const v=cb.dataset.v; if(cb.checked) zmomFilt[key].add(v); else zmomFilt[key].delete(v);
-        // Update the green count badge + active state immediately (like Weekly Trends)
-        const n=zmomFilt[key].size;
-        if(badgeEl){ badgeEl.textContent=n; badgeEl.style.display=n?'inline-flex':'none'; }
-        btn.classList.toggle('active', !!n);
-        rebuildZoneTable();
-      }));
-    }
-    if (search) search.addEventListener('input',()=>renderZmList(search.value));
-    renderZmList('');
-  });
-  host.querySelectorAll('.ms-action-btn[data-zmk]').forEach(b=>b.addEventListener('click',()=>{
-    const key=b.dataset.zmk, sb=host.querySelector('#zmsearch-'+key);
-    if(b.dataset.zmact==='all'){
-      const sq=(sb&&sb.value?sb.value:'').trim().toLowerCase();
-      (sq?allOpts[key].filter(o=>o.toLowerCase().includes(sq)):allOpts[key]).forEach(v=>zmomFilt[key].add(v));
-    } else { zmomFilt[key].clear(); if(sb) sb.value=''; }
-    renderZoneMoM();
-  }));
 
   // ── Build table ──
   rebuildZoneTable();
 
   function rebuildZoneTable(){
-    const fRAW = (zmomFilt.customer.size || zmomFilt.category.size)
-      ? RAW.filter(r=>
-          (!zmomFilt.customer.size || zmomFilt.customer.has(String(r.customer_type))) &&
-          (!zmomFilt.category.size || zmomFilt.category.has(String(r.store_category))))
-      : RAW;
-    const saved = RAW; RAW = fRAW;
     buildMoM({
       hostId:'zmMoMHost', mode:'zone', hideControls:true,
       dims:[{label:'Zone',key:'zone',w:104}],
       rowKey:r=>r.zone_name||'—',
       rowMeta:r=>({zone:r.zone_name||'—'}),
       useTarget:true, targetFn:zmomTargetByZoneMonth,
+      rowFilter:r=>kpiZoneRank(r.meta.zone)<99,
       sortRows:(a,b,fyS)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone)||(fyS[b.key]-fyS[a.key]),
       getFY:()=>zmomFY,  setFY:v=>{zmomFY=v;},
       getMetric:()=>zmomMetric, setMetric:v=>{zmomMetric=v;},
     });
-    RAW = saved;
     // Re-wire buildMoM's own FY/metric pills so they update the bt-bar state too
     const h = document.getElementById('zmMoMHost');
     if (h) {
@@ -3420,10 +3527,10 @@ function renderZoneMoM(){
     }
   }
 }
-// ── Store Trends — bt-bar wrapper around buildMoM ──
+// ── Distributor Trends — bt-bar wrapper around buildMoM ──
 // Metric definitions mirrored from buildMoM for the bt-bar label.
 const STORE_METRICS = [
-  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'target',label:'Target'},
+  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'achval',label:'Ach ₹'},{k:'target',label:'Target'},
   {k:'ach',label:'Ach %'},{k:'contrib',label:'Contrib %'},{k:'mom',label:'MoM'},{k:'yoy',label:'YoY'},
 ];
 function renderStoreMoM(){
@@ -3432,7 +3539,7 @@ function renderStoreMoM(){
   if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
 
   // ── FY list (from full RAW so pills stay stable) ──
-  const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return m>=4?y:y-1; };
+  const fyOf = mk => { const [y,m] = mk.split('-').map(Number); return y; };
   const fySet = new Set();
   for (const r of RAW) {
     const mk = (r.month && /^\d{4}-\d{2}$/.test(r.month)) ? r.month : (r.bill_date ? r.bill_date.slice(0,7) : '');
@@ -3445,22 +3552,22 @@ function renderStoreMoM(){
   // ── Metric pills ──
   const mPills = STORE_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===storeMetric?' active':''}" data-metric="${m.k}">${m.label}</button>`).join('');
 
-  // ── Single-row bt-bar: Search · Fiscal Year · View · Reset · period badge ──
+  // ── Single-row bt-bar: Search · Year · View · Reset · period badge ──
   host.innerHTML = `
     <div class="bt-bar">
       <div class="bt-fg"><label class="bt-flabel">Search</label>
         <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox st-search" placeholder="Search store…" value="${escapeHtml(storeSearch)}" autocomplete="off"></div></div>
-      <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
       <button class="kpi-reset" id="stReset" title="Clear search">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
-        <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Apr–Mar</span>
-        <span class="bt-period-tag">Store Trends</span>
+        <span class="bt-period-rng"><b>${zmomFyLabel(storeFY)}</b> · Jan–Dec</span>
+        <span class="bt-period-tag">Distributor Trends</span>
       </div>
     </div>
     <div id="stMoMHost"></div>
-    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Apr→Mar of ${zmomFyLabel(storeFY)}, newest first · per store · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`;
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(storeFY)}, newest first · per store · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`;
 
   // ── Wire FY pills ──
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ storeFY=+b.dataset.fy; renderStoreMoM(); }));
@@ -3485,10 +3592,9 @@ function renderStoreMoM(){
     buildMoM({
       hostId:'stMoMHost', mode:'store', wrapDims:true, hideControls:true,
       dims:[{label:'Zone',key:'zone',w:74},{label:'State',key:'state',w:100},{label:'City',key:'city',w:100},
-            {label:'Store Code',key:'code',w:84},{label:'Store Name',key:'name',w:150},
-            {label:'Customer Type',key:'customer',w:118},{label:'Store Category',key:'category',w:120}],
+            {label:'Store Code',key:'code',w:84},{label:'Store Name',key:'name',w:150}],
       rowKey:r=>r.store_code||r.store_name||'—',
-      rowMeta:r=>({zone:r.zone_name||'—',state:r.state_name||'—',city:r.city_name||'—',code:r.store_code||'—',name:r.store_name||'—',customer:r.customer_type||'—',category:r.store_category||'—'}),
+      rowMeta:r=>({zone:r.zone_name||'—',state:r.state_name||'—',city:r.city_name||'—',code:r.store_code||'—',name:r.store_name||'—'}),
       useTarget:true, targetFn:zmomTargetByStoreMonth,
       sortRows:(a,b)=>kpiZoneRank(a.meta.zone)-kpiZoneRank(b.meta.zone)
         ||String(a.meta.state).localeCompare(String(b.meta.state))
@@ -3504,9 +3610,6 @@ function renderStoreMoM(){
 // ── Product Trends (month-wise Qty + Sales Value by a selectable product dimension) ──
 const PROD_DIMS = [
   { k:'brand',   label:'Brand',  field:'brand_name' },
-  { k:'family',  label:'Family', field:'family' },
-  { k:'cls',     label:'Class',  field:'cls' },
-  { k:'brick',   label:'Brick',  field:'brick' },
   { k:'sku',     label:'SKU',    field:'product_code' }, // Article Code - Article Description
 ];
 function renderProductMoM(){
@@ -3516,20 +3619,13 @@ function renderProductMoM(){
   const dimCfg = PROD_DIMS.find(d=>d.k===prodDim) || PROD_DIMS[0];
   const field = dimCfg.field;
 
-  // Build Store, Customer Type + Store Category option lists from full RAW
+  // Build Store option list from full RAW
   const storeOpts = [...new Set(RAW.map(r=>r.store_name).filter(v=>v!=null&&v!==''))].sort();
-  const custOpts = [...new Set(RAW.map(r=>r.customer_type).filter(v=>v!=null&&v!==''))].sort();
-  const catOpts  = [...new Set(RAW.map(r=>r.store_category).filter(v=>v!=null&&v!==''))].sort();
   [...prodFilt.store].forEach(v=>{if(!storeOpts.includes(v)) prodFilt.store.delete(v);});
-  [...prodFilt.customer].forEach(v=>{if(!custOpts.includes(v)) prodFilt.customer.delete(v);});
-  [...prodFilt.category].forEach(v=>{if(!catOpts.includes(v)) prodFilt.category.delete(v);});
 
   // Apply filters
-  const workRAW = (prodFilt.store.size||prodFilt.customer.size||prodFilt.category.size)
-    ? RAW.filter(r=>
-        (!prodFilt.store.size||prodFilt.store.has(String(r.store_name)))&&
-        (!prodFilt.customer.size||prodFilt.customer.has(String(r.customer_type)))&&
-        (!prodFilt.category.size||prodFilt.category.has(String(r.store_category))))
+  const workRAW = prodFilt.store.size
+    ? RAW.filter(r=>prodFilt.store.has(String(r.store_name)))
     : RAW;
 
   if(!['month','quarter','zone'].includes(prodView)) prodView='month';
@@ -3547,27 +3643,27 @@ function renderProductMoM(){
   }
   if(!keysSet.size){ host.innerHTML='<div class="no-data">No data</div>'; return; }
 
-  const fyOf=mk=>{const [y,m]=mk.split('-').map(Number);return m>=4?y:y-1;};
+  const fyOf=mk=>{const [y,m]=mk.split('-').map(Number);return y;};
   const fySet=new Set(); monthsSet.forEach(mk=>fySet.add(fyOf(mk)));
   const fyList=[...fySet].sort((a,b)=>b-a);
   let selFY=prodFY;
   if(selFY==null || !fySet.has(selFY)){ selFY=fyList[0]; prodFY=selFY; }
-  const fyMonths=[]; for(let i=0;i<12;i++) fyMonths.push(zmomKeyShift(selFY+'-04',i));
+  const fyMonths=[]; for(let i=0;i<12;i++) fyMonths.push(zmomKeyShift(selFY+'-01',i));
 
   const qAt=(k,mk)=>(qty[k]&&qty[k][mk])||0, sAt=(k,mk)=>(sale[k]&&sale[k][mk])||0;
   const fyQ={}, fyS={};
   keysSet.forEach(k=>{ let q=0,s=0; fyMonths.forEach(mk=>{ q+=qAt(k,mk); s+=sAt(k,mk); }); fyQ[k]=q; fyS[k]=s; });
-  let rowsArr=[...keysSet].sort((a,b)=>fyS[b]-fyS[a]);
+  let rowsArr=[...keysSet].sort((a,b)=>String(a).localeCompare(String(b)));
   const prodQ=(prodSearch||'').trim().toLowerCase();
   if(prodQ) rowsArr=rowsArr.filter(k=>String(k).toLowerCase().includes(prodQ));
 
   let cols=[], val;
   if(prodView==='quarter'){
     const quarters=[
-      { id:'Q1', label:'Q1', sub:'Apr–Jun', mons:fyMonths.slice(0,3)  },
-      { id:'Q2', label:'Q2', sub:'Jul–Sep', mons:fyMonths.slice(3,6)  },
-      { id:'Q3', label:'Q3', sub:'Oct–Dec', mons:fyMonths.slice(6,9)  },
-      { id:'Q4', label:'Q4', sub:'Jan–Mar', mons:fyMonths.slice(9,12) },
+      { id:'Q1', label:'Q1', sub:'Jan–Mar', mons:fyMonths.slice(0,3)  },
+      { id:'Q2', label:'Q2', sub:'Apr–Jun', mons:fyMonths.slice(3,6)  },
+      { id:'Q3', label:'Q3', sub:'Jul–Sep', mons:fyMonths.slice(6,9)  },
+      { id:'Q4', label:'Q4', sub:'Oct–Dec', mons:fyMonths.slice(9,12) },
     ];
     cols=quarters.slice().reverse();
     val=(k,c)=>{ let q=0,s=0; c.mons.forEach(mk=>{ q+=qAt(k,mk); s+=sAt(k,mk); }); return {q,s}; };
@@ -3625,43 +3721,37 @@ function renderProductMoM(){
     ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
     : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
 
-  // bt-bar controls (Row 1: FY + View + Dimension + Search | Row 2: Customer Type + Store Category)
-  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}" title="FY ${f}-${String((f+1)%100).padStart(2,'0')} (Apr–Mar)">${zmomFyLabel(f)}</button>`).join('');
+  // bt-bar controls (single row: Year + View + Dimension + Search + Store + Reset)
+  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}" title="${f}">${zmomFyLabel(f)}</button>`).join('');
   const dimPills=PROD_DIMS.map(d=>`<button class="zmom-pill m-pill${d.k===prodDim?' active':''}" data-dim="${d.k}">${d.label}</button>`).join('');
   const VIEWS=[{k:'month',label:'Month'},{k:'quarter',label:'Quarter'},{k:'zone',label:'Zone'}];
   const viewPills=VIEWS.map(v=>`<button class="zmom-pill v-pill${v.k===prodView?' active':''}" data-view="${v.k}">${v.label}</button>`).join('');
 
-  const allPtOpts={store:storeOpts, customer:custOpts, category:catOpts};
+  const allPtOpts={store:storeOpts};
   function ptChip(key, label){
     const n=prodFilt[key].size;
     const badge=`<span class="mc-badge" id="ptbadge-${key}" style="display:${n?'inline-flex':'none'}">${n}</span>`;
     return `<div class="mc bt-chip"><button class="mc-btn${n?' active':''}" id="ptbtn-${key}" type="button"><span>${escapeHtml(label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="ptpanel-${key}"><input type="text" class="ms-search" id="ptsearch-${key}" placeholder="Search ${escapeHtml(label.toLowerCase())}…"><div class="ms-list" id="ptlist-${key}"></div><div class="ms-actions"><button class="ms-action-btn" data-ptact="all" data-ptk="${key}">Select All</button><button class="ms-action-btn" data-ptact="clear" data-ptk="${key}">Clear All</button></div></div></div>`;
   }
   const note = prodView==='quarter'
-    ? `Quarters of ${zmomFyLabel(selFY)} (Q1 Apr–Jun … Q4 Jan–Mar), newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
+    ? `Quarters of ${zmomFyLabel(selFY)} (Q1 Jan–Mar … Q4 Oct–Dec), newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
     : prodView==='zone'
-    ? `Zones across ${zmomFyLabel(selFY)} (Apr→Mar) · North · East · West · South · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
-    : `Months Apr→Mar of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`;
+    ? `Zones across ${zmomFyLabel(selFY)} (Jan→Dec) · North · East · West · South · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`
+    : `Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · Independent of the global filters.`;
 
   host.innerHTML=`
-    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
-        <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
-        <div class="bt-period" style="margin-left:auto;">
-          <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Apr–Mar</span>
-          <span class="bt-period-tag">Product Trends</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
-        <div class="bt-fg"><label class="bt-flabel">Search</label>
-          <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
-            <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
-        <div class="bt-fg"><label class="bt-flabel">Store</label><div class="bt-chips">${ptChip('store','Store')}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Customer Type</label><div class="bt-chips">${ptChip('customer','Customer Type')}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Store Category</label><div class="bt-chips">${ptChip('category','Store Category')}</div></div>
-        <button class="kpi-reset" id="ptReset" title="Clear all Product Trends filters">↺ Reset</button>
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox prod-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(prodSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Store</label><div class="bt-chips">${ptChip('store','Store')}</div></div>
+      <button class="kpi-reset" id="ptReset" title="Clear all Product Trends filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Jan–Dec</span>
+        <span class="bt-period-tag">Product Trends</span>
       </div>
     </div>
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
@@ -3678,9 +3768,9 @@ function renderProductMoM(){
     if(prodSearchActive){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
   }
   const prst=host.querySelector('#ptReset');
-  if(prst) prst.addEventListener('click',()=>{ prodFilt.store.clear(); prodFilt.customer.clear(); prodFilt.category.clear(); prodSearch=''; prodSearchActive=false; renderProductMoM(); });
+  if(prst) prst.addEventListener('click',()=>{ prodFilt.store.clear(); prodSearch=''; prodSearchActive=false; renderProductMoM(); });
 
-  ['store','customer','category'].forEach(key=>{
+  ['store'].forEach(key=>{
     const btn=host.querySelector('#ptbtn-'+key), panel=host.querySelector('#ptpanel-'+key);
     const search=host.querySelector('#ptsearch-'+key), list=host.querySelector('#ptlist-'+key);
     if(!btn||!panel) return;
@@ -3715,6 +3805,162 @@ function renderProductMoM(){
 }
 
 
+// ── Sales Person — Target vs Achievement (monthly / quarterly) ──
+// Independent of the global filters (its own Year + Monthly/Quarterly + Search).
+// Logic mirrors the dashboard Target-vs-Achievement panel:
+//   • A sales person appears only for periods where they HAVE a target ("no target → no sale").
+//   • "Sales" counts only invoices billed against a store-month that carries a target
+//     (Include = Yes only), attributed to the sales person who owns that target.
+//   • A target with no matching sale shows Ach% = 0.  Ach% = Sales ÷ Target.
+function renderSpTarget(){
+  const host=document.getElementById('secSpTarget');
+  if(!host) return;
+  if(!RAW || !RAW.length){ host.innerHTML='<div class="no-data">Upload a sales workbook to see this report.</div>'; return; }
+  if(!TARGET_RAW || !TARGET_RAW.length){ host.innerHTML='<div class="no-data">Upload a <b>Target</b> workbook to see Sales Person Target vs Achievement.</div>'; return; }
+  if(!['month','quarter'].includes(spView)) spView='month';
+
+  // Locate target columns: month-named columns ("Apr-26") + dimension columns.
+  const tkeys=Object.keys(TARGET_RAW[0]||{});
+  const monthRe=/^[A-Za-z]{3}-\d{2}$/;
+  const monthCols=tkeys.filter(k=>monthRe.test(k))
+    .map(k=>{const [mm,yy]=k.split('-');return {col:k,key:'20'+yy+'-'+ZMOM_MON3[mm.toLowerCase()]};})
+    .filter(mc=>mc.key&&/^\d{4}-\d{2}$/.test(mc.key));
+  const dimKeys=tkeys.filter(k=>!monthRe.test(k));
+  const kCode=dimKeys.find(k=>/code/i.test(k))||dimKeys[0];
+  const kSP=dimKeys.find(k=>/sales.?person/i.test(k));
+  if(!kSP){ host.innerHTML='<div class="no-data">The Target file has no sales-person column.</div>'; return; }
+  if(!monthCols.length){ host.innerHTML='<div class="no-data">The Target file has no monthly target columns.</div>'; return; }
+
+  // Year pills from the years present in the target months.
+  const yrSet=new Set(monthCols.map(mc=>+mc.key.slice(0,4)));
+  const fyList=[...yrSet].sort((a,b)=>b-a);
+  let selFY=spFY;
+  if(selFY==null||!yrSet.has(selFY)){ selFY=fyList[0]; spFY=selFY; }
+
+  // Periods of the selected (calendar) year.
+  const fyMonths=[]; for(let i=1;i<=12;i++) fyMonths.push(selFY+'-'+String(i).padStart(2,'0'));
+  const periods = spView==='quarter'
+    ? [ {id:'Q1',label:'Q1',sub:'Jan\u2013Mar',mons:fyMonths.slice(0,3)},
+        {id:'Q2',label:'Q2',sub:'Apr\u2013Jun',mons:fyMonths.slice(3,6)},
+        {id:'Q3',label:'Q3',sub:'Jul\u2013Sep',mons:fyMonths.slice(6,9)},
+        {id:'Q4',label:'Q4',sub:'Oct\u2013Dec',mons:fyMonths.slice(9,12)} ]
+    : fyMonths.map(mk=>({id:mk,label:zmomMonLabel(mk),sub:'',mons:[mk]}));
+
+  // Target value per (store, month) -> owning sales person; and target sums per SP per period.
+  const colByKey={}; monthCols.forEach(mc=>{ colByKey[mc.key]=mc.col; });
+  const targetOwner={};   // 'storeCode|YYYY-MM' -> sales person
+  const tgt={};           // SP -> { periodId: targetValue }
+  for(const row of TARGET_RAW){
+    const code=String(row[kCode]);
+    const sp=String(row[kSP]==null?'':row[kSP]).trim()||'\u2014';
+    fyMonths.forEach(mk=>{ const col=colByKey[mk]; if(col && (+row[col]||0)) targetOwner[code+'|'+mk]=sp; });
+    periods.forEach(p=>{
+      let v=0; p.mons.forEach(mk=>{ const col=colByKey[mk]; if(col) v+=(+row[col]||0); });
+      if(v) (tgt[sp]||(tgt[sp]={}))[p.id]=((tgt[sp]&&tgt[sp][p.id])||0)+v;
+    });
+  }
+
+  // Achievement: invoices (Include = Yes) billed against a target-bearing store-month.
+  const incOK=r=>{const v=String(r.include==null?'':r.include).trim().toLowerCase();return v===''||v==='yes';};
+  const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
+  const periodOfMonth={}; periods.forEach(p=>p.mons.forEach(mk=>{ periodOfMonth[mk]=p.id; }));
+  const ach={};           // SP -> { periodId: salesValue }
+  for(let i=0;i<RAW.length;i++){
+    const r=RAW[i]; if(!incOK(r)) continue;
+    const mk=mkOf(r); const pid=mk?periodOfMonth[mk]:null; if(!pid) continue;
+    const owner=targetOwner[r.store_code+'|'+mk]; if(!owner) continue;
+    (ach[owner]||(ach[owner]={}))[pid]=((ach[owner]&&ach[owner][pid])||0)+(r.amount||0);
+  }
+
+  // Sales persons with any target this year, filtered by search, ranked by total target.
+  let sps=Object.keys(tgt);
+  const q=(spSearch||'').trim().toLowerCase();
+  if(q) sps=sps.filter(sp=>sp.toLowerCase().includes(q));
+  const spTotT=sp=>periods.reduce((s,p)=>s+((tgt[sp]&&tgt[sp][p.id])||0),0);
+  sps.sort((a,b)=>a.localeCompare(b));
+
+  const fmtPct=p=>p==null?'\u2014':p.toFixed(1)+'%';
+  const pctColor=p=>p==null?'var(--text3)':(p>=100?'var(--green)':p>=80?'var(--gold)':'var(--red)');
+  const dimW=190;
+
+  // ── Column groups: leading Year-Total group, then each period (newest first). ──
+  const periodsRev=periods.slice().reverse();
+  const groups=[{id:'__FY__',label:zmomFyLabel(selFY)+' Total',isTot:true}]
+    .concat(periodsRev.map(p=>({ id:p.id, label:(spView==='quarter'?(p.label+' \u00b7 '+p.sub):zmomMonLabel(p.id)), isTot:false })));
+  const tOf=(sp,g)=> g.isTot ? periods.reduce((s,p)=>s+((tgt[sp]&&tgt[sp][p.id])||0),0) : ((tgt[sp]&&tgt[sp][g.id])||0);
+  const sOf=(sp,g)=> g.isTot ? periods.reduce((s,p)=>s+((ach[sp]&&ach[sp][p.id])||0),0) : ((ach[sp]&&ach[sp][g.id])||0);
+  const bandFY={b:'#b8892e',d:'#8a6420',l:'#f7ecca'};   // gold (year total)
+  const bandA ={b:'#3a6ea5',d:'#2b5a7e',l:'#eef4fb'};   // blue
+  const bandB ={b:'#4a7c59',d:'#2d5a3d',l:'#eef6f0'};   // green (alternate)
+  const bandOf=(g,gi)=> g.isTot?bandFY:((gi%2)?bandB:bandA);
+
+  // ── Two-row sticky header (group band + Target/Sales/Ach% sub-cols), Distributor-Trends style. ──
+  let grpRow=`<th class="dim" rowspan="2" style="left:0;min-width:${dimW}px">Sales Person</th>`;
+  let subRow='';
+  groups.forEach((g,gi)=>{ const c=bandOf(g,gi);
+    grpRow+=`<th class="gstart" colspan="3" style="background:linear-gradient(160deg,${c.b},${c.d})">${escapeHtml(g.label)}</th>`;
+    subRow+=`<th class="gstart" style="background:${c.l};color:${c.d}">Target</th><th style="background:${c.l};color:${c.d}">Sales</th><th style="background:${c.l};color:${c.d}">Ach%</th>`;
+  });
+  const thead=`<thead><tr class="grp">${grpRow}</tr><tr class="sub">${subRow}</tr></thead>`;
+
+  // ── Body: one row per sales person; cells per group = Target / Sales / Ach%. ──
+  const totT={}, totS={}; groups.forEach(g=>{ totT[g.id]=0; totS[g.id]=0; });
+  let body='';
+  if(!sps.length){
+    body=`<tr><td class="dim first last" style="left:0;min-width:${dimW}px">\u2014</td><td colspan="${groups.length*3}" style="padding:18px;text-align:center;color:var(--text3)">No sales person has a target for ${selFY}${q?' matching \u201c'+escapeHtml(spSearch.trim())+'\u201d':''}.</td></tr>`;
+  } else {
+    body=sps.map(sp=>{
+      let cells='';
+      groups.forEach(g=>{
+        const t=tOf(sp,g), s=sOf(sp,g), pct=t?s/t*100:null;
+        totT[g.id]+=t; totS[g.id]+=s;
+        cells+=`<td class="cy gstart">${t?fmtV(t):'\u2014'}</td><td class="cy">${s?fmtV(s):'\u2014'}</td><td class="cy" style="color:${pctColor(pct)};font-weight:800">${fmtPct(pct)}</td>`;
+      });
+      return `<tr><td class="dim first last name" style="left:0;min-width:${dimW}px;max-width:${dimW}px" title="${escapeHtml(sp)}">${escapeHtml(sp)}</td>${cells}</tr>`;
+    }).join('');
+  }
+  let totalRow='';
+  if(sps.length){
+    let cells='';
+    groups.forEach(g=>{ const t=totT[g.id], s=totS[g.id], pct=t?s/t*100:null;
+      cells+=`<td class="gstart">${t?fmtV(t):'\u2014'}</td><td>${s?fmtV(s):'\u2014'}</td><td style="color:${pctColor(pct)};font-weight:800">${fmtPct(pct)}</td>`; });
+    totalRow=`<tr class="total-row"><td class="dim first last" style="left:0;min-width:${dimW}px">TOTAL</td>${cells}</tr>`;
+  }
+
+  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
+  const REPS=[{k:'month',label:'Monthly'},{k:'quarter',label:'Quarterly'}];
+  const repPills=REPS.map(v=>`<button class="zmom-pill m-pill sp-rep${v.k===spView?' active':''}" data-rep="${v.k}">${v.label}</button>`).join('');
+
+  host.innerHTML=`
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">\u2315</span>
+          <input type="text" class="kpi-searchbox sp-search" placeholder="Search sales person\u2026" value="${escapeHtml(spSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Report</label><div class="bt-chips">${repPills}</div></div>
+      <button class="kpi-reset" id="spReset" title="Reset to latest year, monthly view">\u21ba Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> \u00b7 ${spView==='quarter'?'Quarterly':'Monthly'}</span>
+        <span class="bt-period-tag">Sales Person \u00b7 Target vs Ach</span>
+      </div>
+    </div>
+    <div class="kpi-table-wrap" style="border-top:1px solid var(--border2);border-radius:var(--r);margin-top:2px;"><table class="kpi-rep">${thead}<tbody>${body}${totalRow}</tbody></table></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">${zmomFyLabel(selFY)} \u00b7 year total + each ${spView==='quarter'?'quarter':'month'} (newest first), each showing <b>Target</b>, <b>Sales</b> &amp; <b>Ach%</b> \u00b7 a sales person appears only where a target exists \u00b7 <b>Sales</b> = invoices billed against a target-bearing store (Include = Yes only); a target with no matching sale shows 0% \u00b7 Ach% = Sales \u00f7 Target \u00b7 Independent of the global filters.</div>`;
+
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ spFY=+b.dataset.fy; renderSpTarget(); }));
+  host.querySelectorAll('.sp-rep').forEach(b=>b.addEventListener('click',()=>{ spView=b.dataset.rep; renderSpTarget(); }));
+  const si=host.querySelector('.sp-search');
+  if(si){
+    si.addEventListener('input',()=>{ spSearch=si.value; spSearchActive=true; renderSpTarget(); });
+    si.addEventListener('focus',()=>{ spSearchActive=true; });
+    si.addEventListener('blur',()=>{ spSearchActive=false; });
+    if(spSearchActive){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
+  }
+  const rst=host.querySelector('#spReset');
+  if(rst) rst.addEventListener('click',()=>{ spFY=null; spView='month'; spSearch=''; spSearchActive=false; renderSpTarget(); });
+}
+
+
 // ── Weekly Trends (Month rows × Week-of-Month columns, per fiscal year) ──
 // Buckets every sale by its "Monthly Week" value (Wk-1…Wk-5). For each month it
 // shows Qty & Value per week, the month total, plus growth vs Last Year (same
@@ -3726,12 +3972,7 @@ const WT_FILTERS = [
   { key:'zone',     label:'Zone',           field:'zone_name',     group:'loc'  },
   { key:'state',    label:'State',          field:'state_name',    group:'loc'  },
   { key:'store',    label:'Store',          field:'store_name',    group:'loc'  },
-  { key:'customer', label:'Customer Type',  field:'customer_type', group:'loc'  },
-  { key:'category', label:'Store Category', field:'store_category',group:'loc'  },
   { key:'brand',    label:'Brand',          field:'brand_name',    group:'prod' },
-  { key:'family',   label:'Family',         field:'family',        group:'prod' },
-  { key:'cls',      label:'Class',          field:'cls',           group:'prod' },
-  { key:'brick',    label:'Brick',          field:'brick',         group:'prod' },
   { key:'sku',      label:'SKU',            field:'product_code',  group:'prod' },
 ];
 function renderWeeklyTrends(){
@@ -3763,23 +4004,18 @@ function renderWeeklyTrends(){
     if(weeklyFilt.zone.size     && !weeklyFilt.zone.has(String(r.zone_name)))         return false;
     if(weeklyFilt.state.size    && !weeklyFilt.state.has(String(r.state_name)))       return false;
     if(weeklyFilt.store.size    && !weeklyFilt.store.has(String(r.store_name)))       return false;
-    if(weeklyFilt.customer.size && !weeklyFilt.customer.has(String(r.customer_type))) return false;
-    if(weeklyFilt.category.size && !weeklyFilt.category.has(String(r.store_category)))return false;
     if(weeklyFilt.brand.size    && !weeklyFilt.brand.has(String(r.brand_name)))       return false;
-    if(weeklyFilt.family.size   && !weeklyFilt.family.has(String(r.family)))          return false;
-    if(weeklyFilt.cls.size      && !weeklyFilt.cls.has(String(r.cls)))                return false;
-    if(weeklyFilt.brick.size    && !weeklyFilt.brick.has(String(r.brick)))            return false;
     if(weeklyFilt.sku.size      && !weeklyFilt.sku.has(String(r.product_code)))       return false;
     return true;
   };
 
-  // ── Fiscal-year handling (Apr→Mar). FY pills come from the full data universe. ──
-  const fyOf=mk=>{ const [y,m]=mk.split('-').map(Number); return m>=4?y:y-1; };
+  // ── Fiscal-year handling (Jan→Dec). FY pills come from the full data universe. ──
+  const fyOf=mk=>{ const [y,m]=mk.split('-').map(Number); return y; };
   const fySet=new Set(); monthsAll.forEach(mk=>fySet.add(fyOf(mk)));
   const fyList=[...fySet].sort((a,b)=>b-a);
   let selFY=weeklyFY;
   if(selFY==null || !fySet.has(selFY)){ selFY=fyList[0]; weeklyFY=selFY; }
-  const fyMonths=[]; for(let i=0;i<12;i++) fyMonths.push(zmomKeyShift(selFY+'-04',i)); // Apr…Mar chronological
+  const fyMonths=[]; for(let i=0;i<12;i++) fyMonths.push(zmomKeyShift(selFY+'-01',i)); // Apr…Mar chronological
   const prevFyMonths=fyMonths.map(mk=>zmomKeyShift(mk,-12));
 
   // Growth chip — matches dashboard convention: (cur−prev)/|prev|×100.
@@ -3850,7 +4086,7 @@ function renderWeeklyTrends(){
         <th class="mcol" rowspan="2">Month</th>
         ${grpWeeks}
         <th class="grp grp-ty" colspan="2">Month Total</th>
-        <th class="grp grp-ly" colspan="2">vs Last Year<span class="wtt-rng"><br>same month, prior FY</span></th>
+        <th class="grp grp-ly" colspan="2">vs Last Year<span class="wtt-rng"><br>same month, prior year</span></th>
         <th class="grp grp-lm" colspan="2">vs Last Month<span class="wtt-rng"><br>previous month</span></th>
       </tr>
       <tr class="sub">
@@ -3881,21 +4117,21 @@ function renderWeeklyTrends(){
   }
 
   // ── Control bar ──
-  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}" title="FY ${f}-${String((f+1)%100).padStart(2,'0')} (Apr–Mar)">${zmomFyLabel(f)}</button>`).join('');
+  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}" title="${f}">${zmomFyLabel(f)}</button>`).join('');
   const chip=f=>`<div class="mc bt-chip"><button class="mc-btn" id="wcbtn-${f.key}" type="button"><span>${escapeHtml(f.label)}</span><span class="mc-badge" id="wcbadge-${f.key}" style="display:none">0</span><span class="mc-chev">▾</span></button><div class="mc-panel" id="wcpanel-${f.key}"><input type="text" class="ms-search" id="wcsearch-${f.key}" placeholder="Search ${escapeHtml(f.label.toLowerCase())}…"><div class="ms-list" id="wclist-${f.key}"></div><div class="ms-actions"><button class="ms-action-btn" data-wcact="all" data-wck="${f.key}">Select All</button><button class="ms-action-btn" data-wcact="clear" data-wck="${f.key}">Clear All</button></div></div></div>`;
   const locChips=WT_FILTERS.filter(f=>f.group==='loc').map(chip).join('');
   const prodChips=WT_FILTERS.filter(f=>f.group==='prod').map(chip).join('');
 
   host.innerHTML=`
     <div class="bt-bar">
-      <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Location &amp; Stores</label><div class="bt-chips">${locChips}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Product</label><div class="bt-chips">${prodChips}</div></div>
       <button class="kpi-reset" id="wtReset" title="Clear all Location &amp; Product filters">↺ Reset</button>
-      <div class="bt-period"><span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Apr–Mar</span><span class="bt-period-tag">Weekly view</span></div>
+      <div class="bt-period"><span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Jan–Dec</span><span class="bt-period-tag">Weekly view</span></div>
     </div>
     <div id="weeklyTableHost"></div>
-    <div class="wtt-note">Weeks bucketed by <b>Monthly Week</b> (Wk-1 = days 1–7 … Wk-5 = days 29–31) · Value uses MRP Sales · growth = (current − prior) ÷ |prior| × 100, LY = same month last fiscal year, LM = previous month · updates with the Location &amp; Product filters · independent of the global filters.</div>`;
+    <div class="wtt-note">Weeks bucketed by <b>Monthly Week</b> (Wk-1 = days 1–7 … Wk-5 = days 29–31) · Value uses MRP Sales · growth = (current − prior) ÷ |prior| × 100, LY = same month last year, LM = previous month · updates with the Location &amp; Product filters · independent of the global filters.</div>`;
 
   // FY pills + reset → structural rebuild; filters → repaint only (panels stay open).
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ weeklyFY=+b.dataset.fy; renderWeeklyTrends(); }));
@@ -3941,10 +4177,10 @@ function renderDailyTrends(){
 
   // Mon-first day index (0=Mon … 6=Sun) from an ISO date string.
   const dowOf = iso => { const d = new Date(iso + 'T00:00:00Z').getUTCDay(); return (d + 6) % 7; };
-  // Fiscal year (Apr→Mar) of a row, derived from the bill date — matches the
+  // Fiscal year (Jan→Dec) of a row, derived from the bill date — matches the
   // other trend tabs. The `week` field is fiscal-week numbered (Wk 1 ≈ first
   // week of April), so grouping by fiscal year keeps weeks 1…52 coherent.
-  const fyOf  = r => { if (!r.bill_date || r.bill_date.length < 7) return null; const y=+r.bill_date.slice(0,4), m=+r.bill_date.slice(5,7); return m>=4 ? y : y-1; };
+  const fyOf  = r => { if (!r.bill_date || r.bill_date.length < 7) return null; const y=+r.bill_date.slice(0,4), m=+r.bill_date.slice(5,7); return y; };
   const wkOf  = r => { const m = String(r.week).match(/\d+/); return m ? +m[0] : null; };
 
   // Fiscal-year universe (pills stay stable while filters change).
@@ -3953,8 +4189,8 @@ function renderDailyTrends(){
   const yearList = [...yearSet].sort((a,b)=>b-a);
   if (!yearList.length){ host.innerHTML='<div class="no-data">No dated sales rows found.</div>'; return; }
   if (dailyYear == null || !yearSet.has(dailyYear)) dailyYear = yearList[0];
-  const fyLbl   = (typeof zmomFyLabel==='function') ? zmomFyLabel(dailyYear) : ('FY'+String(dailyYear%100).padStart(2,'0'));
-  const fyTitle = `FY ${dailyYear}-${String((dailyYear+1)%100).padStart(2,'0')} (Apr–Mar)`;
+  const fyLbl   = String(dailyYear);
+  const fyTitle = `${dailyYear}`;
 
   // Filter option lists (built from full RAW so the chips stay stable).
   const optSets={}; WT_FILTERS.forEach(f=>optSets[f.key]=new Set());
@@ -3965,12 +4201,7 @@ function renderDailyTrends(){
        (!dailyFilt.zone.size     || dailyFilt.zone.has(String(r.zone_name)))
     && (!dailyFilt.state.size    || dailyFilt.state.has(String(r.state_name)))
     && (!dailyFilt.store.size    || dailyFilt.store.has(String(r.store_name)))
-    && (!dailyFilt.customer.size || dailyFilt.customer.has(String(r.customer_type)))
-    && (!dailyFilt.category.size || dailyFilt.category.has(String(r.store_category)))
     && (!dailyFilt.brand.size    || dailyFilt.brand.has(String(r.brand_name)))
-    && (!dailyFilt.family.size   || dailyFilt.family.has(String(r.family)))
-    && (!dailyFilt.cls.size      || dailyFilt.cls.has(String(r.cls)))
-    && (!dailyFilt.brick.size    || dailyFilt.brick.has(String(r.brick)))
     && (!dailyFilt.sku.size      || dailyFilt.sku.has(String(r.product_code)));
 
   const fmtDM = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
@@ -3992,7 +4223,7 @@ function renderDailyTrends(){
       if (r.bill_date < e.min) e.min = r.bill_date;
       if (r.bill_date > e.max) e.max = r.bill_date;
     }
-    // Chronological order (Apr→Mar) — sort by the week's earliest date so the
+    // Chronological order (Jan→Dec) — sort by the week's earliest date so the
     // ordering is correct regardless of the week-numbering scheme.
     const weeks = Object.values(wk).sort((a,b)=> a.min<b.min?-1 : a.min>b.min?1 : a.w-b.w);
 
@@ -4068,30 +4299,26 @@ function renderDailyTrends(){
   }
 
   // ── Control bar ──
-  const yearPills = yearList.map(y=>`<button class="zmom-pill fy-pill${y===dailyYear?' active':''}" data-dyear="${y}" title="FY ${y}-${String((y+1)%100).padStart(2,'0')} (Apr–Mar)">${(typeof zmomFyLabel==='function')?zmomFyLabel(y):('FY'+String(y%100).padStart(2,'0'))}</button>`).join('');
+  const yearPills = yearList.map(y=>`<button class="zmom-pill fy-pill${y===dailyYear?' active':''}" data-dyear="${y}" title="${y}">${(typeof zmomFyLabel==='function')?zmomFyLabel(y):('FY'+String(y%100).padStart(2,'0'))}</button>`).join('');
   const mPills = DAILY_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===dailyMetric?' active':''}" data-dmetric="${m.k}">${m.label}</button>`).join('');
   const chip = f=>`<div class="mc bt-chip"><button class="mc-btn" id="dcbtn-${f.key}" type="button"><span>${escapeHtml(f.label)}</span><span class="mc-badge" id="dcbadge-${f.key}" style="display:none">0</span><span class="mc-chev">▾</span></button><div class="mc-panel" id="dcpanel-${f.key}"><input type="text" class="ms-search" id="dcsearch-${f.key}" placeholder="Search ${escapeHtml(f.label.toLowerCase())}…"><div class="ms-list" id="dclist-${f.key}"></div><div class="ms-actions"><button class="ms-action-btn" data-dcact="all" data-dck="${f.key}">Select All</button><button class="ms-action-btn" data-dcact="clear" data-dck="${f.key}">Clear All</button></div></div></div>`;
   const locChips = WT_FILTERS.filter(f=>f.group==='loc').map(chip).join('');
   const prodChips = WT_FILTERS.filter(f=>f.group==='prod').map(chip).join('');
 
   host.innerHTML = `
-    <div class="bt-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
-        <div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><div class="bt-chips">${yearPills}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
-        <button class="kpi-reset" id="dtReset" title="Clear all Location &amp; Product filters">↺ Reset</button>
-        <div class="bt-period" style="margin-left:auto;">
-          <span class="bt-period-rng" title="${fyTitle}"><b>${fyLbl}</b> · by week</span>
-          <span class="bt-period-tag">Daily Trends</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #cbdcec;">
-        <div class="bt-fg"><label class="bt-flabel">Location &amp; Stores</label><div class="bt-chips">${locChips}</div></div>
-        <div class="bt-fg"><label class="bt-flabel">Product</label><div class="bt-chips">${prodChips}</div></div>
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yearPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Location &amp; Stores</label><div class="bt-chips">${locChips}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Product</label><div class="bt-chips">${prodChips}</div></div>
+      <button class="kpi-reset" id="dtReset" title="Clear all Location &amp; Product filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng" title="${fyTitle}"><b>${fyLbl}</b> · by week</span>
+        <span class="bt-period-tag">Daily Trends</span>
       </div>
     </div>
     <div id="dailyTableHost"></div>
-    <div class="ddt-note">Each row is a week of <b>${fyLbl}</b> (fiscal year, Apr–Mar) split by day of week (Mon–Sun) · day-of-week derived from the bill date · ASP = Value ÷ Qty · <b>Total</b> column = week total, <b>Total</b> row = FY total · updates with the Location &amp; Product filters · independent of the global filters.</div>`;
+    <div class="ddt-note">Each row is a week of <b>${fyLbl}</b> (calendar year) split by day of week (Mon–Sun) · day-of-week derived from the bill date · ASP = Value ÷ Qty · <b>Total</b> column = week total, <b>Total</b> row = year total · updates with the Location &amp; Product filters · independent of the global filters.</div>`;
 
   // Year pills + metric pills + reset → rebuild; filters → repaint only.
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ dailyYear=+b.dataset.dyear; renderDailyTrends(); }));
@@ -4129,7 +4356,7 @@ function renderBrandTrends(){
   const allMonths=[...monthsSet].sort();
   if(!allMonths.length){ host.innerHTML='<div class="no-data">No dated sales found.</div>'; return; }
   const latestMK=allMonths[allMonths.length-1];
-  const fyOf=mk=>{ const [y,m]=mk.split('-').map(Number); return m>=4?y:y-1; };
+  const fyOf=mk=>{ const [y,m]=mk.split('-').map(Number); return y; };
   const fySet=new Set(allMonths.map(fyOf));
   const fyList=[...fySet].sort((a,b)=>b-a);
 
@@ -4153,9 +4380,9 @@ function renderBrandTrends(){
   let cyStart,cyEnd,lyStart,lyEnd,periodTag;
   if(brandMode==='fy'){
     const Y=brandFY;
-    cyStart=Y+'-04-01'; lyStart=(Y-1)+'-04-01';
+    cyStart=Y+'-01-01'; lyStart=(Y-1)+'-01-01';
     if(Y===curFY){ cyEnd=asOf; lyEnd=prevYearISO(asOf); periodTag=zmomFyLabel(Y)+' to-date'; }
-    else { cyEnd=(Y+1)+'-03-31'; lyEnd=Y+'-03-31'; periodTag=zmomFyLabel(Y)+' (full year)'; }
+    else { cyEnd=Y+'-12-31'; lyEnd=(Y-1)+'-12-31'; periodTag=zmomFyLabel(Y)+' (full year)'; }
   } else {
     const mk=brandMonth, lyMk=zmomKeyShift(mk,-12);
     cyStart=mk+'-01'; lyStart=lyMk+'-01';
@@ -4167,23 +4394,13 @@ function renderBrandTrends(){
   // Multi-select dimension filters (Store shows store NAME). Empty Set = All (active by default).
   const BT_FILTERS=[
     {key:'store',    label:'Store',          field:'store_name'},
-    {key:'customer', label:'Customer Type',  field:'customer_type'},
-    {key:'category', label:'Store Category', field:'store_category'},
-    {key:'family',   label:'Family',         field:'family'},
-    {key:'cls',      label:'Class',          field:'cls'},
-    {key:'brick',    label:'Brick',          field:'brick'},
   ];
-  const optSets={store:new Set(),family:new Set(),cls:new Set(),brick:new Set(),customer:new Set(),category:new Set()};
+  const optSets={store:new Set(),customer:new Set(),category:new Set()};
   for(const r of RAW){ BT_FILTERS.forEach(f=>{ const v=r[f.field]; if(v!=null && v!=='') optSets[f.key].add(String(v)); }); }
   const opts={}; BT_FILTERS.forEach(f=>{ opts[f.key]=[...optSets[f.key]].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})); });
   BT_FILTERS.forEach(f=>{ [...brandFilt[f.key]].forEach(v=>{ if(!optSets[f.key].has(v)) brandFilt[f.key].delete(v); }); });
   const passFilters=r=>{
     if(brandFilt.store.size && !brandFilt.store.has(String(r.store_name))) return false;
-    if(brandFilt.family.size && !brandFilt.family.has(String(r.family))) return false;
-    if(brandFilt.cls.size && !brandFilt.cls.has(String(r.cls))) return false;
-    if(brandFilt.brick.size && !brandFilt.brick.has(String(r.brick))) return false;
-    if(brandFilt.customer.size && !brandFilt.customer.has(String(r.customer_type))) return false;
-    if(brandFilt.category.size && !brandFilt.category.has(String(r.store_category))) return false;
     return true;
   };
 
@@ -4250,7 +4467,7 @@ function renderBrandTrends(){
   const monthsDesc=[...allMonths].reverse();
   const periodSel=brandMode==='month'
     ? `<div class="bt-fg"><label class="bt-flabel">Month</label><select class="filter-select" id="btMonth">${monthsDesc.map(mk=>`<option value="${mk}"${mk===brandMonth?' selected':''}>${zmomMonLabel(mk)}</option>`).join('')}</select></div>`
-    : `<div class="bt-fg"><label class="bt-flabel">Fiscal Year</label><select class="filter-select" id="btFY">${fyList.map(f=>`<option value="${f}"${f===brandFY?' selected':''}>${zmomFyLabel(f)} (Apr–Mar)</option>`).join('')}</select></div>`;
+    : `<div class="bt-fg"><label class="bt-flabel">Year</label><select class="filter-select" id="btFY">${fyList.map(f=>`<option value="${f}"${f===brandFY?' selected':''}>${zmomFyLabel(f)}</option>`).join('')}</select></div>`;
   const chip=f=>`<div class="mc bt-chip"><button class="mc-btn" id="bcbtn-${f.key}" type="button"><span>${escapeHtml(f.label)}</span><span class="mc-badge" id="bcbadge-${f.key}" style="display:none">0</span><span class="mc-chev">▾</span></button><div class="mc-panel" id="bcpanel-${f.key}"><input type="text" class="ms-search" id="bcsearch-${f.key}" placeholder="Search ${escapeHtml(f.label.toLowerCase())}…"><div class="ms-list" id="bclist-${f.key}"></div><div class="ms-actions"><button class="ms-action-btn" data-bcact="all" data-bck="${f.key}">Select All</button><button class="ms-action-btn" data-bcact="clear" data-bck="${f.key}">Clear All</button></div></div></div>`;
   const filterChips=`<div class="bt-fg"><label class="bt-flabel">Filters</label><div class="bt-chips">${BT_FILTERS.map(chip).join('')}</div></div>`;
 
@@ -4261,7 +4478,7 @@ function renderBrandTrends(){
           <input type="text" class="kpi-searchbox brand-search" placeholder="Search brand…" value="${escapeHtml(brandSearch)}" autocomplete="off"></div></div>
       <div class="bt-fg"><label class="bt-flabel">Period basis</label>
         <div class="seg-toggle">
-          <button class="seg-opt${brandMode==='fy'?' active':''}" data-mode="fy">FY</button>
+          <button class="seg-opt${brandMode==='fy'?' active':''}" data-mode="fy">Year</button>
           <button class="seg-opt${brandMode==='month'?' active':''}" data-mode="month">Month</button>
         </div></div>
       ${periodSel}
@@ -4276,7 +4493,7 @@ function renderBrandTrends(){
   host.querySelectorAll('.seg-opt').forEach(b=>b.addEventListener('click',()=>{ brandMode=b.dataset.mode; renderBrandTrends(); }));
   const msel=host.querySelector('#btMonth'); if(msel) msel.addEventListener('change',()=>{ brandMonth=msel.value; renderBrandTrends(); });
   const fsel=host.querySelector('#btFY'); if(fsel) fsel.addEventListener('change',()=>{ brandFY=+fsel.value; renderBrandTrends(); });
-  host.querySelector('#btReset').addEventListener('click',()=>{ brandMode='month'; brandMonth=latestMK; brandFY=fyOf(latestMK); brandSearch=''; brandFilt={store:new Set(),family:new Set(),cls:new Set(),brick:new Set(),customer:new Set(),category:new Set()}; renderBrandTrends(); });
+  host.querySelector('#btReset').addEventListener('click',()=>{ brandMode='month'; brandMonth=latestMK; brandFY=fyOf(latestMK); brandSearch=''; brandFilt={store:new Set()}; renderBrandTrends(); });
 
   // Search → table only (keeps focus + open panels)
   const si=host.querySelector('.brand-search');
@@ -4319,6 +4536,10 @@ function buildMoM(cfg) {
   //                 store with no target contributes its sale to the total, NOT to Ach%.
   const stTgt = cfg.useTarget ? zmomTargetByStoreMonth().out : {};
   const hasTgt = (code, mk) => { const m = stTgt[code]; return !!(m && m[mk] > 0); };
+  // Achievement numerator mirrors the dashboard Target vs Achievement panel:
+  // count only sales of target-bearing store-months AND only rows flagged
+  // Include = "Yes" (empty/missing treated as included for older files).
+  const incOK = r => { const v = String(r.include == null ? '' : r.include).trim().toLowerCase(); return v === '' || v === 'yes'; };
   const sale = {}, achNum = {}, meta = {}, monthTot = {}, keysSet = new Set(), monthsSet = new Set();
   for (let i = 0; i < RAW.length; i++) {
     const r = RAW[i];
@@ -4328,7 +4549,7 @@ function buildMoM(cfg) {
     keysSet.add(k); monthsSet.add(mk);
     if (!meta[k]) meta[k] = cfg.rowMeta(r);
     (sale[k] || (sale[k] = {}))[mk] = (sale[k][mk] || 0) + r.amount;
-    if (cfg.useTarget && hasTgt(r.store_code, mk)) {
+    if (cfg.useTarget && hasTgt(r.store_code, mk) && incOK(r)) {
       (achNum[k] || (achNum[k] = {}))[mk] = (achNum[k][mk] || 0) + r.amount;
     }
     monthTot[mk] = (monthTot[mk] || 0) + r.amount;
@@ -4345,7 +4566,7 @@ function buildMoM(cfg) {
   const tgtMonths = new Set();
   Object.keys(tgt.out).forEach(z => Object.keys(tgt.out[z]).forEach(mk => tgtMonths.add(mk)));
 
-  const fyOf = mk => { const [y, m] = mk.split('-').map(Number); return m >= 4 ? y : y - 1; };
+  const fyOf = mk => { const [y, m] = mk.split('-').map(Number); return y; };
   const fySet = new Set();
   monthsSet.forEach(mk => fySet.add(fyOf(mk)));
   tgtMonths.forEach(mk => fySet.add(fyOf(mk)));
@@ -4353,8 +4574,8 @@ function buildMoM(cfg) {
   let selFY = cfg.getFY();
   if (selFY == null || !fySet.has(selFY)) { selFY = fyList[0]; cfg.setFY(selFY); }
 
-  const fyMonths = []; for (let i = 0; i < 12; i++) fyMonths.push(zmomKeyShift(selFY + '-04', i));
-  const prevFyMonths = []; for (let i = 0; i < 12; i++) prevFyMonths.push(zmomKeyShift((selFY - 1) + '-04', i));
+  const fyMonths = []; for (let i = 0; i < 12; i++) fyMonths.push(zmomKeyShift(selFY + '-01', i));
+  const prevFyMonths = []; for (let i = 0; i < 12; i++) prevFyMonths.push(zmomKeyShift((selFY - 1) + '-01', i));
   const monthsShown = fyMonths.slice().sort().reverse();
 
   const fyS = {}, fyT = {}, fyPrevS = {}, fyAch = {};
@@ -4370,6 +4591,7 @@ function buildMoM(cfg) {
     fyS[k] = s; fyT[k] = t; fyPrevS[k] = ps; fyAch[k] = an;
   });
   let rowsArr = [...keysSet].map(k => ({ key:k, meta: meta[k] || {} }));
+  if (cfg.rowFilter) rowsArr = rowsArr.filter(r => cfg.rowFilter(r));
   if (cfg.getSearch && cfg.getSearch()) {
     const q = cfg.getSearch().toLowerCase();
     rowsArr = rowsArr.filter(r => Object.values(r.meta).some(v => String(v).toLowerCase().includes(q)));
@@ -4405,7 +4627,13 @@ function buildMoM(cfg) {
 
   const overviewCell = (s, an, t, contrib, mom, yoy, isFy) => {
     const a = ach(an, t);
-    const tgtLine = cfg.useTarget ? `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b></div>` : '';
+    // Overview cell: total sales sits in row 1; this line surfaces the
+    // ach-against-target value (an = Include=Yes sales of target-bearing stores =
+    // the Ach% numerator) ahead of Target, so the Ach% pill (an ÷ t) reconciles
+    // with two visible figures. Applies to both Zone and Distributor trends.
+    const tgtLine = cfg.useTarget
+      ? `<div class="zc-tgt">Ach <b>${t ? fmtV(an) : '—'}</b> · Target <b>${t ? fmtV(t) : '—'}</b></div>`
+      : '';
     const contribRow = isFy ? '' :
       `<div class="zc-contrib"><div class="zc-bar"><i style="width:${Math.min(contrib, 100)}%"></i></div><span>${contrib.toFixed(0)}% contrib</span></div>`;
     const growthRow = isFy
@@ -4422,6 +4650,7 @@ function buildMoM(cfg) {
   const singleCell = (s, an, t, contrib, mom, yoy) => {
     switch (curMetric) {
       case 'sales':   return { html: `<span class="zsingle">${fmtV(s)}</span>`, style: tint(GREEN, maxSale ? s / maxSale : 0) };
+      case 'achval':  return { html: `<span class="zsingle">${t ? fmtV(an) : '—'}</span>`, style: t ? tint(GREEN, maxSale ? an / maxSale : 0) : '' };
       case 'target':  return { html: `<span class="zsingle">${t ? fmtV(t) : '—'}</span>`, style: tint(BLUE, maxTgt ? t / maxTgt : 0) };
       case 'ach':   { const a = ach(an, t); return { html: `<span class="pill lg ${a.cls}">${a.txt}</span>`, style: '' }; }
       case 'contrib': return { html: `<span class="zsingle">${contrib.toFixed(1)}%</span>`, style: tint(BLUE, maxContrib ? contrib / maxContrib : 0) };
@@ -4436,7 +4665,7 @@ function buildMoM(cfg) {
 
   // ── header ──
   const subFor = {
-    overview: cfg.useTarget ? 'Sale · Tgt · Ach · Cntrb · M/Y' : 'Sale · Cntrb · MoM · YoY', sales: 'Sales (₹)', target: 'Target (₹)',
+    overview: cfg.useTarget ? 'Sale · Tgt · Ach · Cntrb · M/Y' : 'Sale · Cntrb · MoM · YoY', sales: 'Sales (₹)', achval: 'Sales of target stores', target: 'Target (₹)',
     ach: 'Tgt-store sales ÷ Target', contrib: 'Share of month', mom: 'vs prev month', yoy: 'vs last year',
   }[curMetric];
   let dimLeft = 0; cfg.dims.forEach(d => { d.left = dimLeft; dimLeft += d.w; });
@@ -4491,7 +4720,7 @@ function buildMoM(cfg) {
   const body = rowsArr.map(r => rowFor(r.key, r.meta, false)).join('') + rowFor(TOTAL, {}, true);
 
   // ── controls ──
-  const fyPills = fyList.map(f => `<button class="zmom-pill fy-pill${f === selFY ? ' active' : ''}" data-fy="${f}" title="FY ${f}-${String((f + 1) % 100).padStart(2, '0')} (Apr–Mar)">${zmomFyLabel(f)}</button>`).join('');
+  const fyPills = fyList.map(f => `<button class="zmom-pill fy-pill${f === selFY ? ' active' : ''}" data-fy="${f}" title="${f}">${zmomFyLabel(f)}</button>`).join('');
   const mPills = METRICS.map(m => `<button class="zmom-pill m-pill${m.k === curMetric ? ' active' : ''}" data-metric="${m.k}">${m.label}</button>`).join('');
   const tgtNote = (cfg.useTarget && !tgt.hasTarget) ? '<span><b>No target file</b> — upload Target workbook for Target & Ach%</span>' : '';
   const legend = cfg.useTarget ? `<div class="zmom-legend">
@@ -4505,12 +4734,12 @@ function buildMoM(cfg) {
   host.innerHTML = `
     ${cfg.hideControls ? '' : `<div class="zmom-controls">
       ${searchHtml}
-      <div class="zmom-pillset"><span class="pset-label">Fiscal Year</span>${fyPills}</div>
+      <div class="zmom-pillset"><span class="pset-label">Year</span>${fyPills}</div>
       <div class="zmom-pillset"><span class="pset-label">View</span>${mPills}</div>
       ${legend}
     </div>`}
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
-    ${cfg.hideControls ? '' : `<div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Apr→Mar of ${zmomFyLabel(selFY)}, newest first · per ${grain} · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`}`;
+    ${cfg.hideControls ? '' : `<div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · per ${grain} · MoM vs previous month · YoY vs same month last year · Independent of the global filters.</div>`}`;
 
   host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { cfg.setFY(+b.dataset.fy); buildMoM(cfg); }));
   host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { cfg.setMetric(b.dataset.metric); buildMoM(cfg); }));
@@ -4542,7 +4771,7 @@ function setup() {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
       ensureIndependentTab(tab);   // build the heavy trend tables only when first viewed
       const fb = document.getElementById('filterBar');
-      if (fb) fb.style.display = (tab === 'zonemom' || tab === 'kpi' || tab === 'storemom' || tab === 'producttrends' || tab === 'weeklytrends' || tab === 'dailytrends' || tab === 'brandtrends') ? 'none' : '';
+      if (fb) fb.style.display = (tab === 'zonemom' || tab === 'kpi' || tab === 'storemom' || tab === 'producttrends' || tab === 'weeklytrends' || tab === 'dailytrends' || tab === 'brandtrends' || tab === 'invoices' || tab === 'sptarget') ? 'none' : '';
       adjustStickyTops();
     });
   });
