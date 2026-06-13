@@ -10,10 +10,10 @@
   :root {
     --bg:#f5f4f0; --surface:#fff; --surface2:#faf9f6; --border:#e8e4dc; --border2:#d8d3c8;
     --text:#2c2a25; --text2:#6b6560; --text3:#9b958c;
-    --accent:#4e7c59; --accent-light:#e8f2eb;
+    --accent:#3a6f96; --accent-light:#e6eff7;
     --accent2:#7b5ea7; --accent2-light:#f0ebf7;
     --warm:#d4845a; --warm-light:#fdf0e8;
-    --blue:#4a7fa5; --blue-light:#e8f1f8;
+    --blue:#3a6f96; --blue-light:#e6eff7; --blue-dark:#2b5a7e; --blue-grad:linear-gradient(135deg,#3a6f96,#2b5a7e);
     --gold:#c4973a; --gold-light:#fdf5e6;
     --red:#c0444a; --red-light:#fdeced; --dark-red:#7b1a2a; --dark-red-light:#f5e0e3;
     --green:#3a8a5c; --green-light:#e6f5ed;
@@ -84,10 +84,12 @@
   .btn-reset:hover{background:var(--warm);color:#fff;}
 
   /* TABS */
-  .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;overflow-x:auto;position:sticky;top:108px;z-index:80;}
-  .tab-btn{padding:13px 20px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;transition:all .2s;font-family:inherit;white-space:nowrap;}
-  .tab-btn:hover{color:var(--text);}
-  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab-nav-sticky{background:var(--bg);border-bottom:1px solid var(--border);padding:8px 28px;position:sticky;top:108px;z-index:80;}
+  .tab-nav{display:inline-flex;gap:3px;padding:4px;background:linear-gradient(180deg,#fbfaf7,#f1eee8);border:1px solid var(--border2);border-radius:12px;box-shadow:0 2px 10px rgba(40,30,15,.06),inset 0 1px 0 #fff;max-width:100%;overflow-x:auto;}
+  .tab-btn{position:relative;display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:1px solid transparent;background:transparent;color:var(--text2);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border-radius:9px;transition:color .18s,background .18s,box-shadow .2s,border-color .18s,transform .12s;white-space:nowrap;}
+  .tab-btn:hover{color:var(--text);background:var(--surface);border-color:var(--border2);transform:translateY(-1px);box-shadow:0 3px 9px rgba(40,30,15,.10);}
+  .tab-btn.active{color:#fff;background:var(--blue-grad);border-color:transparent;box-shadow:0 4px 14px rgba(43,90,126,.38),inset 0 1px 0 rgba(255,255,255,.22);}
+  .tab-btn.active:hover{color:#fff;transform:translateY(-1px);box-shadow:0 6px 18px rgba(43,90,126,.46),inset 0 1px 0 rgba(255,255,255,.22);}
 
   /* MAIN */
   .main{padding:22px 28px;}
@@ -119,7 +121,7 @@
   .table-wrap-sticky{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:75vh;}
   .table-wrap-sticky thead th{position:sticky;top:0;z-index:10;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  thead th{padding:9px 13px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10;}
+  thead th{padding:9px 13px;text-align:left;font-size:11px;font-weight:700;color:var(--blue-dark);text-transform:uppercase;letter-spacing:.5px;background:var(--blue-light);border-bottom:1px solid #cfe0ef;white-space:nowrap;position:sticky;top:0;z-index:10;}
   thead th.th-right{text-align:right;}
   tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
   tbody tr:last-child{border-bottom:none;}
@@ -133,13 +135,13 @@
   .td-bold{font-weight:600;}
 
   /* ACCOUNT SUBTOTAL ROW */
-  .tr-subtotal td{background:#eef6f1;font-weight:700;border-top:2px solid var(--border2);color:var(--accent);}
-  .tr-subtotal:hover td{background:#e4f0e8;}
+  .tr-subtotal td{background:#eaf2f9;font-weight:700;border-top:2px solid #cfe0ef;color:var(--blue-dark);}
+  .tr-subtotal:hover td{background:#ddebf6;}
   /* GRAND TOTAL ROW */
-  .tr-grandtotal td{background:#3b4a54;color:#fff;font-weight:700;border-top:3px solid #2e3b43;}
-  .tr-grandtotal:hover td{background:#4a5d68;}
-  .tr-grandtotal .td-green{color:#7edba2;}
-  .tr-grandtotal .td-red{color:#f09090;}
+  .tr-grandtotal td{background:var(--blue-light);color:var(--blue-dark);font-weight:700;border-top:2px solid var(--blue);}
+  .tr-grandtotal:hover td{background:#ddebf6;}
+  .tr-grandtotal .td-green{color:#3a8a5c;}
+  .tr-grandtotal .td-red{color:var(--red);}
 
   /* PILL */
   .pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
@@ -149,7 +151,7 @@
 
   /* ACCOUNT TYPE HEADER ROW */
   .tr-account-header td{background:var(--accent);color:#fff;font-weight:700;font-size:12px;letter-spacing:.4px;}
-  .tr-account-header:hover td{background:#3d6347;}
+  .tr-account-header:hover td{background:var(--blue-dark);}
 
   /* COMPARATIVES PLACEHOLDER */
   .phase2-ph{background:var(--surface2);border:2px dashed var(--border2);border-radius:var(--r);padding:60px;text-align:center;color:var(--text3);}
@@ -160,7 +162,7 @@
   /* COMPARATIVE YOY TABLE */
   .yoy-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
   .yoy-table{width:100%;border-collapse:collapse;font-size:13px;}
-  .yoy-table thead th{padding:12px 16px;text-align:right;font-size:12px;font-weight:700;color:var(--surface);background:var(--accent);letter-spacing:.4px;border-bottom:2px solid #3d6347;white-space:nowrap;}
+  .yoy-table thead th{padding:12px 16px;text-align:right;font-size:12px;font-weight:700;color:var(--blue-dark);background:var(--blue-light);letter-spacing:.4px;border-bottom:2px solid #cfe0ef;white-space:nowrap;}
   .yoy-table thead th:first-child{text-align:left;min-width:180px;}
   .yoy-table tbody td{padding:10px 16px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--border);}
   .yoy-table tbody td:first-child{text-align:left;font-weight:600;color:var(--text);background:var(--surface2);border-right:1px solid var(--border);}
@@ -169,7 +171,7 @@
   .yoy-section-row td{background:var(--bg) !important;font-size:10px !important;font-weight:700 !important;text-transform:uppercase;letter-spacing:.8px;color:var(--text3) !important;padding:6px 16px !important;border-bottom:1px solid var(--border2) !important;}
   .yoy-section-row td:first-child{background:var(--bg) !important;}
   .yoy-section-row:hover td{background:var(--bg) !important;}
-  .yoy-highlight td{background:rgba(78,124,89,.04);}
+  .yoy-highlight td{background:rgba(58,111,150,.05);}
   .yoy-highlight td:first-child{color:var(--accent) !important;}
   .yoy-growth-row td{font-weight:600;}
   .yoy-filter-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--accent-light);border:1px solid var(--accent);border-radius:20px;font-size:12px;font-weight:600;color:var(--accent);margin-left:10px;}
@@ -180,7 +182,7 @@
   .year-table-wrap thead th{position:sticky;top:0;z-index:12;border-bottom:1px solid var(--border);}
   .year-table-wrap th.sticky-col,
   .year-table-wrap td.sticky-col{position:sticky;z-index:5;background:var(--surface);}
-  .year-table-wrap thead th.sticky-col{z-index:15;background:var(--surface2);}
+  .year-table-wrap thead th.sticky-col{z-index:15;background:var(--blue-light);}
   .year-table-wrap .sticky-col-0{left:0;}
   .year-table-wrap .sticky-col-1{left:0;}
   .year-table-wrap .sticky-col-2{left:0;}
@@ -189,11 +191,11 @@
   .year-table-wrap tbody tr:hover td{background:var(--bg);}
   .year-table-wrap tbody tr:hover td.sticky-col{background:var(--bg);}
   .year-table-wrap .tr-account-header td{background:var(--accent) !important;color:#fff !important;}
-  .year-table-wrap .tr-account-header:hover td{background:#3d6347 !important;}
-  .year-table-wrap .tr-subtotal td{background:#eef6f1 !important;font-weight:700;border-top:2px solid var(--border2);color:var(--accent) !important;}
-  .year-table-wrap .tr-subtotal:hover td{background:#e4f0e8 !important;}
-  .year-table-wrap .tr-grandtotal td{background:#3b4a54 !important;color:#fff !important;font-weight:700;border-top:3px solid #2e3b43;}
-  .year-table-wrap .tr-grandtotal:hover td{background:#4a5d68 !important;}
+  .year-table-wrap .tr-account-header:hover td{background:var(--blue-dark) !important;}
+  .year-table-wrap .tr-subtotal td{background:#eaf2f9 !important;font-weight:700;border-top:2px solid #cfe0ef;color:var(--blue-dark) !important;}
+  .year-table-wrap .tr-subtotal:hover td{background:#ddebf6 !important;}
+  .year-table-wrap .tr-grandtotal td{background:var(--blue-light) !important;color:var(--blue-dark) !important;font-weight:700;border-top:2px solid var(--blue);}
+  .year-table-wrap .tr-grandtotal:hover td{background:#ddebf6 !important;}
 
   /* LOADING */
   @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
@@ -205,7 +207,7 @@
   @media(max-width:768px){
     .top-bar,.filter-bar{padding:10px 14px;}
     .main{padding:14px;}
-    .tab-bar{padding:0 14px;}
+    .tab-nav-sticky{padding:8px 14px;}
     .kpi-grid{grid-template-columns:repeat(2,1fr);}
   }
 
@@ -661,10 +663,12 @@
 </div>
 
 <!-- TAB BAR -->
-<div class="tab-bar" id="tabBar">
-  <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
-  <button class="tab-btn" data-tab="comparatives">📈 Comparatives</button>
-  <!-- Year tabs injected by JS -->
+<div class="tab-nav-sticky">
+  <div class="tab-nav" id="tabBar">
+    <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+    <button class="tab-btn" data-tab="comparatives">📈 Comparatives</button>
+    <!-- Year tabs injected by JS -->
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -1059,7 +1063,7 @@ function switchTab(tabName) {
   const isComparative = tabName === 'comparatives';
   document.getElementById('filterBar').style.display = (isYearTab || isComparative) ? 'flex' : 'none';
   // Adjust tab bar sticky top
-  document.querySelector('.tab-bar').style.top = (isYearTab || isComparative) ? '108px' : '60px';
+  document.querySelector('.tab-nav-sticky').style.top = (isYearTab || isComparative) ? '108px' : '60px';
 
   renderActiveTab();
 }
