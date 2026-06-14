@@ -1840,14 +1840,11 @@ function showLoginError(msg){
   el.textContent = msg; el.style.display = 'block';
 }
 
-async function attemptLogin(){
+function attemptLogin(){
   const u   = document.getElementById('loginUser').value.trim();
   const p   = document.getElementById('loginPass').value;
-  const btn = document.getElementById('loginBtn');
   const err = document.getElementById('loginError');
   if(!u || !p){ showLoginError('Please enter both username and password.'); return; }
-  btn.disabled = true; btn.textContent = 'Verifying…'; if(err) err.style.display = 'none';
-  await new Promise(r => setTimeout(r, 280));
   if(Object.prototype.hasOwnProperty.call(PORTAL_USERS, u) && PORTAL_USERS[u] === p){
     try{
       sessionStorage.setItem('sk_portal_auth','1');
@@ -1860,7 +1857,6 @@ async function attemptLogin(){
     showMenu();
   } else {
     showLoginError('Invalid username or password. Please try again.');
-    btn.disabled = false; btn.textContent = 'Sign In';
   }
 }
 
@@ -2009,10 +2005,10 @@ init();
     var track = document.createElement('div');
     track.className = 'lp-track';
     track.style.setProperty('--dur', DURS[r]+'s');
-    set.concat(set).forEach(function(url){                      // duplicate once -> seamless -50% loop
+    set.concat(set).forEach(function(url, _i){                      // duplicate once -> seamless -50% loop
       var tile = document.createElement('div'); tile.className = 'lp-tile';
       var img = document.createElement('img');
-      img.src = url; img.alt = ''; img.loading = 'eager'; img.decoding = 'async';
+      img.src = url; img.alt = ''; img.loading = (_i < 5 ? 'eager' : 'lazy'); img.fetchPriority = (_i < 5 ? 'high' : 'low'); img.decoding = 'async';
       tile.appendChild(img); track.appendChild(tile);
     });
     row.appendChild(track); host.appendChild(row);
