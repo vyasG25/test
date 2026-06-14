@@ -1445,6 +1445,90 @@
   .pc-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
     box-shadow:0 0 0 3px var(--accent-light);}
   .portal-foot{margin-top:46px;font-size:11.5px;color:var(--text3);letter-spacing:.3px;text-align:center;}
+
+  /* ── Settings entry button (admin only) ── */
+  .portal-settings{display:inline-flex;align-items:center;gap:8px;margin:-26px 0 30px;padding:9px 18px;
+    background:#fff;color:var(--text);border:1.5px solid var(--border2);border-radius:10px;font-size:13px;
+    font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.06);transition:all .15s ease;}
+  .portal-settings:hover{color:#fff;background:#3a6f96;border-color:#3a6f96;
+    box-shadow:0 6px 16px -4px rgba(58,111,150,.45);transform:translateY(-1px);}
+  .portal-settings svg{width:15px;height:15px;}
+
+  /* ── Locked report cards (no access) ── */
+  .pcard.locked{cursor:not-allowed;}
+  .pcard.locked:hover{transform:none;border-color:var(--border);box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .pcard.locked .pc-ico,.pcard.locked .pc-name,.pcard.locked .pc-desc,
+  .pcard.locked .pc-bar,.pcard.locked .pc-arrow{opacity:.4;filter:grayscale(.7);}
+  .pcard.locked .pc-foot{color:var(--text3);}
+  .pc-lock{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border2);
+    color:var(--text3);z-index:3;}
+  .pc-lock svg{width:14px;height:14px;}
+  .pcard.locked .pc-arrow{display:none;}
+
+  /* ── Settings panel overlay ── */
+  #settingsPanel{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;
+    padding:24px;background:rgba(28,26,22,.45);backdrop-filter:blur(4px);}
+  .set-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;
+    max-width:560px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.5);}
+  .set-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 26px 18px;
+    border-bottom:1px solid var(--border);}
+  .set-head h2{font-family:'Playfair Display',Georgia,serif;font-size:23px;font-weight:700;color:var(--text);}
+  .set-head p{font-size:12.5px;color:var(--text2);margin-top:3px;}
+  .set-close{width:34px;height:34px;border-radius:9px;border:1px solid var(--border2);background:#fff;
+    color:var(--text2);cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;
+    justify-content:center;transition:all .15s;flex-shrink:0;}
+  .set-close:hover{background:var(--red-light);color:var(--red);border-color:var(--red);}
+  .set-body{padding:22px 26px;overflow-y:auto;}
+  .set-field-label{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--text3);margin-bottom:8px;}
+  .set-user-select{width:100%;padding:11px 13px;border:1.5px solid var(--border2);border-radius:10px;
+    background:var(--surface);color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;outline:none;
+    transition:border-color .2s,box-shadow .15s;margin-bottom:22px;}
+  .set-user-select:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-light);}
+  .set-list-title{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--text3);margin-bottom:10px;}
+  #setReportList{display:flex;flex-direction:column;gap:10px;}
+  .set-rep{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1.5px solid var(--border);
+    border-radius:12px;cursor:pointer;transition:all .15s;background:var(--surface2);}
+  .set-rep:hover{border-color:var(--blue);background:var(--blue-light);}
+  .set-rep input{width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;}
+  .set-rep-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .set-rep-name{font-size:14.5px;font-weight:600;color:var(--text);}
+  .set-rep.disabled{cursor:default;opacity:.75;background:var(--bg);}
+  .set-rep.disabled:hover{border-color:var(--border);background:var(--bg);}
+  #setAdminNote{display:none;margin-top:14px;font-size:12.5px;color:var(--text2);background:var(--blue-light);
+    border:1px solid #cfe0f0;border-radius:10px;padding:11px 13px;line-height:1.5;}
+  .set-foot{display:flex;justify-content:flex-end;gap:12px;padding:18px 26px 22px;border-top:1px solid var(--border);}
+  .set-btn{padding:11px 22px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;
+    font-family:inherit;transition:all .15s;border:1.5px solid var(--border2);}
+  .set-btn-cancel{background:#fff;color:var(--text2);}
+  .set-btn-cancel:hover{background:var(--bg);color:var(--text);}
+  .set-btn-save{background:var(--blue-grad);color:#fff;border-color:transparent;
+    box-shadow:0 4px 14px -4px rgba(43,90,126,.5);}
+  .set-btn-save:hover{transform:translateY(-1px);box-shadow:0 8px 20px -6px rgba(43,90,126,.6);}
+
+  /* ── Access-denied modal ── */
+  #accessDeniedModal{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;
+    padding:24px;background:rgba(28,26,22,.45);backdrop-filter:blur(4px);}
+  .ad-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;
+    max-width:420px;padding:30px 28px 26px;text-align:center;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);}
+  .ad-ico{width:58px;height:58px;border-radius:50%;background:var(--red-light);color:var(--red);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+  .ad-ico svg{width:28px;height:28px;}
+  .ad-card h3{font-family:'Playfair Display',Georgia,serif;font-size:21px;font-weight:700;color:var(--text);margin-bottom:10px;}
+  .ad-card p{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:22px;}
+  .ad-card p b{color:var(--text);}
+  .ad-btn{padding:11px 26px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;
+    background:var(--blue-grad);color:#fff;border:none;box-shadow:0 4px 14px -4px rgba(43,90,126,.5);transition:all .15s;}
+  .ad-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -6px rgba(43,90,126,.6);}
+
+  /* ── Save confirmation toast ── */
+  #setToast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);z-index:140;
+    background:var(--text);color:#fff;padding:13px 22px;border-radius:12px;font-size:13.5px;font-weight:600;
+    box-shadow:0 12px 30px -8px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:all .3s ease;}
+  #setToast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
@@ -1617,6 +1701,10 @@
   <div class="portal-body">
     <div class="portal-eyebrow">Welcome back</div>
     <div class="portal-title">Choose a report</div>
+    <button class="portal-settings" id="portalSettingsBtn" onclick="openSettings()" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
     <div class="portal-grid">
     <div class="pcard" role="button" tabindex="0" data-report="national"
          onclick="openReport('national')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReport('national');}"
@@ -1670,6 +1758,45 @@
     <div class="portal-foot">Secure workspace · Skillmatics</div>
   </div>
 </div>
+
+<!-- ===== SETTINGS PANEL (admin only — user access management) ===== -->
+<div id="settingsPanel">
+  <div class="set-card">
+    <div class="set-head">
+      <div>
+        <h2>User Access</h2>
+        <p>Choose a user, then select which reports they can open.</p>
+      </div>
+      <button class="set-close" onclick="closeSettings()" title="Close">&times;</button>
+    </div>
+    <div class="set-body">
+      <div class="set-field-label">User</div>
+      <select class="set-user-select" id="setUserSelect" onchange="renderSettingsReports(this.value)"></select>
+      <div class="set-list-title">Reports</div>
+      <div id="setReportList"></div>
+      <div id="setAdminNote">This user is an <b>admin</b> and always has access to every report.</div>
+    </div>
+    <div class="set-foot">
+      <button class="set-btn set-btn-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="set-btn set-btn-save" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ACCESS-DENIED MODAL ===== -->
+<div id="accessDeniedModal">
+  <div class="ad-card">
+    <div class="ad-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h3>No access</h3>
+    <p id="accessDeniedMsg"></p>
+    <button class="ad-btn" onclick="document.getElementById('accessDeniedModal').style.display='none'">Got it</button>
+  </div>
+</div>
+
+<!-- ===== SAVE TOAST ===== -->
+<div id="setToast"></div>
 
 <!-- ===== REPORT VIEW (full-screen iframe host) ===== -->
 <div id="reportView" style="position:fixed;inset:0;z-index:100;display:none;background:var(--bg);">
@@ -1814,12 +1941,50 @@ function finishLoading(state, main, sub) {
 // ════════════════════════════════════════════════════════════════════════
 // PORTAL SHELL — single login, card menu, on-demand report loading
 // ════════════════════════════════════════════════════════════════════════
-// Valid logins — username : password
+// Valid logins — username : { password, role }
+// role is either 'admin' (can open Settings + access every report) or 'user'.
 const PORTAL_USERS = {
-  'admin':      'admin',
-  'skilluser1': 'User1',
-  'skilluser2': 'User2'
+  'admin':      { password: 'admin', role: 'admin' },
+  'skilluser1': { password: 'User1', role: 'user'  },
+  'skilluser2': { password: 'User2', role: 'user'  }
 };
+
+// Report catalogue — single source of truth for the menu cards and the
+// Settings checklist. Keys must match the data-report / openReport() keys.
+const REPORTS = [
+  { key: 'national', name: 'US National Sales', color: '#4e7c59' },
+  { key: 'revenue',  name: 'US Revenue',        color: '#b8892e' },
+  { key: 'gt',       name: 'GT Sales',          color: '#3f6fb0' },
+  { key: 'hamleys',  name: 'Hamleys Sales',     color: '#b4453a' }
+];
+
+// Default report access for non-admin users (admins always get everything).
+// Admin can change these from Settings; changes are saved in localStorage.
+const ACCESS_DEFAULTS = {
+  'skilluser1': ['national', 'revenue'],
+  'skilluser2': ['gt']
+};
+
+// ─── Access helpers (persisted per-browser in localStorage) ──────────────
+function loadAccessMap(){
+  let stored = {};
+  try{ stored = JSON.parse(localStorage.getItem('sk_portal_access') || '{}') || {}; }catch(e){}
+  const map = {};
+  Object.keys(PORTAL_USERS).forEach(u => {
+    map[u] = Array.isArray(stored[u]) ? stored[u].slice() : (ACCESS_DEFAULTS[u] || []).slice();
+  });
+  return map;
+}
+function saveAccessMap(map){
+  try{ localStorage.setItem('sk_portal_access', JSON.stringify(map)); }catch(e){}
+}
+function currentUser(){ try{ return sessionStorage.getItem('sk_portal_user') || ''; }catch(e){ return ''; } }
+function currentRole(){ try{ return sessionStorage.getItem('sk_portal_role') || ''; }catch(e){ return ''; } }
+function userCanAccess(user, key){
+  const rec = PORTAL_USERS[user];
+  if(rec && rec.role === 'admin') return true;            // admins see all reports
+  return (loadAccessMap()[user] || []).includes(key);
+}
 
 // ─── DATA SOURCE BASE (optional) ─────────────────────────────────────────
 // Each embedded report fetches its data from RELATIVE paths (e.g. "./gt_2024(1).json").
@@ -1845,10 +2010,12 @@ function attemptLogin(){
   const p   = document.getElementById('loginPass').value;
   const err = document.getElementById('loginError');
   if(!u || !p){ showLoginError('Please enter both username and password.'); return; }
-  if(Object.prototype.hasOwnProperty.call(PORTAL_USERS, u) && PORTAL_USERS[u] === p){
+  const rec = PORTAL_USERS[u];
+  if(rec && rec.password === p){
     try{
       sessionStorage.setItem('sk_portal_auth','1');
       sessionStorage.setItem('sk_portal_user', u);
+      sessionStorage.setItem('sk_portal_role', rec.role || 'user');
       // Pre-authorise the embedded reports so they auto-load without their own login.
       sessionStorage.setItem('sk_logged_in','1');
       sessionStorage.setItem('sk_rev_logged_in','1');
@@ -1871,6 +2038,7 @@ function portalSignOut(){
   try{
     sessionStorage.removeItem('sk_portal_auth');
     sessionStorage.removeItem('sk_portal_user');
+    sessionStorage.removeItem('sk_portal_role');
     sessionStorage.removeItem('sk_logged_in');
     sessionStorage.removeItem('sk_rev_logged_in');
   }catch(e){}
@@ -1895,6 +2063,32 @@ function showMenu(){
   document.getElementById('loadingOverlay').style.display = 'none';
   document.getElementById('portalMenu').style.display = 'flex';
   setPortalUser();
+  refreshCardLocks();
+  const sbtn = document.getElementById('portalSettingsBtn');
+  if(sbtn) sbtn.style.display = (currentRole() === 'admin') ? 'inline-flex' : 'none';
+}
+
+// Reflect the signed-in user's access on the menu cards: lock the ones
+// they cannot open and add a small padlock badge.
+function refreshCardLocks(){
+  const user = currentUser();
+  document.querySelectorAll('#portalMenu .pcard').forEach(card => {
+    const key = card.getAttribute('data-report');
+    const ok  = userCanAccess(user, key);
+    card.classList.toggle('locked', !ok);
+    card.setAttribute('aria-disabled', ok ? 'false' : 'true');
+    let badge = card.querySelector('.pc-lock');
+    if(!ok){
+      if(!badge){
+        badge = document.createElement('div');
+        badge.className = 'pc-lock';
+        badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+        card.appendChild(badge);
+      }
+    } else if(badge){
+      badge.remove();
+    }
+  });
 }
 
 function getBlob(key){
@@ -1911,6 +2105,8 @@ let _readyTimer = null;
 let _activeReport = null;
 
 function openReport(key){
+  // Access gate — block reports the signed-in user isn't assigned.
+  if(!userCanAccess(currentUser(), key)){ showAccessDenied(key); return; }
   const blob = getBlob(key);
   if(!blob) return;
   _activeReport = key;
@@ -1975,6 +2171,76 @@ window.addEventListener('DOMContentLoaded', () => {
   const u = document.getElementById('loginUser');
   if(u) u.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('loginPass').focus(); });
 });
+
+// ─── Access-denied message ───────────────────────────────────────────────
+function showAccessDenied(key){
+  const r = REPORTS.find(x => x.key === key);
+  const name = r ? r.name : 'this report';
+  const msg = document.getElementById('accessDeniedMsg');
+  if(msg) msg.innerHTML = 'You do not have access to <b>' + name + '</b>. Please contact your administrator to request access.';
+  document.getElementById('accessDeniedModal').style.display = 'flex';
+}
+
+// ─── Settings panel (admin only) ─────────────────────────────────────────
+function openSettings(){
+  if(currentRole() !== 'admin') return;   // safety: only admins
+  const sel = document.getElementById('setUserSelect');
+  sel.innerHTML = '';
+  Object.keys(PORTAL_USERS).forEach(u => {
+    const o = document.createElement('option');
+    o.value = u;
+    o.textContent = u + (PORTAL_USERS[u].role === 'admin' ? '  ·  admin' : '  ·  user');
+    sel.appendChild(o);
+  });
+  renderSettingsReports(sel.value);
+  document.getElementById('settingsPanel').style.display = 'flex';
+}
+function closeSettings(){
+  document.getElementById('settingsPanel').style.display = 'none';
+}
+function renderSettingsReports(user){
+  const host = document.getElementById('setReportList');
+  const note = document.getElementById('setAdminNote');
+  const isAdminUser = PORTAL_USERS[user] && PORTAL_USERS[user].role === 'admin';
+  const access = loadAccessMap()[user] || [];
+  host.innerHTML = '';
+  REPORTS.forEach(r => {
+    const checked = isAdminUser ? true : access.includes(r.key);
+    const row = document.createElement('label');
+    row.className = 'set-rep' + (isAdminUser ? ' disabled' : '');
+    row.innerHTML =
+      '<input type="checkbox" value="' + r.key + '"' + (checked ? ' checked' : '') + (isAdminUser ? ' disabled' : '') + '>' +
+      '<span class="set-rep-dot" style="background:' + r.color + '"></span>' +
+      '<span class="set-rep-name">' + r.name + '</span>';
+    host.appendChild(row);
+  });
+  note.style.display = isAdminUser ? 'block' : 'none';
+}
+function saveSettings(){
+  const user = document.getElementById('setUserSelect').value;
+  if(PORTAL_USERS[user] && PORTAL_USERS[user].role === 'admin'){
+    closeSettings();
+    showSetToast('Admins always have full access — nothing to change.');
+    return;
+  }
+  const selected = [...document.querySelectorAll('#setReportList input[type=checkbox]')]
+                     .filter(c => c.checked).map(c => c.value);
+  const map = loadAccessMap();
+  map[user] = selected;
+  saveAccessMap(map);
+  refreshCardLocks();                 // update cards if admin changed their own view of access
+  closeSettings();
+  showSetToast('Access updated for ' + user + '.');
+}
+let _setToastTimer = null;
+function showSetToast(text){
+  const t = document.getElementById('setToast');
+  if(!t) return;
+  t.textContent = text;
+  t.classList.add('show');
+  if(_setToastTimer) clearTimeout(_setToastTimer);
+  _setToastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
 
 function init(){
   let authed = false;
