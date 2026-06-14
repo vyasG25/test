@@ -1446,13 +1446,14 @@
     box-shadow:0 0 0 3px var(--accent-light);}
   .portal-foot{margin-top:46px;font-size:11.5px;color:var(--text3);letter-spacing:.3px;text-align:center;}
 
-  /* ── Settings entry button (admin only) ── */
-  .portal-settings{display:inline-flex;align-items:center;gap:8px;margin:-26px 0 30px;padding:9px 18px;
+  /* ── Settings entry button (admin only, in header) ── */
+  .portal-settings{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;
     background:#fff;color:var(--text);border:1.5px solid var(--border2);border-radius:10px;font-size:13px;
-    font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.06);transition:all .15s ease;}
+    font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.06);transition:all .15s ease;white-space:nowrap;}
   .portal-settings:hover{color:#fff;background:#3a6f96;border-color:#3a6f96;
     box-shadow:0 6px 16px -4px rgba(58,111,150,.45);transform:translateY(-1px);}
-  .portal-settings svg{width:15px;height:15px;}
+  .portal-settings:active{transform:translateY(0);}
+  .portal-settings svg{width:15px;height:15px;flex-shrink:0;}
 
   /* ── Locked report cards (no access) ── */
   .pcard.locked{cursor:not-allowed;}
@@ -1690,6 +1691,10 @@
     </div>
     <div class="portal-head-right">
       <span class="portal-user" id="portalUser"></span>
+      <button class="portal-settings" id="portalSettingsBtn" onclick="openSettings()" title="Settings" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
       <button class="portal-signout" onclick="portalSignOut()" title="Logout">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -1701,10 +1706,6 @@
   <div class="portal-body">
     <div class="portal-eyebrow">Welcome back</div>
     <div class="portal-title">Choose a report</div>
-    <button class="portal-settings" id="portalSettingsBtn" onclick="openSettings()" style="display:none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Settings
-    </button>
     <div class="portal-grid">
     <div class="pcard" role="button" tabindex="0" data-report="national"
          onclick="openReport('national')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReport('national');}"
@@ -2139,6 +2140,13 @@ function openReport(key){
     const base = REPORT_DATA_BASE[key];
     if(base){
       docHtml = docHtml.replace('<head>', '<head>\n<base href="' + base + '">');
+    }
+    // Recolor the in-report Home / Main Menu button to match the blue tab colour.
+    const homeBtnCss = '<style>.sk-home-btn{background:linear-gradient(135deg,#3a6f96,#2b5a7e)!important;box-shadow:0 2px 8px rgba(43,90,126,.32)!important;}</style>';
+    if(docHtml.includes('</head>')){
+      docHtml = docHtml.replace('</head>', homeBtnCss + '</head>');
+    } else {
+      docHtml = homeBtnCss + docHtml;
     }
     f.srcdoc = docHtml;
   }catch(e){
