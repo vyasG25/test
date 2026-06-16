@@ -2112,8 +2112,9 @@
                 Forecast Forward
                 <small>Weeks to project ahead</small>
               </div>
-              <div class="ftc-field-input">
-                <input type="number" id="ftFcWeeks" value="" min="1" max="104" placeholder="e.g. 30" class="fcb-input-alert">
+              <div class="ftc-field-input" style="display:flex;align-items:center;gap:10px;">
+                <input type="number" id="ftFcWeeks" value="" min="1" max="104" placeholder="e.g. 30" class="fcb-input-alert" style="width:92px;flex:none;">
+                <span id="ftFcEndDisp" style="font-size:11.5px;font-weight:600;color:var(--text2);white-space:nowrap;line-height:1.3;"></span>
               </div>
             </div>
 
@@ -5856,15 +5857,14 @@ function fcLatestStoreCount(client, sku) {
   return rows.filter(r => r.date === maxDate).reduce((s, r) => s + r.store_count, 0);
 }
 
-// Latest cost price for a product (from a set of its rows): newest dated row
-// that carries a non-zero cost; falls back to the newest row's cost otherwise.
-function fcLatestCostFromRows(rows) {
+// Latest unit cost price for a set of rows — cost on the most recent date that
+// carries a non-zero cost (falls back to the latest row if none have cost).
+function fcLatestCost(rows) {
   if (!rows || !rows.length) return 0;
-  let best = null;
-  rows.forEach(r => { if ((+r.cost || 0) > 0 && (!best || r.date > best.date)) best = r; });
-  if (best) return +best.cost || 0;
-  const latest = rows.reduce((a, b) => (a.date > b.date ? a : b));
-  return +latest.cost || 0;
+  const withCost = rows.filter(r => r.cost > 0);
+  const pool = withCost.length ? withCost : rows;
+  const maxDate = pool.reduce((m, r) => r.date > m ? r.date : m, pool[0].date);
+  return pool.filter(r => r.date === maxDate).reduce((mx, r) => r.cost > mx ? r.cost : mx, 0);
 }
 
 // ── Searchable dropdown helper ────────────────────────────────────────────
@@ -5959,6 +5959,20 @@ function fcUpdateWeeknumBadge(inputId, badgeId) {
   if (isNaN(d)) { el.innerHTML = ''; return; }
   const wk = fcGetSundayWeekNum(d);
   el.innerHTML = `<span class="fc-weeknum">Wk ${wk}, ${d.getFullYear()}</span>`;
+}
+
+// Live "forecast ends on" readout for the Recent-Trend page (Forecast Start + Fc Weeks)
+function ftUpdateFcEnd() {
+  const el = document.getElementById('ftFcEndDisp');
+  if (!el) return;
+  const startVal = document.getElementById('ftFcStart').value;
+  const wks = parseInt(document.getElementById('ftFcWeeks').value) || 0;
+  if (!startVal || wks < 1) { el.innerHTML = ''; return; }
+  const d = new Date(startVal);
+  if (isNaN(d)) { el.innerHTML = ''; return; }
+  const end = new Date(d); end.setDate(end.getDate() + wks * 7);
+  const disp = end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  el.innerHTML = `→ ends <strong style="color:var(--accent2);">${disp}</strong> <span style="color:var(--text3);">(Wk ${fcGetSundayWeekNum(end)})</span>`;
 }
 
 function initForecastTab() {
@@ -6103,28 +6117,26 @@ function fcDownloadExcel() {
   KV('Total Available Stock', Math.round(r.totalAvailable), true);
   BLANK();
 
-  // Reference Period Weekly Breakdown — only present for Recent Trend forecasts
+  // Reference Period Weekly Breakdown (Recent Trend only — carries refWeeklyBreakdown)
   if (r.refWeeklyBreakdown && r.refWeeklyBreakdown.length) {
-    SEC('Reference Period Weekly Breakdown', 7);
+    SEC('Reference Period Weekly Breakdown', 5);
     rows.push(['Week','Period Starting','Actual Sales','Stores','Sales/Store'].map(h=>({v:h,t:'s',s:1})));
     r.refWeeklyBreakdown.forEach(w => {
-      const perStore = w.store_count > 0 ? w.sale_qty / w.store_count : 0;
+      const ps = w.store_count>0 ? w.sale_qty/w.store_count : 0;
       rows.push([
         {v:'Wk '+w.week, t:'s', s:0},
-        {v:w.date?new Date(w.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'', t:'s', s:0},
+        {v:(w.date? new Date(w.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''), t:'s', s:0},
         {v:Math.round(w.sale_qty||0), t:'n', s:0},
         {v:Math.round(w.store_count||0), t:'n', s:0},
-        {v:round(perStore,2), t:'n', s:0}
+        {v:round(ps,2), t:'n', s:0}
       ]);
     });
-    const refWk = r.refWeekCount || r.refWeeklyBreakdown.length;
-    const refAvgSt = r.refAvgStores || 0;
     rows.push([
       {v:'TOTAL / AVG', t:'s', s:1},
       {v:'', t:'s', s:1},
-      {v:Math.round(r.refTotalSales||0), t:'n', s:1},
-      {v:Math.round(refAvgSt), t:'n', s:1},
-      {v:(refAvgSt>0&&refWk>0)?round((r.refTotalSales||0)/(refAvgSt*refWk),2):0, t:'n', s:1}
+      {v:Math.round(r.totalHistSales||0), t:'n', s:1},
+      {v:Math.round(r.refAvgStores||0), t:'n', s:1},
+      {v:(r.refAvgStores>0 && r.histWeekCount>0)?round((r.totalHistSales)/((r.refAvgStores)*(r.histWeekCount)),2):0, t:'n', s:1}
     ]);
     BLANK();
   }
@@ -6150,7 +6162,7 @@ function fcDownloadExcel() {
     {v:'', t:'s', s:1},
     {v:Math.round(totHist), t:'n', s:1},
     {v:'', t:'s', s:1},
-    {v:Math.round(r.forecastWithUplift), t:'n', s:1},
+    {v:(r.latestCost>0?(Math.round(r.forecastWithUplift).toLocaleString('en-US')+' ('+fmtV(r.forecastValue)+')'):Math.round(r.forecastWithUplift)), t:(r.latestCost>0?'s':'n'), s:1},
     {v:r.expectedStores>0?round(r.forecastWithUplift/r.expectedStores,2):0, t:'n', s:1},
     {v:'', t:'s', s:1}
   ]);
@@ -6254,7 +6266,6 @@ function fcDownloadExcel() {
 
 const FC_XA_SHEET_COLS_XML = '<cols><col min="1" max="1" width="34" customWidth="1"/><col min="2" max="2" width="22" customWidth="1"/><col min="3" max="7" width="14" customWidth="1"/></cols>';
 const FC_XA_SEASON_COLS_XML = '<cols><col min="1" max="1" width="22" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/></cols>';
-const FC_XA_SUMMARY_COLS_XML = '<cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="36" customWidth="1"/><col min="3" max="3" width="26" customWidth="1"/><col min="4" max="4" width="10" customWidth="1"/><col min="5" max="5" width="16" customWidth="1"/><col min="6" max="6" width="14" customWidth="1"/><col min="7" max="7" width="18" customWidth="1"/></cols>';
 
 // Store count on the SKU's latest data date (sums rows sharing that date)
 function fcXaLatestStores(rows) {
@@ -6391,11 +6402,14 @@ function fcXaComputeYoY(client, sku, skuName, rows, o) {
     weeklyBreakdown.push({ weekStart, weekNum, yr: weekStart.getFullYear(), baseSales: Math.round(baseSales), scaledSales, isEstimated, stores: expectedStores, perStore: expectedStores > 0 ? scaledSales / expectedStores : 0 });
   }
 
+  const latestCost = fcLatestCost(rows);
+  const forecastValue = Math.round(forecastWithUplift * latestCost);
   const fmtDate = d => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   return {
     methodLabel: 'Year-over-Year',
     methodHint: "Uses last year's same-period sales. Best for products with 12+ months of history.",
     client, targetSku: sku, targetName,
+    latestCost, forecastValue,
     fcFromDisp: fmtDate(fcFrom), fcToDisp: fmtDate(fcTo),
     fcFromWk: fcGetSundayWeekNum(fcFrom), fcToWk: fcGetSundayWeekNum(fcTo), fcWeeks,
     periodLabel: 'Historical Period', periodRange: fmtDate(histFrom) + ' → ' + fmtDate(histTo),
@@ -6494,11 +6508,15 @@ function fcXaComputeTrend(client, sku, skuName, rows, o, season) {
   const sellThru = (totalSold + sohStoreDC + sohRush) > 0 ? totalSold / (totalSold + sohStoreDC + sohRush) : 0;
   const fcEndDate = new Date(fcStartDate); fcEndDate.setDate(fcEndDate.getDate() + fcWeeks * 7);
 
+  const latestCost = fcLatestCost(rows);
+  const forecastValue = Math.round(forecastWithUplift * latestCost);
+  const refWeeklyBreakdown = refWeeks.map(w => ({ week: w.week, date: w.date, sale_qty: w.sale_qty, store_count: w.store_count }));
   const fmtDate = d => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   return {
     methodLabel: 'Recent Trend',
     methodHint: 'Uses recent sales velocity. Best for new launches.',
     client, targetSku: sku, targetName,
+    latestCost, forecastValue, refWeeklyBreakdown, refAvgStores,
     fcFromDisp: fmtDate(fcStartDate), fcToDisp: fmtDate(fcEndDate),
     fcFromWk: fcGetSundayWeekNum(fcStartDate), fcToWk: fcGetSundayWeekNum(fcEndDate), fcWeeks,
     periodLabel: 'Reference Period', periodRange: fmtDate(saleFrom) + ' → ' + fmtDate(saleTo),
@@ -6568,6 +6586,29 @@ function fcXaBuildSheetRows(r) {
   KV('Total Available Stock', Math.round(r.totalAvailable), true);
   BLANK();
 
+  if (r.refWeeklyBreakdown && r.refWeeklyBreakdown.length) {
+    SEC('Reference Period Weekly Breakdown', 5);
+    rows.push(['Week', 'Period Starting', 'Actual Sales', 'Stores', 'Sales/Store'].map(h => ({ v: h, t: 's', s: 1 })));
+    r.refWeeklyBreakdown.forEach(w => {
+      const ps = w.store_count > 0 ? w.sale_qty / w.store_count : 0;
+      rows.push([
+        { v: 'Wk ' + w.week, t: 's', s: 0 },
+        { v: (w.date ? new Date(w.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''), t: 's', s: 0 },
+        { v: Math.round(w.sale_qty || 0), t: 'n', s: 0 },
+        { v: Math.round(w.store_count || 0), t: 'n', s: 0 },
+        { v: round(ps, 2), t: 'n', s: 0 }
+      ]);
+    });
+    rows.push([
+      { v: 'TOTAL / AVG', t: 's', s: 1 },
+      { v: '', t: 's', s: 1 },
+      { v: Math.round(r.totalHistSales || 0), t: 'n', s: 1 },
+      { v: Math.round(r.refAvgStores || 0), t: 'n', s: 1 },
+      { v: (r.refAvgStores > 0 && r.histWeekCount > 0) ? round((r.totalHistSales) / ((r.refAvgStores) * (r.histWeekCount)), 2) : 0, t: 'n', s: 1 }
+    ]);
+    BLANK();
+  }
+
   SEC('Weekly Breakdown', 7);
   rows.push(['Week', 'Period Starting', 'Hist. Sales', 'Store Scale', 'Forecast Qty', 'Per Store', 'Source'].map(h => ({ v: h, t: 's', s: 1 })));
   (r.weeklyBreakdown || []).forEach(w => {
@@ -6587,7 +6628,7 @@ function fcXaBuildSheetRows(r) {
     { v: '', t: 's', s: 1 },
     { v: Math.round(totHist), t: 'n', s: 1 },
     { v: '', t: 's', s: 1 },
-    { v: Math.round(r.forecastWithUplift), t: 'n', s: 1 },
+    { v: (r.latestCost > 0 ? (Math.round(r.forecastWithUplift).toLocaleString('en-US') + ' (' + fmtV(r.forecastValue) + ')') : Math.round(r.forecastWithUplift)), t: (r.latestCost > 0 ? 's' : 'n'), s: 1 },
     { v: r.expectedStores > 0 ? round(r.forecastWithUplift / r.expectedStores, 2) : 0, t: 'n', s: 1 },
     { v: '', t: 's', s: 1 }
   ]);
@@ -6620,62 +6661,39 @@ function fcXaSeasonalitySheetRows(season) {
   return rows;
 }
 
-// Summary sheet for the Bulk Forecast export — one row per product with the
-// total forecast qty (and value at latest cost) for its selected forecast window.
-// `computed` = [{ p, o, r }] where r is the result from fcXaComputeYoY / fcXaComputeTrend.
-function fcXaSummarySheetRows(client, computed, isTrend) {
-  const round = (x, d) => { const p = Math.pow(10, d); return Math.round((Number(x) || 0) * p) / p; };
+const FC_XA_SUMMARY_COLS_XML = '<cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="34" customWidth="1"/><col min="3" max="3" width="30" customWidth="1"/><col min="4" max="4" width="9" customWidth="1"/><col min="5" max="5" width="15" customWidth="1"/><col min="6" max="6" width="13" customWidth="1"/><col min="7" max="7" width="17" customWidth="1"/></cols>';
+
+// First sheet of every Bulk Forecast export — one row per product with its total
+// forecast quantity over the selected window, plus the latest-cost forecast value.
+function fcXaSummarySheetRows(client, isTrend, items) {
   const rows = [];
-  rows.push([{ v: 'Forecast Summary — ' + (isTrend ? 'Recent Trend' : 'Year-over-Year'), t: 's', s: 1 }]);
-  rows.push([{ v: 'Client / Account: ' + String(client || '—'), t: 's', s: 0 }]);
+  rows.push([{ v: 'Bulk Forecast Summary — ' + (isTrend ? 'Recent Trend' : 'Year-over-Year'), t: 's', s: 1 }]);
+  rows.push([{ v: 'Client / Account: ' + String(client), t: 's', s: 0 }]);
   rows.push([{ v: 'Generated ' + new Date().toLocaleString('en-GB'), t: 's', s: 0 }]);
   rows.push([]);
-
-  // header
-  rows.push(['Product Code', 'Product Name', 'Forecast Window', 'Weeks', 'Forecast Qty', 'Latest Cost', 'Forecast Value']
-    .map(h => ({ v: h, t: 's', s: 2 })));
-
-  let grandQty = 0, grandVal = 0;
-  computed.forEach(({ p, o, r }) => {
-    if (r && r.error) {
-      const win = isTrend
-        ? ((o.fcStartStr || '—') + ' (' + (o.fcWeeks || 0) + ' wks)')
-        : ((o.fromStr || '—') + ' → ' + (o.toStr || '—'));
-      rows.push([
-        { v: p.code, t: 's', s: 1 },
-        { v: p.name, t: 's', s: 0 },
-        { v: win, t: 's', s: 0 },
-        { v: '', t: 's', s: 0 },
-        { v: 'No data', t: 's', s: 0 },
-        { v: '', t: 's', s: 0 },
-        { v: '', t: 's', s: 0 }
-      ]);
-      return;
-    }
-    const qty = Math.round(r.forecastWithUplift || 0);
-    const cost = fcLatestCostFromRows(p.rows);
-    const val = qty * cost;
-    grandQty += qty; grandVal += val;
+  rows.push(['Product Code', 'Product Name', 'Forecast Window', 'Weeks', 'Forecast Qty', 'Latest Cost', 'Forecast Value'].map(h => ({ v: h, t: 's', s: 2 })));
+  let totQty = 0, totVal = 0;
+  (items || []).forEach(it => {
+    totQty += it.qty || 0;
+    totVal += it.value || 0;
     rows.push([
-      { v: r.targetSku, t: 's', s: 1 },
-      { v: r.targetName, t: 's', s: 0 },
-      { v: r.fcFromDisp + ' → ' + r.fcToDisp, t: 's', s: 0 },
-      { v: r.fcWeeks, t: 'n', s: 0 },
-      { v: qty, t: 'n', s: 0 },
-      { v: round(cost, 2), t: 'n', s: 0 },
-      { v: Math.round(val), t: 'n', s: 0 }
+      { v: String(it.code), t: 's', s: 0 },
+      { v: String(it.name), t: 's', s: 0 },
+      { v: String(it.window || ''), t: 's', s: 0 },
+      { v: it.weeks || 0, t: 'n', s: 0 },
+      { v: Math.round(it.qty || 0), t: 'n', s: 0 },
+      { v: (it.cost > 0 ? fmtV(it.cost) : '—'), t: 's', s: 0 },
+      { v: (it.cost > 0 ? fmtV(it.value) : '—'), t: 's', s: 0 }
     ]);
   });
-
-  // grand total
   rows.push([
     { v: 'TOTAL', t: 's', s: 1 },
     { v: '', t: 's', s: 1 },
     { v: '', t: 's', s: 1 },
     { v: '', t: 's', s: 1 },
-    { v: grandQty, t: 'n', s: 1 },
+    { v: Math.round(totQty), t: 'n', s: 1 },
     { v: '', t: 's', s: 1 },
-    { v: Math.round(grandVal), t: 'n', s: 1 }
+    { v: (totVal > 0 ? fmtV(totVal) : '—'), t: 's', s: 1 }
   ]);
   return rows;
 }
@@ -6898,6 +6916,19 @@ function fcOpenExportAllModal() {
     }));
     listEl.querySelectorAll('.fcxa-stores').forEach(inp => inp.addEventListener('input', () => { inp.dataset.dirty = '1'; }));
     if (isTrend) {
+      const updateFcEnd = (i) => {
+        const card = listEl.querySelector('.fcxa-card[data-i="' + i + '"]');
+        if (!card) return;
+        const endEl = card.querySelector('.fcxa-fcend');
+        if (!endEl) return;
+        const sEl = card.querySelector('.fcxa-fstart'), wEl = card.querySelector('.fcxa-weeks');
+        const wks = parseInt(wEl && wEl.value) || 0;
+        if (!sEl || !sEl.value || wks < 1) { endEl.textContent = '—'; return; }
+        const d = new Date(sEl.value);
+        if (isNaN(d)) { endEl.textContent = '—'; return; }
+        const end = new Date(d); end.setDate(end.getDate() + wks * 7);
+        endEl.textContent = fmtDisp(end.toISOString().split('T')[0]);
+      };
       const syncDerived = (i) => {
         const card = listEl.querySelector('.fcxa-card[data-i="' + i + '"]');
         const p = prodCtx[i];
@@ -6912,10 +6943,12 @@ function fcOpenExportAllModal() {
           if (!wEl.dataset.dirty) wEl.value = Math.max(1, Math.round((new Date(toEl.value) - new Date(fromEl.value)) / (7 * 86400000)));
           if (!sEl.dataset.dirty) sEl.value = fcXaNextSundayAfter(toEl.value);
         }
+        updateFcEnd(i);
       };
       listEl.querySelectorAll('.fcxa-sfrom, .fcxa-sto').forEach(el => el.addEventListener('change', () => syncDerived(+el.dataset.i)));
-      listEl.querySelectorAll('.fcxa-weeks').forEach(el => el.addEventListener('input', () => { el.dataset.dirty = '1'; }));
-      listEl.querySelectorAll('.fcxa-fstart').forEach(el => el.addEventListener('change', () => { el.dataset.dirty = '1'; }));
+      listEl.querySelectorAll('.fcxa-weeks').forEach(el => el.addEventListener('input', () => { el.dataset.dirty = '1'; updateFcEnd(+el.dataset.i); }));
+      listEl.querySelectorAll('.fcxa-fstart').forEach(el => el.addEventListener('change', () => { el.dataset.dirty = '1'; updateFcEnd(+el.dataset.i); }));
+      prodCtx.forEach((p, i) => updateFcEnd(i));
     }
     prodCtx.forEach((p, i) => syncCard(i));
   }
@@ -6954,7 +6987,8 @@ function fcOpenExportAllModal() {
           <div class="fcxa-f"><span>Ref. Sale From</span><input type="date" class="fcxa-sfrom" data-i="${i}" value="${sFrom}"${m.firstSale ? ` min="${m.firstSale}"` : ''}></div>
           <div class="fcxa-f"><span>Ref. Sale To</span><input type="date" class="fcxa-sto" data-i="${i}" value="${sTo}"${m.lastDate ? ` max="${m.lastDate}"` : ''}></div>
           <div class="fcxa-f"><span>Forecast Start</span><input type="date" class="fcxa-fstart" data-i="${i}" value="${fStart}"></div>
-          <div class="fcxa-f"><span>Fc Weeks</span><input type="number" class="fcxa-weeks" data-i="${i}" value="${wks}" min="1" max="104"></div>`;
+          <div class="fcxa-f"><span>Fc Weeks</span><input type="number" class="fcxa-weeks" data-i="${i}" value="${wks}" min="1" max="104"></div>
+          <div class="fcxa-f"><span>Forecast End</span><span class="fcxa-fcend" data-i="${i}" title="Forecast Start + Fc Weeks" style="height:34px;display:inline-flex;align-items:center;padding:0 10px;font-size:12px;font-weight:700;color:var(--accent2,#7b5ea7);background:var(--accent2-light,#f0ebf7);border:1px solid rgba(123,94,167,.28);border-radius:9px;white-space:nowrap;box-sizing:border-box;">—</span></div>`;
       } else {
         autoStores = fcXaAutoStoresYoY(p.rows, 'average', defaultYoYDates.from, defaultYoYDates.to);
         datesHtml = `
@@ -7061,26 +7095,24 @@ function fcOpenExportAllModal() {
     okBtn.disabled = true; okBtn.textContent = 'Building workbook…';
     setTimeout(() => {
       try {
-        // Compute every selected product once, then reuse for the summary + per-product sheets
-        const computed = selections.map(sel => {
+        const sheets = [];
+        const summaryItems = [];
+        selections.forEach(sel => {
           const p = sel.p, o = sel.o;
           const r = isTrend
             ? fcXaComputeTrend(client, p.code, p.name, p.rows, o, xaSeason)
             : fcXaComputeYoY(client, p.code, p.name, p.rows, o);
-          return { p, o, r };
-        });
-
-        const sheets = [];
-        // Summary sheet first — total forecast qty per product for the selected window
-        sheets.push({ name: 'Summary', rows: fcXaSummarySheetRows(client, computed, isTrend), colsXml: FC_XA_SUMMARY_COLS_XML });
-        if (isTrend) sheets.push({ name: 'Seasonality Factors', rows: fcXaSeasonalitySheetRows(xaSeason), colsXml: FC_XA_SEASON_COLS_XML });
-        computed.forEach(({ p, o, r }) => {
           if (r && r.error) {
+            summaryItems.push({ code: p.code, name: p.name, window: (o.saleFromStr || '—') + ' → ' + (o.saleToStr || '—'), weeks: o.fcWeeks || 0, qty: 0, cost: 0, value: 0 });
             sheets.push({ name: p.code, rows: fcXaErrorSheetRows(client, p.code, p.name, r.error, [['Reference Period', (o.saleFromStr || '—') + ' → ' + (o.saleToStr || '—')]]), colsXml: FC_XA_SHEET_COLS_XML });
           } else {
+            summaryItems.push({ code: p.code, name: p.name, window: r.fcFromDisp + ' → ' + r.fcToDisp, weeks: r.fcWeeks || 0, qty: Math.round(r.forecastWithUplift || 0), cost: r.latestCost || 0, value: Math.round(r.forecastValue || 0) });
             sheets.push({ name: p.code, rows: fcXaBuildSheetRows(r), colsXml: FC_XA_SHEET_COLS_XML });
           }
         });
+        const headSheets = [{ name: 'Summary', rows: fcXaSummarySheetRows(client, isTrend, summaryItems), colsXml: FC_XA_SUMMARY_COLS_XML }];
+        if (isTrend) headSheets.push({ name: 'Seasonality Factors', rows: fcXaSeasonalitySheetRows(xaSeason), colsXml: FC_XA_SEASON_COLS_XML });
+        sheets.unshift(...headSheets);
         const safe = s => String(s).replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
         const fname = 'Forecast_' + (isTrend ? 'Trend' : 'YoY') + '_All_Products_' + safe(client) + '_' + new Date().toISOString().split('T')[0] + '.xlsx';
         repWriteXlsx(sheets, fname);
@@ -7139,6 +7171,7 @@ function fcResetForecast() {
   document.getElementById('ftFcStart').value = '';
   document.getElementById('ftFcStartWeeknum').innerHTML = '';
   document.getElementById('ftFcWeeks').value = '';
+  { const _e = document.getElementById('ftFcEndDisp'); if (_e) _e.innerHTML = ''; }
   document.getElementById('ftStores').value = '';
   document.getElementById('ftStoreBasis').value = 'average';
   { const h = document.getElementById('ftStoresHint'); if (h) h.textContent = 'Auto-fills from ref period avg'; }
@@ -7267,6 +7300,8 @@ function runForecast() {
   let forecastedSales = Math.round(adjustedHistSales * storeRatio);
   const upliftFactor = 1 + (upliftPct / 100);
   const forecastWithUplift = Math.round(forecastedSales * upliftFactor);
+  const latestCost = fcLatestCost(allTargetData);
+  const forecastValue = Math.round(forecastWithUplift * latestCost);
 
   const avgPerWeek = fcWeeks > 0 ? forecastWithUplift / fcWeeks : 0;
   const salesPerStorePerWeek = (expectedStores > 0 && fcWeeks > 0) ? forecastWithUplift / (expectedStores * fcWeeks) : 0;
@@ -7313,10 +7348,6 @@ function runForecast() {
     weeklyBreakdown.push({ weekStart, weekNum, yr, baseSales: Math.round(baseSales), scaledSales, isEstimated, stores: expectedStores, perStore: expectedStores > 0 ? scaledSales / expectedStores : 0 });
   }
 
-  // Latest cost price for the product → forecast value
-  const latestCost = fcLatestCostFromRows(allTargetData);
-  const forecastCostValue = forecastWithUplift * latestCost;
-
   // ── RENDER ──
   const fmtDate = d => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   const today = new Date();
@@ -7329,6 +7360,7 @@ function runForecast() {
     methodLabel:'Year-over-Year',
     methodHint:"Uses last year's same-period sales. Best for products with 12+ months of history.",
     client, targetSku, targetName,
+    latestCost, forecastValue,
     fcFromDisp:fmtDate(fcFrom), fcToDisp:fmtDate(fcTo),
     fcFromWk:fcGetSundayWeekNum(fcFrom), fcToWk:fcGetSundayWeekNum(fcTo), fcWeeks,
     periodLabel:'Historical Period', periodRange:fmtDate(histFrom)+' → '+fmtDate(histTo),
@@ -7338,7 +7370,6 @@ function runForecast() {
     stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
     totalHistSales, histWeekCount, allTimeAvgWk, allTimeSalesTarget, sellThru, totalAvailable,
     storeRatio,
-    latestCost,
     weeklyBreakdown
   };
 
@@ -7362,7 +7393,7 @@ function runForecast() {
       <!-- KPI Banner -->
       <div class="fcb-kpi-banner">
         <div class="fcb-kpi fcb-kpi-accent">
-          <div class="fcb-kpi-val c-accent">${fmt(forecastWithUplift)}${latestCost>0?`<span style="font-size:13px;font-weight:600;color:var(--text3);margin-left:5px;">(${fmtV(forecastCostValue)})</span>`:''}</div>
+          <div class="fcb-kpi-val c-accent">${fmt(forecastWithUplift)}${latestCost>0?` <span style="font-size:13px;font-weight:600;color:var(--text3);">(${fmtV(forecastValue)})</span>`:''}</div>
           <div class="fcb-kpi-label">Forecasted Sales</div>
           <div class="fcb-kpi-sub">${upliftPct!==0?`incl. ${upliftPct>=0?'+':''}${upliftPct}% uplift`:'No uplift applied'}</div>
         </div>
@@ -7511,7 +7542,7 @@ function runForecast() {
                 <td colspan="2">TOTAL</td>
                 <td>${fmt(weeklyBreakdown.reduce((s,w)=>s+w.baseSales,0))}</td>
                 <td></td>
-                <td style="font-size:14px;">${fmt(forecastWithUplift)}${latestCost>0?`<div style="font-size:11px;font-weight:600;color:var(--text3);">(${fmtV(forecastCostValue)})</div>`:''}</td>
+                <td style="font-size:14px;">${fmt(forecastWithUplift)}${latestCost>0?` <span style="font-size:11px;font-weight:600;color:var(--text3);">(${fmtV(forecastValue)})</span>`:''}</td>
                 <td>${expectedStores>0?fmtD(forecastWithUplift/expectedStores,2):''}</td>
                 <td></td>
               </tr>
@@ -7622,9 +7653,10 @@ function initTrendForecast() {
     });
 
     // Other inputs
-    document.getElementById('ftFcWeeks').addEventListener('input', runTrendForecast);
+    document.getElementById('ftFcWeeks').addEventListener('input', () => { ftUpdateFcEnd(); runTrendForecast(); });
     document.getElementById('ftFcStart').addEventListener('change', () => {
       fcUpdateWeeknumBadge('ftFcStart', 'ftFcStartWeeknum');
+      ftUpdateFcEnd();
       runTrendForecast();
     });
     document.getElementById('ftStores').addEventListener('input', runTrendForecast);
@@ -7671,6 +7703,7 @@ function populateFtProducts() {
   document.getElementById('ftSaleToWeeknum').innerHTML = '';
   document.getElementById('ftFcStart').value = '';
   document.getElementById('ftFcStartWeeknum').innerHTML = '';
+  { const _e = document.getElementById('ftFcEndDisp'); if (_e) _e.innerHTML = ''; }
   if (!client) return;
 
   const clientData = RAW.filter(r => r.client === client);
@@ -7772,6 +7805,7 @@ function ftAutoSetDateBounds(skuCode) {
     document.getElementById('ftFcStart').value = dayAfter.toISOString().split('T')[0];
     fcUpdateWeeknumBadge('ftFcStart', 'ftFcStartWeeknum');
   }
+  ftUpdateFcEnd();
 
   // Auto-set store count from the selected store basis (reference avg or latest store count)
   const ftBasisMode = document.getElementById('ftStoreBasis') ? document.getElementById('ftStoreBasis').value : 'average';
@@ -7910,6 +7944,8 @@ function runTrendForecast() {
 
   // Check if any seasonality is non-1
   const hasSeasonality = ftMonthNames.some(m => ftSeasonality[m] !== 1);
+  const latestCost = fcLatestCost(allTargetData);
+  const forecastValue = Math.round(forecastWithUplift * latestCost);
 
   // All-time stats
   const allTimeSales = allTargetData.reduce((s,r) => s + r.sale_qty, 0);
@@ -7936,10 +7972,6 @@ function runTrendForecast() {
   // Forecast end date
   const fcEndDate = new Date(fcStartDate); fcEndDate.setDate(fcEndDate.getDate() + fcWeeks * 7);
 
-  // Latest cost price for the product → forecast value
-  const latestCost = fcLatestCostFromRows(allTargetData);
-  const forecastCostValue = forecastWithUplift * latestCost;
-
   // ── RENDER ──
   const fmtDate = d => d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   const daysTillPO = Math.round((poDate - today) / (24*60*60*1000));
@@ -7950,6 +7982,8 @@ function runTrendForecast() {
     methodLabel:'Recent Trend',
     methodHint:'Uses recent sales velocity. Best for new launches.',
     client, targetSku, targetName,
+    latestCost, forecastValue,
+    refWeeklyBreakdown: refWeeks.map(w => ({ week: w.week, date: w.date, sale_qty: w.sale_qty, store_count: w.store_count })), refAvgStores,
     fcFromDisp:fmtDate(fcStartDate), fcToDisp:fmtDate(fcEndDate),
     fcFromWk:fcGetSundayWeekNum(fcStartDate), fcToWk:fcGetSundayWeekNum(fcEndDate), fcWeeks,
     periodLabel:'Reference Period', periodRange:fmtDate(saleFrom)+' → '+fmtDate(saleTo),
@@ -7959,9 +7993,6 @@ function runTrendForecast() {
     stockLastTillDisp:fmtDate(stockLastTill), poDateDisp:fmtDate(poDate),
     totalHistSales:refTotalSales, histWeekCount:refWeekCount, allTimeAvgWk, allTimeSalesTarget:allTimeSales, sellThru, totalAvailable,
     storeRatio,
-    latestCost,
-    refWeeklyBreakdown: refWeeks.map(w => ({ week:w.week, date:w.date, sale_qty:w.sale_qty, store_count:w.store_count })),
-    refTotalSales, refAvgStores, refWeekCount,
     weeklyBreakdown
   };
 
@@ -7993,7 +8024,7 @@ function runTrendForecast() {
       <!-- KPI Banner -->
       <div class="fcb-kpi-banner">
         <div class="fcb-kpi fcb-kpi-accent">
-          <div class="fcb-kpi-val c-accent">${fmt(forecastWithUplift)}${latestCost>0?`<span style="font-size:13px;font-weight:600;color:var(--text3);margin-left:5px;">(${fmtV(forecastCostValue)})</span>`:''}</div>
+          <div class="fcb-kpi-val c-accent">${fmt(forecastWithUplift)}${latestCost>0?` <span style="font-size:13px;font-weight:600;color:var(--text3);">(${fmtV(forecastValue)})</span>`:''}</div>
           <div class="fcb-kpi-label">Forecasted Sales</div>
           <div class="fcb-kpi-sub">${upliftPct!==0?`incl. ${upliftPct>=0?'+':''}${upliftPct}% uplift`:'No uplift applied'}</div>
         </div>
@@ -8186,7 +8217,7 @@ function runTrendForecast() {
                 <td>${fmt(weeklyBreakdown.reduce((s,w)=>s+w.baseSales,0))}</td>
                 <td></td>
                 <td></td>
-                <td style="font-size:14px;">${fmt(forecastWithUplift)}${latestCost>0?`<div style="font-size:11px;font-weight:600;color:var(--text3);">(${fmtV(forecastCostValue)})</div>`:''}</td>
+                <td style="font-size:14px;">${fmt(forecastWithUplift)}${latestCost>0?` <span style="font-size:11px;font-weight:600;color:var(--text3);">(${fmtV(forecastValue)})</span>`:''}</td>
                 <td>${expectedStores>0?fmtD(forecastWithUplift/expectedStores,2):''}</td>
               </tr>
             </tfoot>
