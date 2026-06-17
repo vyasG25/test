@@ -386,6 +386,10 @@
   .lp-foot{margin-top:18px;text-align:center;font-size:11.5px;color:#7c93a6;letter-spacing:.2px;}
   @keyframes lpRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
   @media (prefers-reduced-motion:reduce){.lp-track,.lp-aura span,.lp-orbit,.lp-card::before,.lp-btn::after{animation:none!important;}}
+
+    .monthly-trends-table tr.total-row,
+    .monthly-trends-table tbody tr:hover{background:var(--green-light)!important;}
+    .daily-trends thead tr:nth-child(2) th{font-size:11px;}
 </style>
 </head>
 <body>
@@ -1151,7 +1155,7 @@ const PRODUCT_DIMS = [
   { k:'subcat', label:'Sub Category', field:'sub_category' },
   { k:'sku',    label:'Product',      field:'product_code' },
 ];
-let regionDim='zone', regionFY=null, regionSearch='', regionSearchActive=false;
+let regionDim='zone', regionFY=null, regionSearch='', regionSearchActive=false, regionMetric='all';
 let productDim='brand', productFY=null, productSearch='', productSearchActive=false, productMetric='all';
 
 // Shared month-matrix renderer.
@@ -1265,7 +1269,8 @@ function renderRegionMoM(){
     getFY:()=>regionFY, setFY:v=>{regionFY=v;},
     getSearch:()=>regionSearch, setSearch:v=>{regionSearch=v;},
     getSearchActive:()=>regionSearchActive, setSearchActive:v=>{regionSearchActive=v;},
-    rerender:renderRegionMoM,
+    getMetric: () => regionMetric, setMetric: v => { regionMetric = v; },
+    rerender: renderRegionMoM,
   });
 }
 function renderProductMoM(){
