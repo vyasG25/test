@@ -575,12 +575,12 @@
     </div>
 
     <div class="tab-panel" id="tab-weeklytrends">
-      <div class="sec-header"><div class="sec-title">Weekly Trends — SKU × Week <span class="sec-badge" style="background:var(--red-light);color:var(--red)">CW · LW · WoW%</span></div></div>
+      <div class="sec-header"><div class="sec-title">Weekly Trends — Product × Week <span class="sec-badge" style="background:var(--red-light);color:var(--red)">CW · LW · WoW%</span></div></div>
       <div id="secWeeklyTrends"></div>
     </div>
 
     <div class="tab-panel" id="tab-monthlytrends">
-      <div class="sec-header"><div class="sec-title">Monthly Trends — SKU × Day <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
+      <div class="sec-header"><div class="sec-title">Monthly Trends — Product × Day <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
       <div id="secMonthlyTrends"></div>
     </div>
   </div>
@@ -1007,7 +1007,7 @@ function ensureIndependentTab(tab) { const fn = INDEP_TAB_RENDER[tab]; if (fn &&
 // ═══════════════════════════════════════════════════════════════
 // DAILY TRENDS  (week × day-of-week — same format as GT)
 // ═══════════════════════════════════════════════════════════════
-const DOW_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DOW_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const DAILY_METRICS = [{k:'all',label:'All'},{k:'qty',label:'Qty'},{k:'value',label:'Value'},{k:'asp',label:'ASP'}];
 const WT_FILTERS = [
   { key:'zone',    label:'Zone',         field:'zone_name',    group:'loc' },
@@ -1282,20 +1282,23 @@ function renderProductMoM(){
 
 // ═══════════════════════════════════════════════════════════════
 // WEEKLY & MONTHLY TRENDS  (SKU rows × period columns)
-// Rows = SKU (Product Code / Name / Brand / Category / Sub Category).
+// Rows = Product (Product Code / Name / Brand / Category / Sub Category).
 // Golden Total column, then period columns (weeks / days of month).
 // Local Location filters (Zone/State/City) — independent of global filters.
 // ═══════════════════════════════════════════════════════════════
-// One FROZEN identifier column (SKU = "Product Code - Product Name") + scrolling attribute columns.
-// Only the first column is pinned; keeping the frozen block narrow lets the period data scroll into
-// view at any window width (the previous 5-column freeze was ~800px wide and hid the data on scroll).
+// FROZEN identifier + attribute columns (Product / Brand / Category / Sub Category) are all pinned;
+// the golden Total and the period columns scroll. The first column ("Product" = "Product Code -
+// Product Name") is the bold identifier; Brand/Category/Sub Category keep the lighter attribute look.
 const SKU_DESC = [
-  { label:'SKU',          w:230, wrap:true,  frozen:true,  get:r=>(r.sku_code && r.sku_name) ? (r.sku_code + ' - ' + r.sku_name) : (r.sku_code || r.sku_name || '—') },
-  { label:'Brand',        w:120, wrap:false, frozen:false, get:r=>r.brand_name   },
-  { label:'Category',     w:170, wrap:true,  frozen:false, get:r=>r.category     },
-  { label:'Sub Category', w:190, wrap:true,  frozen:false, get:r=>r.sub_category },
+  { label:'Product',      w:230, wrap:true,  frozen:true,  get:r=>(r.sku_code && r.sku_name) ? (r.sku_code + ' - ' + r.sku_name) : (r.sku_code || r.sku_name || '—') },
+  { label:'Brand',        w:120, wrap:false, frozen:true,  get:r=>r.brand_name   },
+  { label:'Category',     w:170, wrap:true,  frozen:true,  get:r=>r.category     },
+  { label:'Sub Category', w:190, wrap:true,  frozen:true,  get:r=>r.sub_category },
 ];
 const SKU_SPAN = SKU_DESC.reduce((a, d) => a + d.w, 0);
+// Index of the last frozen column (gets the freeze-edge shadow) + cumulative left offset per frozen column.
+const SKU_LAST_FROZEN = SKU_DESC.reduce((acc, d, i) => d.frozen ? i : acc, -1);
+const SKU_LEFTS = (() => { let fl = 0; return SKU_DESC.map(d => { if (!d.frozen) return null; const l = fl; fl += d.w; return l; }); })();
 const TOTW = 132;                                  // golden Total column width
 const SKLOC_FILTERS = [
   { key:'zone',  label:'Zone',  field:'zone_name'  },
@@ -1311,28 +1314,36 @@ let monthlyMonth = null, monthlyMetric = 'all', monthlySearch = '', monthlySearc
 const monthlyFilt = {}; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key] = new Set());
 
 // ── shared markup helpers ──
+// Build the class + inline style for one description column (shared by head / body / total rows).
+function skColAttrs(d, i) {
+  const wrap = d.wrap ? ' dzwrap' : '';
+  const wstyle = `min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px`;
+  if (d.frozen) {
+    const ident = (i === 0);                 // first column = bold Product identifier
+    const last  = (i === SKU_LAST_FROZEN);   // only the last frozen column gets the freeze-edge shadow
+    const cls = `dz${ident ? '' : ' dattr'}${last ? ' dzlast' : ''}${wrap}`;
+    return { cls, style: `left:${SKU_LEFTS[i]}px;${wstyle}` };
+  }
+  return { cls: `dattr${wrap}`, style: wstyle };
+}
 function skDescHead() {
-  return SKU_DESC.map((d) =>
-    d.frozen
-      ? `<th class="dz dzlast" style="left:0;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
-      : `<th class="dattr" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
-  ).join('');
+  return SKU_DESC.map((d, i) => {
+    const a = skColAttrs(d, i);
+    return `<th class="${a.cls}" style="${a.style}">${escapeHtml(d.label)}</th>`;
+  }).join('');
 }
 function skDescCells(rowObj) {
-  return SKU_DESC.map((d) => {
+  return SKU_DESC.map((d, i) => {
     const v = d.get(rowObj) || '—';
-    const wrap = d.wrap ? ' dzwrap' : '';
-    return d.frozen
-      ? `<td class="dz dzlast${wrap}" style="left:0;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`
-      : `<td class="dattr${wrap}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
+    const a = skColAttrs(d, i);
+    return `<td class="${a.cls}" style="${a.style}" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
   }).join('');
 }
 function skDescTotalCells(label) {
-  return SKU_DESC.map((d) =>
-    d.frozen
-      ? `<td class="dz dzlast" style="left:0;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(label)}</td>`
-      : `<td class="dattr" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px"></td>`
-  ).join('');
+  return SKU_DESC.map((d, i) => {
+    const a = skColAttrs(d, i);
+    return `<td class="${a.cls}" style="${a.style}">${i === 0 ? escapeHtml(label) : ''}</td>`;
+  }).join('');
 }
 function skWowPct(cw, lw) { if (!lw) return null; return (cw - lw) / lw * 100; }
 function skPctHtml(p) {
@@ -1486,7 +1497,7 @@ function renderWeeklyTrends() {
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(fyLbl)}</b> · by week</span><span class="bt-period-tag">Weekly Trends</span></div>
     </div>
     <div id="wkTableHost"></div>
-    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = all weeks of ${escapeHtml(fyLbl)} · each week column (All view): top = <b>current week</b> Qty · Value, middle = <b>previous week</b>, bottom = <b>WoW%</b> · for <b>W1</b> the previous week is the <b>last week of ${weeklyYear - 1}</b> · Qty / Value views show the current-week figure only · independent of the global filters.</div>`;
+    <div class="ddt-note">Rows = Product · golden <b>Total</b> = all weeks of ${escapeHtml(fyLbl)} · each week column (All view): top = <b>current week</b> Qty · Value, middle = <b>previous week</b>, bottom = <b>WoW%</b> · for <b>W1</b> the previous week is the <b>last week of ${weeklyYear - 1}</b> · Qty / Value views show the current-week figure only · independent of the global filters.</div>`;
 
   host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { weeklyYear = +b.dataset.wyear; renderWeeklyTrends(); }));
   host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { weeklyMetric = b.dataset.wmetric; renderWeeklyTrends(); }));
@@ -1593,7 +1604,7 @@ function renderMonthlyTrends() {
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(monLbl)}</b> · by day</span><span class="bt-period-tag">Monthly Trends</span></div>
     </div>
     <div id="mdTableHost"></div>
-    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = full ${escapeHtml(monLbl)} · one column per calendar day (${daysInMonth} days) · All view shows Sales &amp; Qty, Qty / Value views show a single figure · pick a month above (defaults to the latest) · independent of the global filters.</div>`;
+    <div class="ddt-note">Rows = Product · golden <b>Total</b> = full ${escapeHtml(monLbl)} · one column per calendar day (${daysInMonth} days) · All view shows Sales &amp; Qty, Qty / Value views show a single figure · pick a month above (defaults to the latest) · independent of the global filters.</div>`;
 
   const msel = host.querySelector('#mdMonthSel');
   if (msel) msel.addEventListener('change', () => { monthlyMonth = msel.value; renderMonthlyTrends(); });
