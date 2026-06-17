@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skillmatics Swiggy Sales Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700&family=Nunito:ital,wght@1,700;1,800;1,900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-<!-- Data is uploaded as JSON files — no Excel parser needed (pure client-side JSON.parse) -->
+<!-- Data is fetched from JSON files in the same folder (pure client-side JSON.parse) -->
 <style>
   :root {
     --bg:#f3f1ed; --surface:#fff; --surface2:#faf9f6; --border:#e2ded6; --border2:#d4cfc5;
@@ -252,17 +252,6 @@
   /* ── MAIN ── */
   .main{padding:22px 28px;}
 
-  /* ── UPLOAD PROMPT ── */
-  .upload-prompt{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;text-align:center;animation:fadeIn .5s ease;}
-  .upload-prompt-icon{width:80px;height:80px;border-radius:20px;background:var(--blue-light);border:2px dashed var(--blue);display:flex;align-items:center;justify-content:center;margin-bottom:24px;font-size:32px;color:var(--blue-dark);transition:all .2s;}
-  .upload-prompt:hover .upload-prompt-icon{background:var(--blue);color:#fff;border-style:solid;transform:scale(1.05);}
-  .upload-prompt h2{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:8px;color:var(--text);}
-  .upload-prompt p{font-size:14px;color:var(--text3);margin-bottom:20px;max-width:420px;line-height:1.5;}
-  .upload-prompt-btn{padding:12px 28px;background:var(--blue-grad);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .2s;position:relative;overflow:hidden;}
-  .upload-prompt-btn:hover{opacity:.88;}
-  .upload-prompt-btn input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0;}
-  .upload-prompt .upload-hint{font-size:11px;color:var(--text3);margin-top:12px;}
-
   /* ── SECTION HEADERS ── */
   .sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;margin-top:28px;}
   .sec-header:first-of-type{margin-top:0;}
@@ -284,11 +273,6 @@
   .tab-panel.active{display:block;animation:fadeIn .25s ease;}
   @media(max-width:768px){.tab-nav{display:flex;width:100%;overflow-x:auto;}.tab-btn{padding:8px 12px;font-size:12px;flex:1;justify-content:center;}.tab-btn span{display:none;}.tab-ic{opacity:.9;}}
 
-  /* ── METRIC CARDS ── */
-  .metric-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;}
-  @media(max-width:1200px){.metric-grid{grid-template-columns:repeat(3,1fr);}}
-  @media(max-width:768px){.metric-grid{grid-template-columns:repeat(2,1fr);}}
-
   /* ── EXECUTIVE KPI CARDS (multi-value) ── */
   .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
   @media(max-width:1024px){.kpi-grid{grid-template-columns:1fr;}}
@@ -305,137 +289,6 @@
   .kpi-val.sm{font-size:21px;}
   .kpi-sub{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   .kpi-divider{width:1px;background:var(--border);align-self:stretch;flex-shrink:0;}
-  .metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:17px 19px;transition:box-shadow .2s;display:flex;flex-direction:column;justify-content:center;}
-  .metric-card:hover{box-shadow:var(--shadow);}
-  .metric-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;}
-  .metric-value{font-size:25px;font-weight:600;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
-  .metric-value.sm{font-size:19px;}
-  .metric-sub{font-size:12px;color:var(--text3);margin-top:5px;}
-
-  /* ── PERIOD-OVER-PERIOD (redesigned) ── */
-  .pop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-  @media(max-width:1100px){.pop-grid{grid-template-columns:1fr;}}
-  .pop-card{position:relative;z-index:1;background:linear-gradient(180deg,var(--cl),var(--surface) 38%);border:1px solid var(--border);border-radius:var(--r);transition:box-shadow .25s ease,transform .25s ease,border-color .25s ease;}
-  .pop-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--c);}
-  .pop-card:has(.pop-sel-panel.open){z-index:300;}
-  .pop-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0;background:var(--c);}
-  .pop-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 0;}
-  .pop-title-wrap{display:flex;align-items:center;gap:8px;min-width:0;}
-  .pop-dot{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px var(--cl);flex-shrink:0;}
-  .pop-title{font-size:11.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;}
-  .pop-sel{position:relative;}
-  .pop-sel-btn{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;max-width:150px;transition:all .15s;}
-  .pop-sel-btn .pop-sel-cur{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .pop-sel-btn:hover{border-color:var(--c);color:var(--text);}
-  .pop-sel-btn.open{border-color:var(--c);box-shadow:0 0 0 2px var(--cl);color:var(--text);}
-  .pop-sel-btn .mc-chev{font-size:8px;color:var(--text3);}
-  .pop-sel-btn.open .mc-chev{color:var(--c);}
-  .pop-sel-panel{display:none;position:absolute;top:calc(100% + 5px);left:auto;right:0;z-index:300;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow-md);width:212px;min-width:0;max-width:84vw;}
-  .pop-sel-panel.open{display:block;animation:fadeIn .14s ease;}
-  .pop-sel-panel .ms-list{max-height:240px;overflow-y:auto;padding:4px 0;}
-  .pop-sel-panel .ms-item input{accent-color:var(--c);}
-  .pop-sel-panel .ms-item.sel{background:var(--cl);}
-  .pop-sel-panel .ms-item.sel span{color:var(--text);font-weight:600;}
-  .pop-dotline{margin:13px 18px 2px;border-top:1.5px dotted var(--c);opacity:.5;}
-  .pop-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:12px 18px 0;}
-  .pop-hero-main{min-width:0;}
-  .pop-hero-cap{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:9px;letter-spacing:.1px;}
-  .pop-hero-cap .pop-cap-period{color:var(--c);font-weight:700;}
-  .pop-hero-cap .pop-cap-upto{color:var(--text3);font-weight:500;}
-  .pop-hero-val{font-family:'DM Sans',sans-serif;font-size:31px;font-weight:700;line-height:1;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.6px;}
-  .pop-growth{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:20px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0;line-height:1;}
-  .pop-growth.up{background:var(--green-light);color:var(--green);}
-  .pop-growth.dn{background:var(--red-light);color:var(--red);}
-  .pop-growth.na{background:var(--surface2);color:var(--text3);font-weight:600;border:1px solid var(--border);}
-  .pop-growth .g-arrow{font-size:9px;}
-  .pop-compare{padding:18px 18px 4px;display:flex;flex-direction:column;gap:12px;}
-  .pop-bar-row{display:grid;grid-template-columns:46px 1fr auto auto;align-items:center;gap:10px;}
-  .pop-bar-tag{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);}
-  .pop-bar-row.is-prev .pop-bar-tag{color:var(--text3);}
-  .pop-bar-track{height:10px;border-radius:6px;background:#ece8e1;overflow:hidden;box-shadow:inset 0 0 0 1px var(--border);}
-  .pop-bar-fill{height:100%;border-radius:6px;transition:width .55s cubic-bezier(.4,0,.2,1);min-width:4px;}
-  .pop-bar-fill.cur{background:var(--c);}
-  .pop-bar-fill.prev{background:#8c867c;}
-  .pop-bar-val{font-size:12px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .pop-bar-row.is-prev .pop-bar-val{color:var(--text2);font-weight:600;}
-  .pop-bar-asp{font-size:10.5px;font-weight:700;color:var(--text1);font-variant-numeric:tabular-nums;white-space:nowrap;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 7px;letter-spacing:.2px;}
-  .pop-bar-row.is-prev .pop-bar-asp{color:var(--text2);font-weight:600;}
-  .pop-metrics{display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 var(--r) var(--r);overflow:hidden;}
-  .pop-metric{padding:12px 14px 13px;position:relative;}
-  .pop-metric + .pop-metric::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:1px;background:var(--border);}
-  .pm-top{display:flex;align-items:baseline;justify-content:space-between;gap:6px;margin-bottom:6px;}
-  .pm-label{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);}
-  .pm-delta{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .pm-delta.up{color:var(--green);}
-  .pm-delta.dn{color:var(--red);}
-  .pm-delta.na{color:var(--text3);}
-  .pm-val{font-size:16px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1;}
-
-  /* ── TOP ITEMS ── */
-  .top-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
-  @media(max-width:900px){.top-grid{grid-template-columns:repeat(2,1fr);}}
-  .top-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:17px 19px;}
-  .top-card-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;}
-  .ti{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);}
-  .ti:last-child{border-bottom:none;padding-bottom:0;}
-  .ti-rank{width:21px;height:21px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0;margin-top:1px;}
-  .rank1{background:var(--gold-light);color:var(--gold);} .rank2{background:#f0f0f0;color:#888;} .rank3{background:#fdf0e0;color:#c08030;}
-  .ti-info{flex:1;min-width:0;}
-  .ti-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .ti-code{font-size:11px;color:var(--text3);margin-top:1px;}
-  .ti-qty{font-size:16px;font-weight:600;color:var(--blue-dark);flex-shrink:0;}
-
-  /* ── TOP SKU PERFORMANCE (by period) ── */
-  .sku-toggle{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
-  .sku-tog-btn{padding:7px 15px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text2);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;}
-  .sku-tog-btn:hover{border-color:var(--blue);color:var(--text);}
-  .sku-tog-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 1px 4px rgba(43,90,126,.20);}
-  .sku-tog-sep{width:1px;align-self:stretch;background:var(--border2);margin:0 4px;}
-  .sku-metric-toggle{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--accent2);border-radius:20px;background:var(--accent2-light);}
-  .smt-btn{padding:5px 16px;border:none;border-radius:16px;background:transparent;color:var(--accent2);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;}
-  .smt-btn:hover{color:var(--accent2);opacity:.85;}
-  .smt-btn.active{background:var(--accent2);color:#fff;box-shadow:0 1px 4px rgba(107,79,160,.25);}
-  .sku-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
-  @media(max-width:1100px){.sku-grid{grid-template-columns:repeat(2,1fr);}}
-  @media(max-width:680px){.sku-grid{grid-template-columns:1fr;}}
-  .sku-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 18px 7px;transition:box-shadow .2s;}
-  .sku-card:hover{box-shadow:var(--shadow);}
-  .sku-card-head{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;padding-bottom:10px;margin-bottom:3px;border-bottom:1px solid var(--border);}
-  .sku-card-head .sku-ico{font-size:14px;line-height:1;}
-  .sku-row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--border);}
-  .sku-row:last-child{border-bottom:none;}
-  .sku-rank{width:22px;height:22px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0;}
-  .sku-name{flex:1;min-width:0;font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .sku-qty{font-size:15px;font-weight:700;color:var(--blue-dark);flex-shrink:0;font-variant-numeric:tabular-nums;}
-  .sku-empty{padding:14px 0;color:var(--text3);font-size:12.5px;text-align:center;}
-
-  /* ── TOP PERFORMER BANNER (gold, full-width; uses globally filtered data) ── */
-  .top-performer-wrap{margin-bottom:14px;}
-  .top-performer{display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;
-    background:var(--gold-light);border:1px solid var(--gold);border-radius:var(--r);padding:16px 22px;flex-wrap:wrap;}
-  .tp-left{display:flex;align-items:center;gap:15px;min-width:0;}
-  .tp-ico{width:42px;height:42px;border-radius:11px;background:rgba(184,137,46,.14);display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
-  .tp-id{min-width:0;}
-  .tp-eyebrow{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--gold);margin-bottom:3px;}
-  .tp-name{font-size:18px;font-weight:700;color:var(--text);line-height:1.2;overflow-wrap:anywhere;word-break:break-word;}
-  .tp-metrics{display:flex;align-items:stretch;flex-wrap:wrap;}
-  .tp-metric{display:flex;flex-direction:column;align-items:flex-end;text-align:right;padding:0 18px;position:relative;}
-  .tp-metric + .tp-metric::before{content:'';position:absolute;left:0;top:15%;bottom:15%;width:1px;background:rgba(184,137,46,.28);}
-  .tp-metric:last-child{padding-right:0;}
-  .tp-val{font-size:22px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;}
-  .tp-val.units{color:var(--blue-dark);}
-  .tp-val.value{color:var(--warm);}
-  .tp-val.gold{color:var(--gold);}
-  .tp-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-top:6px;}
-  @media(max-width:768px){
-    .top-performer{flex-direction:column;align-items:flex-start;gap:14px;}
-    .tp-metrics{width:100%;justify-content:space-between;}
-    .tp-metric{padding:0 8px;align-items:center;text-align:center;}
-    .tp-metric:first-child{padding-left:0;}
-  }
-
-  /* ── STORE BREAKDOWN ── */
-  .store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;}
 
   /* ── ZONE / REGION MoM REPORT ── */
   .zmom-controls{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:14px;position:sticky;top:126px;z-index:85;background:var(--bg);padding:8px 0;}
@@ -444,60 +297,18 @@
   .zmom-pill{padding:6px 13px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text2);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .zmom-pill:hover{border-color:var(--blue);color:var(--text);}
   .zmom-pill.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 1px 4px rgba(43,90,126,.20);}
-  .zmom-pill.m-pill.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 1px 5px rgba(184,60,66,.26);}
-  .zmom-pill.fy-pill.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 1px 4px rgba(43,90,126,.20);}
-  .zmom-legend{display:flex;gap:14px;align-items:center;margin-left:auto;font-size:11px;color:var(--text3);flex-wrap:wrap;}
-  .zmom-legend b{font-weight:700;color:var(--text2);}
-  .zmom-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
   .zmom-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:72vh;}
   table.zmom{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.zmom th,table.zmom td{padding:13px 15px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;}
   table.zmom thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:right;border-bottom:1px solid var(--border);box-shadow:inset 0 -2px 0 rgba(43,90,126,.22);}
-  table.zmom thead th .th-sub{display:block;font-size:10px;font-weight:600;color:rgba(43,90,126,.70);letter-spacing:.2px;margin-top:4px;text-transform:none;}
   table.zmom th.zcol,table.zmom td.zcol{position:sticky;left:0;z-index:5;background:var(--surface);text-align:left;font-weight:600;color:var(--text);min-width:96px;}
-  table.zmom th.zcol.zlast,table.zmom td.zcol.zlast{box-shadow:1px 0 0 var(--border);}
-  table.zmom td.zcol.codecell{color:var(--blue-dark);font-weight:700;}
-  table.zmom th.zcol.zwrap,table.zmom td.zcol.zwrap{white-space:normal;word-break:break-word;line-height:1.3;padding:9px 11px;font-size:12px;}
-  table.zmom thead th.zcol{z-index:7;background:var(--blue-light);color:var(--blue-dark);text-align:left;}
-  table.zmom th.fycol,table.zmom td.fycol{background:var(--gold-light);}
-  table.zmom thead th.fycol{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);}
-  table.zmom thead th.fycol .th-sub{color:rgba(184,137,46,.7);}
   table.zmom tbody tr:hover td{background:var(--bg);}
-  table.zmom tbody tr:hover td.zcol{background:var(--surface2);}
-  table.zmom tbody tr:hover td.fycol{background:#f7ecca;}
   table.zmom tr.total-row td{font-weight:700;background:var(--blue-light);border-top:2px solid var(--blue-dark);}
   table.zmom tr.total-row td.zcol{background:var(--blue-light);color:var(--blue-dark);}
-  table.zmom tr.total-row:hover td{background:var(--blue-light);}
-  table.zmom td.sp-per{text-align:left;color:var(--text2);font-weight:600;}
-  table.zmom thead th.sp-per-h{text-align:left;}
-  table.zmom tr.sp-subtot td{background:var(--surface2);font-weight:700;}
-  table.zmom tr.sp-subtot td.zcol{background:var(--surface2);color:var(--text);}
-  table.zmom tr.sp-subtot td.sp-per{color:var(--text2);font-style:italic;font-weight:600;}
-  table.zmom tr.sp-subtot:hover td{background:var(--surface2);}
-  table.zmom tr.sp-grp-start td{border-top:2px solid var(--border2);}
 
-  /* rich overview cell */
-  .zc{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;min-width:192px;}
-  .zc.fy{min-width:150px;}
-  .zc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-  .zc-sale{font-size:16px;font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
-  .zc-tgt{font-size:11.5px;color:var(--text2);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.1px;}
-  .zc-tgt b{font-weight:700;color:var(--text);}
-  .zc-contrib{display:flex;align-items:center;gap:8px;}
-  .zc-bar{flex:1;height:6px;border-radius:4px;background:#ece8e1;overflow:hidden;min-width:40px;}
-  .zc-bar i{display:block;height:100%;background:var(--blue);border-radius:4px;}
-  .zc-contrib span{font-size:10.5px;color:var(--text3);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .zc-growth{display:flex;gap:6px;flex-wrap:nowrap;}
-  .zsingle{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);}
-  .zcell{text-align:right;}
-  .pt-cell{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
-  .pt-sale{font-size:14px;font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
-  .pt-qty{font-size:11.5px;color:var(--text2);font-weight:700;font-variant-numeric:tabular-nums;min-height:11px;}
-
-  /* ── MONTHLY YEAR-ON-YEAR (dashboard) + DAILY TRENDS shared table styling ── */
+  /* ── DAILY TRENDS / shared multi-metric table styling ── */
   .yoy-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
     background:linear-gradient(115deg,#eaf2fa,#e6eff7 60%,#dde9f4);border:1px solid #cbdcec;border-radius:var(--r);padding:11px 15px;box-shadow:var(--shadow);margin-bottom:13px;}
-  .yoy-bar .bt-fg{flex-direction:row;align-items:center;gap:9px;}
   .ddt-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;box-shadow:var(--shadow);}
   table.ddt{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.ddt th,table.ddt td{padding:9px 13px;white-space:nowrap;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;}
@@ -536,22 +347,11 @@
   .chip.up{background:var(--green-light);color:var(--green);}
   .chip.dn{background:var(--red-light);color:var(--red);}
   .chip.na{background:var(--surface2);color:var(--text3);}
-  .pill.lg,.chip.lg{font-size:12px;padding:4px 11px;}
-  @media(max-width:768px){.zmom-legend{margin-left:0;}}
-
-  /* ── PRODUCT TRENDS table reuses .ddt / .zmom shells ── */
 
   /* ── TABLES ── */
   .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  thead th{padding:9px 13px;text-align:left;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10;cursor:pointer;user-select:none;}
-  thead th:hover{background:var(--bg);}
-  tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
-  tbody tr:last-child{border-bottom:none;}
-  tbody tr:hover{background:var(--bg);}
-  tbody td{padding:8px 13px;color:var(--text);white-space:nowrap;}
   .tn{text-align:right;font-variant-numeric:tabular-nums;}
-  .ta{color:var(--blue-dark);font-weight:600;}
 
   /* ── NO DATA ── */
   .no-data{padding:40px;text-align:center;color:var(--text3);font-size:14px;}
@@ -586,7 +386,7 @@
   @keyframes lpRight{from{transform:translateX(-50%)} to{transform:translateX(0)}}
   .lp-showcase::after{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(90deg,transparent 62%,rgba(255,255,255,.55) 86%,#fff 100%);}
-  /* ===== RIGHT AUTH PANEL — "Deep Aurora Glass" redesign ===== */
+  /* ===== RIGHT AUTH PANEL — "Deep Aurora Glass" ===== */
   .lp-auth{flex:0 0 42%;max-width:560px;min-width:400px;height:100%;position:relative;overflow:hidden;z-index:2;
     display:flex;align-items:center;justify-content:center;padding:40px;
     background:
@@ -882,22 +682,22 @@
 
     <!-- ===== TAB: DASHBOARD ===== -->
     <div class="tab-panel active" id="tab-dashboard">
-      <!-- Content added in a later phase -->
+      <!-- Reports added in a later phase. Data is loaded into RAW / filtered. -->
     </div><!-- /tab-dashboard -->
 
     <!-- ===== TAB: DAILY TRENDS ===== -->
     <div class="tab-panel" id="tab-dailytrends">
-      <!-- Content added in a later phase -->
+      <!-- Reports added in a later phase. -->
     </div><!-- /tab-dailytrends -->
 
     <!-- ===== TAB: ZONE TRENDS ===== -->
     <div class="tab-panel" id="tab-zonetrends">
-      <!-- Content added in a later phase -->
+      <!-- Reports added in a later phase. -->
     </div><!-- /tab-zonetrends -->
 
     <!-- ===== TAB: PRODUCT TRENDS ===== -->
     <div class="tab-panel" id="tab-producttrends">
-      <!-- Content added in a later phase -->
+      <!-- Reports added in a later phase. -->
     </div><!-- /tab-producttrends -->
 
   </div>
@@ -905,12 +705,23 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// SKILLMATICS SWIGGY — SKELETON (Phase 1)
-// Only login/logout, loading overlay, animations, color scheme,
-// live indicator, refresh and empty tabs are wired here.
-// All report/data logic is intentionally removed — added in a later phase.
-// Data sources (sales / stock / ads cost JSON) will be added later.
+// SKILLMATICS SWIGGY — Phase 1 shell with GT-style data loading
+// Login/logout, loading overlay, animations, colours, live indicator,
+// and refresh are wired. Data IS fetched from JSON (same pipeline as GT)
+// so the dashboard goes live; report rendering & filters come next.
 // ═══════════════════════════════════════════════════════════════
+
+// ── DATA & STATE ───────────────────────────────────────────────
+let RAW = [];        // normalized sales rows (UPPER-cased dimensions, like GT)
+let filtered = [];   // current view (no global filters yet → mirrors RAW)
+let dataMinDate = '', dataMaxDate = '';
+
+// ── API URL configuration ──
+// Sales JSON sits next to this HTML file. Stock & ads-cost JSON will be
+// added to this list in a later phase. isTarget kept for GT parity (unused).
+const API_SOURCES = [
+  { url: "./data.json", isTarget: false },   // Swiggy sales
+];
 
 // ── LOGIN ──────────────────────────────────────────────────────
 async function attemptLogin() {
@@ -929,7 +740,6 @@ async function attemptLogin() {
   errEl.style.display = 'none';
 
   try {
-    // ── Credentials (update as needed) ──
     const storedUser = 'admin';
     const storedPass = 'admin';
 
@@ -974,7 +784,6 @@ function logout() {
   document.getElementById('loginBtn').disabled = false;
   document.getElementById('loginBtn').textContent = 'Sign In';
   document.getElementById('loginError').style.display = 'none';
-  // Hide live indicator on logout
   document.getElementById('liveIndicator').classList.remove('visible');
   document.getElementById('fileTimestamp').style.display = 'none';
 }
@@ -1016,28 +825,200 @@ async function refreshData() {
   }
 }
 
-// ── LOAD (stub) ────────────────────────────────────────────────
-// Phase 1: no data fetching or rendering. Just reveal the (empty) tabs
-// after the loading animation has had a moment to play. Data sources
-// and report rendering will be wired up in the next phase.
+// ── FETCH JSON FILES FROM API (same robust pipeline as GT) ─────
 async function loadDashboardData() {
   setRefreshState(true);
-  // Let the progress ring animate briefly so the loading page is visible.
-  await new Promise(resolve => setTimeout(resolve, 1400));
+  try {
+    const total = API_SOURCES.length;
 
-  // Reveal the dashboard shell (empty tabs).
-  document.getElementById('dashboardContent').style.display = 'block';
-  document.getElementById('dashboardContent').classList.add('visible');
+    async function fetchSource(src) {
+      const res  = await fetch(src.url + '?_=' + Date.now());
+      const lastModified = res.headers.get('Last-Modified') || res.headers.get('last-modified');
+      const text = await res.text();
+      const json = parseJsonText(text); // BOM-strip + "}{" repair
+      if (!json) throw new Error(`Could not parse JSON from ${src.url}`);
+      return { url: src.url, isTarget: src.isTarget, json, lastModified };
+    }
 
-  // Stamp a placeholder "Updated" time so the header reads as live.
-  const now = new Date();
-  document.getElementById('fileTimestampVal').textContent =
-    now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
-    ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('fileTimestamp').style.display = 'inline';
+    // Run all fetches in parallel (one failure doesn't block the others)
+    const fetchResults = await Promise.allSettled(API_SOURCES.map(fetchSource));
 
-  setRefreshState(false);
-  showLiveIndicator();
+    // Most recent Last-Modified header across all files → header "Updated" stamp
+    let latestModified = null;
+    for (const r of fetchResults) {
+      if (r.status === 'fulfilled' && r.value.lastModified) {
+        const d = new Date(r.value.lastModified);
+        if (!latestModified || d > latestModified) latestModified = d;
+      }
+    }
+    if (latestModified) {
+      const lmStr = latestModified.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+                    ' ' + latestModified.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('fileTimestampVal').textContent = lmStr;
+      document.getElementById('fileTimestamp').style.display = 'inline';
+    }
+
+    fetchResults.forEach((r, i) => {
+      if (r.status === 'rejected') console.warn(`[API source ${i}] ${API_SOURCES[i]?.url} — failed:`, r.reason);
+    });
+
+    const salesResults = fetchResults.filter(r => r.status === 'fulfilled' && !r.value.isTarget);
+
+    // ── Build RAW from all sales files ──
+    const parsedFiles = [];
+    let totalEstimate = 0;
+
+    for (const r of salesResults) {
+      const { json, url } = r.value;
+      if (!Array.isArray(json) || json.length === 0) {
+        console.warn(`No array data in ${url}, skipping`);
+        continue;
+      }
+      const sample = json[0] || {};
+      const hasDate  = Object.prototype.hasOwnProperty.call(sample, 'date');
+      const hasSales = Object.prototype.hasOwnProperty.call(sample, 'value') ||
+                       Object.prototype.hasOwnProperty.call(sample, 'sku_code');
+      if (!hasDate || !hasSales) {
+        console.warn(`No Skillmatics Swiggy sales fields found in ${url}, skipping`);
+        continue;
+      }
+      totalEstimate += json.length;
+      parsedFiles.push({ records: json, name: url.split('/').pop() });
+      console.log(`Fetched ${url}: ~${json.length.toLocaleString()} rows`);
+    }
+
+    if (parsedFiles.length === 0) {
+      throw Object.assign(new Error('No compatible Skillmatics Swiggy sales data was found.'), { kind: 'incompatible' });
+    }
+
+    // ── Build RAW array in one pass with chunked yields ──
+    RAW = new Array(totalEstimate);
+    let writeIdx = 0;
+    const YIELD_INTERVAL = 80000;
+    let sinceLastYield = 0;
+
+    for (let si = 0; si < parsedFiles.length; si++) {
+      const records = parsedFiles[si].records;
+      for (let ri = 0, len = records.length; ri < len; ri++) {
+        const row = records[ri];
+        if (!row) continue;
+        const yr = (row['year'] != null ? row['year'] : row['cy']);
+        if (yr === '' || yr == null) continue;
+
+        // UPPER + trim every text dimension so case/space variants group as one (see up()).
+        const ac = up(row['sku_code']), ad = up(row['sku_name']);
+        const sku = ac && ad ? (ac + ' - ' + ad) : (ac || ad);
+
+        RAW[writeIdx++] = {
+          bill_date:    excelDateToISO(row['date']),
+          cy:           str(yr),                 // calendar year (JSON 'year')
+          quarter:      up(row['quarter']),
+          month:        up(row['month']),
+          week:         up(row['week']),
+          day:          up(row['day']),
+          quantity:     +(row['quantity'] != null ? row['quantity'] : row['qty']) || 0,
+          amount:       +row['value'] || 0,
+          sku_code:     ac,
+          sku_name:     ad,
+          product_code: sku,                     // "CODE - NAME" composite, like GT
+          brand_name:   up(row['brand']),
+          category:     up(row['category']),
+          sub_category: up(row['sub_category']),
+          zone_name:    up(row['zone']),
+          state_name:   up(row['state']),
+          city_name:    up(row['city']),
+          maping_city:  up(row['maping_city'])
+        };
+
+        sinceLastYield++;
+        if (sinceLastYield >= YIELD_INTERVAL) { sinceLastYield = 0; await yieldToUI(); }
+      }
+      parsedFiles[si].records = null; // free memory
+    }
+
+    if (writeIdx < RAW.length) RAW.length = writeIdx;
+    console.log('Total RAW rows:', RAW.length);
+    _dateCache.clear();
+
+    if (RAW.length === 0) {
+      throw Object.assign(new Error('No valid sales rows found.'), { kind: 'incompatible' });
+    }
+
+    // Date bounds (used by reports/filters later). No global filters yet → view = all.
+    const dates = RAW.map(r => r.bill_date).filter(Boolean).sort();
+    dataMinDate = dates[0] || '';
+    dataMaxDate = dates[dates.length - 1] || '';
+    filtered = RAW.slice();
+
+    // ── Reveal dashboard shell (reports rendered in a later phase) ──
+    document.getElementById('dashboardContent').style.display = 'block';
+    document.getElementById('dashboardContent').classList.add('visible');
+    await yieldToUI();
+
+    setRefreshState(false);
+    showLiveIndicator();
+
+  } catch (error) {
+    console.error('Dashboard Load Error:', error);
+    setRefreshState(false);
+    if (error && error.kind === 'incompatible') {
+      finishLoading('error', 'Data not compatible', "We couldn't find Skillmatics Swiggy sales data. Please check your JSON sources.");
+    } else {
+      finishLoading('error', 'Something went wrong', "We couldn't load your dashboard. Please check your connection and try again.");
+    }
+    setTimeout(() => {
+      const loadOv = document.getElementById('loadingOverlay');
+      loadOv.style.opacity = '0';
+      setTimeout(() => { loadOv.style.display = 'none'; }, 500);
+    }, 4000);
+    throw error;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DATA HELPERS  (identical behaviour to GT)
+// ═══════════════════════════════════════════════════════════════
+function yieldToUI() { return new Promise(resolve => setTimeout(resolve, 0)); }
+
+// Fast string coerce
+function str(v) { return v == null ? '' : typeof v === 'string' ? v : String(v); }
+
+// Canonicalize a dimension value: UPPER + trim so "North"/"NORTH"/" north "
+// collapse into ONE group across every report.
+function up(v) { return v == null ? '' : (typeof v === 'string' ? v : String(v)).trim().toUpperCase(); }
+
+// Excel serial / ISO date string → ISO yyyy-mm-dd (cached).
+const _dateCache = new Map();
+function excelDateToISO(serial) {
+  if (!serial && serial !== 0) return '';
+  if (typeof serial === 'string') {
+    const t = serial.trim();
+    if (t === '') return '';
+    if (/^\d+(\.\d+)?$/.test(t)) { serial = +t; }
+    else { if (t.length >= 8) { const d = new Date(t); if (!isNaN(d)) return d.toISOString().slice(0, 10); } return ''; }
+  }
+  let cached = _dateCache.get(serial);
+  if (cached) return cached;
+  const ms = (serial - 25569) * 86400000; // 25569 = days from 1899-12-30 to 1970-01-01
+  const d = new Date(ms);
+  const y = d.getUTCFullYear();
+  const m = (d.getUTCMonth() + 1);
+  const day = d.getUTCDate();
+  cached = y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  _dateCache.set(serial, cached);
+  return cached;
+}
+
+// Robust JSON parse: strip BOM + tolerate "}{" exports missing the comma.
+function parseJsonText(text) {
+  if (text && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  text = (text || '').trim();
+  if (!text) return null;
+  try { return JSON.parse(text); }
+  catch (e) {
+    try { return JSON.parse(text.replace(/\}\s*\{/g, '},{')); }
+    catch (e2) { return null; }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1162,7 +1143,7 @@ function finishLoading(state, main, sub) {
 function setup() {
   window.addEventListener('resize', adjustStickyTops);
 
-  // Tab navigation — switch panels only (no per-tab logic in phase 1).
+  // Tab navigation — switch panels only (per-tab report logic comes later).
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.dataset.tab;
@@ -1174,7 +1155,7 @@ function setup() {
   adjustStickyTops();
 }
 
-// Pin the tab nav under the top bar (filter bar is hidden in phase 1).
+// Pin the tab nav under the top bar (filter bar hidden until a later phase).
 function adjustStickyTops(){
   const top=document.querySelector('.top-bar'), fb=document.getElementById('filterBar'), tns=document.querySelector('.tab-nav-sticky');
   if(!top||!tns) return;
@@ -1187,7 +1168,7 @@ function adjustStickyTops(){
 async function init() {
   setup();
 
-  // If already logged in this session, skip login screen and load directly.
+  // If already logged in this session, skip login and load data directly.
   if (sessionStorage.getItem('sk_logged_in') === '1') {
     document.getElementById('loginOverlay').style.display = 'none';
     const loadOv = document.getElementById('loadingOverlay');
@@ -1207,7 +1188,7 @@ async function init() {
       sessionStorage.removeItem('sk_logged_in');
       loadOv.style.display = 'none';
       document.getElementById('loginOverlay').style.display = 'flex';
-      showLoginError('Session expired. Please sign in again.');
+      showLoginError('Session expired or data unavailable. Please sign in again.');
     }
   }
 }
