@@ -295,18 +295,18 @@
 
   /* ── SKU × PERIOD matrix (.skx) — Weekly & Monthly Trends ── */
   .skx-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;box-shadow:var(--shadow);}
-  table.skx{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12.5px;}
-  table.skx th,table.skx td{padding:8px 11px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;}
+  table.skx{border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12.5px;}
+  table.skx th,table.skx td{padding:8px 11px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;}
   table.skx thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;box-shadow:inset 0 -2px 0 rgba(43,90,126,.22);}
   table.skx thead th .th-sub{display:block;font-size:9.5px;font-weight:600;color:rgba(43,90,126,.7);letter-spacing:.2px;margin-top:3px;text-transform:none;}
   /* frozen descriptive columns */
-  table.skx th.dz,table.skx td.dz{position:sticky;z-index:5;background:var(--surface);text-align:left;font-weight:600;color:var(--text);}
-  table.skx thead th.dz{z-index:8;background:var(--blue-light);color:var(--blue-dark);text-align:left;}
+  table.skx th.dz,table.skx td.dz{position:sticky;z-index:6;background:var(--surface);text-align:left;font-weight:600;color:var(--text);}
+  table.skx thead th.dz{z-index:9;background:var(--blue-light);color:var(--blue-dark);text-align:left;}
   table.skx td.dz.dzwrap{white-space:normal;word-break:break-word;line-height:1.25;font-size:11.5px;}
-  table.skx .dz.dzlast{box-shadow:1px 0 0 var(--border2);}
+  table.skx .dz.dzlast{border-right:1px solid var(--border2);}
   /* frozen golden Total column */
-  table.skx th.tcol,table.skx td.tcol{position:sticky;z-index:5;background:var(--gold-light);text-align:right;box-shadow:1px 0 0 var(--border2);}
-  table.skx thead th.tcol{z-index:8;background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28),1px 0 0 var(--border2);}
+  table.skx th.tcol,table.skx td.tcol{position:sticky;z-index:5;background:var(--gold-light);text-align:right;border-right:1px solid var(--border2);}
+  table.skx thead th.tcol{z-index:8;background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);border-right:1px solid var(--border2);}
   table.skx thead th.tcol .th-sub{color:rgba(184,137,46,.7);}
   table.skx tbody tr:hover td{background:var(--bg);}
   table.skx tbody tr:hover td.dz{background:var(--surface2);}
@@ -1369,18 +1369,25 @@ function renderWeeklyTrends() {
 
   function paint() {
     const M = weeklyMetric;
-    const rows = {}; const weeksSet = new Set();
+    const rows = {}; const weeksSet = new Set(); let prevMaxWk = 0;
     for (let i = 0; i < RAW.length; i++) {
       const r = RAW[i];
-      if (fyOf(r) !== weeklyYear) continue;
+      const fy = fyOf(r);
+      if (fy !== weeklyYear && fy !== weeklyYear - 1) continue;
       if (!skMatchesLoc(r, weeklyFilt)) continue;
       const w = wkOf(r); if (w == null) continue;
-      weeksSet.add(w);
       const key = r.sku_code || r.sku_name || '—';
-      let e = rows[key]; if (!e) e = rows[key] = { desc: r, wk: {}, tot: { q: 0, s: 0 } };
-      let c = e.wk[w]; if (!c) c = e.wk[w] = { q: 0, s: 0 };
-      c.q += r.quantity || 0; c.s += r.amount || 0;
-      e.tot.q += r.quantity || 0; e.tot.s += r.amount || 0;
+      let e = rows[key]; if (!e) e = rows[key] = { desc: r, wk: {}, pwk: {}, tot: { q: 0, s: 0 } };
+      if (fy === weeklyYear) {
+        weeksSet.add(w);
+        let c = e.wk[w]; if (!c) c = e.wk[w] = { q: 0, s: 0 };
+        c.q += r.quantity || 0; c.s += r.amount || 0;
+        e.tot.q += r.quantity || 0; e.tot.s += r.amount || 0;
+      } else {                                   // previous year — keep for W1 WoW
+        let c = e.pwk[w]; if (!c) c = e.pwk[w] = { q: 0, s: 0 };
+        c.q += r.quantity || 0; c.s += r.amount || 0;
+        if (w > prevMaxWk) prevMaxWk = w;
+      }
     }
     const weeks = [...weeksSet].sort((a, b) => a - b);
     let keys = Object.keys(rows).filter(k => rows[k].tot.q || rows[k].tot.s);
@@ -1389,6 +1396,8 @@ function renderWeeklyTrends() {
     keys.sort((a, b) => rows[b].tot.s - rows[a].tot.s);
 
     const at = (e, w) => e.wk[w] || { q: 0, s: 0 };
+    // last week: prior week within the year; for the first week of the year, the last week of the previous year
+    const lwAt = (e, w) => w > 1 ? (e.wk[w - 1] || { q: 0, s: 0 }) : (prevMaxWk ? (e.pwk[prevMaxWk] || { q: 0, s: 0 }) : { q: 0, s: 0 });
     const cellHtml = (cw, lw) => {
       const has = cw.q || cw.s;
       if (M === 'qty')   return has ? fmt(cw.q) : '<span class="sk-flat">—</span>';
@@ -1404,26 +1413,34 @@ function renderWeeklyTrends() {
     };
 
     const headWeeks = weeks.map(w => `<th>W${w}<span class="th-sub">CW·LW·WoW</span></th>`).join('');
-    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px;min-width:${TOTW}px;max-width:${TOTW}px;width:${TOTW}px">Total<span class="th-sub">${escapeHtml(fyLbl)}</span></th>${headWeeks}</tr></thead>`;
+    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px">Total<span class="th-sub">${escapeHtml(fyLbl)}</span></th>${headWeeks}</tr></thead>`;
 
     const rowFor = k => {
       const e = rows[k];
-      const cells = weeks.map(w => `<td class="zcell">${cellHtml(at(e, w), at(e, w - 1))}</td>`).join('');
+      const cells = weeks.map(w => `<td class="zcell">${cellHtml(at(e, w), lwAt(e, w))}</td>`).join('');
       return `<tr>${skDescCells(e.desc)}<td class="tcol">${totHtml(e.tot)}</td>${cells}</tr>`;
     };
     // grand total row
-    const gWk = {}; let gQ = 0, gS = 0;
-    keys.forEach(k => { const e = rows[k]; weeks.forEach(w => { const c = at(e, w); (gWk[w] || (gWk[w] = { q: 0, s: 0 })); gWk[w].q += c.q; gWk[w].s += c.s; }); gQ += e.tot.q; gS += e.tot.s; });
+    const gWk = {}; let gQ = 0, gS = 0; const gPrev = { q: 0, s: 0 };
+    keys.forEach(k => {
+      const e = rows[k];
+      weeks.forEach(w => { const c = at(e, w); (gWk[w] || (gWk[w] = { q: 0, s: 0 })); gWk[w].q += c.q; gWk[w].s += c.s; });
+      if (prevMaxWk && e.pwk[prevMaxWk]) { gPrev.q += e.pwk[prevMaxWk].q; gPrev.s += e.pwk[prevMaxWk].s; }
+      gQ += e.tot.q; gS += e.tot.s;
+    });
     const gAt = w => gWk[w] || { q: 0, s: 0 };
-    const totCells = weeks.map(w => `<td class="zcell">${cellHtml(gAt(w), gAt(w - 1))}</td>`).join('');
+    const gLwAt = w => w > 1 ? gAt(w - 1) : gPrev;
+    const totCells = weeks.map(w => `<td class="zcell">${cellHtml(gAt(w), gLwAt(w))}</td>`).join('');
     const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL')}<td class="tcol">${totHtml({ q: gQ, s: gS })}</td>${totCells}</tr>` : '';
 
     const body = keys.length
       ? keys.map(rowFor).join('') + totalRow
       : `<tr>${skDescTotalCells('—')}<td class="tcol">—</td><td colspan="${Math.max(1, weeks.length)}" style="text-align:center;padding:18px;color:var(--text3)">No SKUs match the current filters for ${escapeHtml(fyLbl)}.</td></tr>`;
 
+    const tw = SKU_SPAN + TOTW + weeks.length * 92;
+    const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:92px">`.repeat(weeks.length)}</colgroup>`;
     const t = document.getElementById('wkTableHost');
-    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx">${thead}<tbody>${body}</tbody></table></div>`;
+    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx" style="width:${tw}px">${colg}${thead}<tbody>${body}</tbody></table></div>`;
   }
 
   const yearPills = yearList.map(y => `<button class="zmom-pill fy-pill${y === weeklyYear ? ' active' : ''}" data-wyear="${y}">${y}</button>`).join('');
@@ -1442,7 +1459,7 @@ function renderWeeklyTrends() {
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(fyLbl)}</b> · by week</span><span class="bt-period-tag">Weekly Trends</span></div>
     </div>
     <div id="wkTableHost"></div>
-    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = all weeks of ${escapeHtml(fyLbl)} · each week column (All view): top = <b>current week</b> Qty · Value, middle = <b>previous week</b>, bottom = <b>WoW%</b> (vs the prior week of the same year) · Qty / Value views show the current-week figure only · independent of the global filters.</div>`;
+    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = all weeks of ${escapeHtml(fyLbl)} · each week column (All view): top = <b>current week</b> Qty · Value, middle = <b>previous week</b>, bottom = <b>WoW%</b> · for <b>W1</b> the previous week is the <b>last week of ${weeklyYear - 1}</b> · Qty / Value views show the current-week figure only · independent of the global filters.</div>`;
 
   host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { weeklyYear = +b.dataset.wyear; renderWeeklyTrends(); }));
   host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { weeklyMetric = b.dataset.wmetric; renderWeeklyTrends(); }));
@@ -1511,7 +1528,7 @@ function renderMonthlyTrends() {
       return `<div class="pt-cell"><div class="pt-sale">${fmtV(c.s)}</div><div class="pt-qty">${fmt(c.q)} qty</div></div>`;
     };
     const headDays = dayCols.map(c => `<th>${c.label}<span class="th-sub">${c.sub}</span></th>`).join('');
-    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px;min-width:${TOTW}px;max-width:${TOTW}px;width:${TOTW}px">Total<span class="th-sub">${escapeHtml(monLbl)}</span></th>${headDays}</tr></thead>`;
+    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px">Total<span class="th-sub">${escapeHtml(monLbl)}</span></th>${headDays}</tr></thead>`;
 
     const rowFor = k => {
       const e = rows[k];
@@ -1527,11 +1544,13 @@ function renderMonthlyTrends() {
       ? keys.map(rowFor).join('') + totalRow
       : `<tr>${skDescTotalCells('—')}<td class="tcol">—</td><td colspan="${Math.max(1, dayCols.length)}" style="text-align:center;padding:18px;color:var(--text3)">No SKUs match the current filters for ${escapeHtml(monLbl)}.</td></tr>`;
 
+    const tw = SKU_SPAN + TOTW + dayCols.length * 78;
+    const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:78px">`.repeat(dayCols.length)}</colgroup>`;
     const t = document.getElementById('mdTableHost');
-    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx">${thead}<tbody>${body}</tbody></table></div>`;
+    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx" style="width:${tw}px">${colg}${thead}<tbody>${body}</tbody></table></div>`;
   }
 
-  const monthPills = ymList.map(m => `<button class="zmom-pill fy-pill${m === monthlyMonth ? ' active' : ''}" data-mmonth="${m}">${zmomMonLabel(m)}</button>`).join('');
+  const monthSel = `<select class="filter-select md-month" id="mdMonthSel" title="Select month">${ymList.map(m => `<option value="${m}"${m === monthlyMonth ? ' selected' : ''}>${escapeHtml(zmomMonLabel(m))}</option>`).join('')}</select>`;
   const mPills = SK_METRICS.map(m => `<button class="zmom-pill m-pill${m.k === monthlyMetric ? ' active' : ''}" data-mmetric="${m.k}">${m.label}</button>`).join('');
   const locChips = SKLOC_FILTERS.map(f => skChipHtml('md', f)).join('');
 
@@ -1540,7 +1559,7 @@ function renderMonthlyTrends() {
       <div class="bt-fg"><label class="bt-flabel">Search</label>
         <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox md-search" placeholder="Search product / brand / category…" value="${escapeHtml(monthlySearch)}" autocomplete="off"></div></div>
-      <div class="bt-fg"><label class="bt-flabel">Month</label><div class="bt-chips">${monthPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Month</label><div class="bt-chips">${monthSel}</div></div>
       <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Location</label><div class="bt-chips">${locChips}</div></div>
       <button class="kpi-reset" id="mdReset" title="Clear search &amp; Location filters">↺ Reset</button>
@@ -1549,7 +1568,8 @@ function renderMonthlyTrends() {
     <div id="mdTableHost"></div>
     <div class="ddt-note">Rows = SKU · golden <b>Total</b> = full ${escapeHtml(monLbl)} · one column per calendar day (${daysInMonth} days) · All view shows Sales &amp; Qty, Qty / Value views show a single figure · pick a month above (defaults to the latest) · independent of the global filters.</div>`;
 
-  host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { monthlyMonth = b.dataset.mmonth; renderMonthlyTrends(); }));
+  const msel = host.querySelector('#mdMonthSel');
+  if (msel) msel.addEventListener('change', () => { monthlyMonth = msel.value; renderMonthlyTrends(); });
   host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { monthlyMetric = b.dataset.mmetric; renderMonthlyTrends(); }));
   host.querySelector('#mdReset').addEventListener('click', () => { monthlySearch = ''; monthlySearchActive = false; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key].clear()); renderMonthlyTrends(); });
   const si = host.querySelector('.md-search');
