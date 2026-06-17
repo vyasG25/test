@@ -30,16 +30,11 @@
   @keyframes loadFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
   @keyframes loadLogoIn{0%{opacity:0;transform:translateY(16px) scale(.93);}100%{opacity:1;transform:translateY(0) scale(1);}}
   @keyframes loadRise{0%{opacity:0;transform:translateY(18px);}100%{opacity:1;transform:translateY(0);}}
-  @keyframes orbDrift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(80px,-56px) scale(1.22);}}
-  @keyframes orbDrift2{0%,100%{transform:translate(0,0) scale(1.08);}50%{transform:translate(-90px,64px) scale(.85);}}
-  @keyframes orbDrift3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(54px,76px) scale(1.28);}}
-  @keyframes orbDrift4{0%,100%{transform:translate(0,0) scale(1.04);}50%{transform:translate(-60px,-44px) scale(.9);}}
   @keyframes gridDrift{0%{background-position:0 0;}100%{background-position:46px 46px;}}
   @keyframes ringSpinSlow{to{transform:rotate(360deg);}}
   @keyframes checkDraw{from{stroke-dashoffset:48;}to{stroke-dashoffset:0;}}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  /* Product card floater animations — each drifts on its own unique path */
   @keyframes cardFloat1{0%,100%{transform:translate(0,0) rotate(-6deg);}33%{transform:translate(14px,-22px) rotate(-4deg);}66%{transform:translate(-8px,12px) rotate(-8deg);}}
   @keyframes cardFloat2{0%,100%{transform:translate(0,0) rotate(8deg);}33%{transform:translate(-18px,16px) rotate(6deg);}66%{transform:translate(10px,-14px) rotate(10deg);}}
   @keyframes cardFloat3{0%,100%{transform:translate(0,0) rotate(-3deg);}40%{transform:translate(20px,18px) rotate(-6deg);}80%{transform:translate(-12px,-8px) rotate(-1deg);}}
@@ -48,29 +43,15 @@
   @keyframes cardFloat6{0%,100%{transform:translate(0,0) rotate(4deg);}35%{transform:translate(-20px,10px) rotate(6deg);}70%{transform:translate(12px,-16px) rotate(2deg);}}
   @keyframes cardFloat7{0%,100%{transform:translate(0,0) rotate(-7deg);}50%{transform:translate(18px,-12px) rotate(-5deg);}}
   @keyframes cardFloat8{0%,100%{transform:translate(0,0) rotate(11deg);}40%{transform:translate(-10px,18px) rotate(9deg);}80%{transform:translate(14px,-8px) rotate(13deg);}}
-  @keyframes shimmer{0%,100%{opacity:.13;}50%{opacity:.22;}}
 
   /* ── ANIMATED LOADING OVERLAY ── */
   #loadingOverlay{overflow:hidden;background:#f3f1ed;}
   .load-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
-
-  /* Subtle neutral dot grid only (no colored orbs) */
   .load-grid{position:absolute;inset:-50px;background-image:radial-gradient(rgba(30,28,24,.06) 1.4px, transparent 1.4px);background-size:42px 42px;animation:gridDrift 6s linear infinite;
     -webkit-mask-image:radial-gradient(ellipse 78% 74% at 50% 50%, #000 30%, transparent 88%);mask-image:radial-gradient(ellipse 78% 74% at 50% 50%, #000 30%, transparent 88%);}
-
-  /* ── PRODUCT CARD FLOATERS ── */
   .load-cards{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
-  .lcard{
-    position:absolute;
-    border-radius:18px;
-    background:#f0ede7;
-    box-shadow:0 10px 36px rgba(30,28,24,.14), 0 2px 6px rgba(30,28,24,.08);
-    border:2px solid rgba(255,255,255,.92);
-    overflow:hidden;
-    will-change:transform;
-  }
+  .lcard{position:absolute;border-radius:18px;background:#f0ede7;box-shadow:0 10px 36px rgba(30,28,24,.14), 0 2px 6px rgba(30,28,24,.08);border:2px solid rgba(255,255,255,.92);overflow:hidden;will-change:transform;}
   .lcard img{width:100%;height:100%;object-fit:cover;display:block;}
-  /* Per-card position / size / float / opacity (full-screen grid, visible from the start) */
   .lcard:nth-child(1){left:0.9%;top:-0.0%;width:184px;height:184px;animation:cardFloat1 19s ease-in-out infinite;animation-delay:-17s;opacity:0.44;}
   .lcard:nth-child(2){left:12.0%;top:1.9%;width:178px;height:178px;animation:cardFloat4 18s ease-in-out infinite;animation-delay:-2s;opacity:0.44;}
   .lcard:nth-child(3){left:25.3%;top:-0.4%;width:150px;height:150px;animation:cardFloat7 18s ease-in-out infinite;animation-delay:-18s;opacity:0.44;}
@@ -111,24 +92,15 @@
   .lcard:nth-child(38){left:60.4%;top:78.5%;width:167px;height:167px;animation:cardFloat8 30s ease-in-out infinite;animation-delay:-11s;opacity:0.44;}
   .lcard:nth-child(39){left:75.1%;top:77.4%;width:161px;height:161px;animation:cardFloat2 21s ease-in-out infinite;animation-delay:-15s;opacity:0.44;}
   .lcard:nth-child(40){left:84.4%;top:76.7%;width:178px;height:178px;animation:cardFloat1 25s ease-in-out infinite;animation-delay:-11s;opacity:0.44;}
-  /* Vignette — gently fades cards near the very center so the ring + logo stay readable */
-  .load-cards::after{
-    content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse 45% 42% at 50% 50%, #f3f1ed 26%, transparent 66%);
-    pointer-events:none;
-  }
-
-  /* Foreground content */
+  .load-cards::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 45% 42% at 50% 50%, #f3f1ed 26%, transparent 66%);pointer-events:none;}
   .load-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;padding:0 24px;}
   .load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{opacity:0;animation:loadRise .7s cubic-bezier(.2,.7,.2,1) forwards;}
   .load-content .load-logo{animation:loadLogoIn .85s cubic-bezier(.2,.7,.2,1) forwards;}
   .load-content .load-ring-wrap{animation-delay:.14s;}
   .load-content .load-steps{animation-delay:.42s;}
-
   .load-logo{margin-bottom:36px;}
   .load-logo .brand-wordmark-img{height:64px;width:auto;display:block;}
   .load-logo .brand-wordmark-text{font-size:54px;}
-
   .load-ring-wrap{position:relative;width:196px;height:196px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;}
   .load-ring{display:block;width:196px;height:196px;}
   .load-ring-deco{transform-box:view-box;transform-origin:60px 60px;animation:ringSpinSlow 18s linear infinite;}
@@ -140,26 +112,19 @@
   .load-check{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
   .load-check path{stroke-dasharray:48;stroke-dashoffset:48;}
   .load-check.draw path{animation:checkDraw .55s cubic-bezier(.6,0,.3,1) forwards;}
-
   .load-status{font-family:'Playfair Display',serif;font-size:19px;font-weight:600;color:var(--text);text-align:center;min-height:26px;transition:opacity .26s ease;letter-spacing:.1px;}
   .load-sub{font-size:12.5px;color:var(--text3);text-align:center;margin-top:7px;min-height:17px;transition:opacity .26s ease;letter-spacing:.25px;}
   .load-steps{display:flex;align-items:center;gap:7px;width:100%;max-width:300px;margin-top:28px;}
   .lstep{flex:1;height:4px;border-radius:3px;background:var(--border2);overflow:hidden;position:relative;}
   .lstep .lstep-fill{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#2d8a57,var(--accent));transform:scaleX(0);transform-origin:left;transition:transform .55s cubic-bezier(.2,.7,.2,1);}
   .lstep.on .lstep-fill{transform:scaleX(1);}
-  @media (prefers-reduced-motion: reduce){
-    .load-grid,.load-ring-deco,.lcard{animation:none !important;}
-    .load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{animation:none !important;opacity:1 !important;}
-    #loadComet{transition:none !important;}
-  }
+  @media (prefers-reduced-motion: reduce){.load-grid,.load-ring-deco,.lcard{animation:none !important;}.load-content .load-logo,.load-content .load-ring-wrap,.load-content .load-steps{animation:none !important;opacity:1 !important;}#loadComet{transition:none !important;}}
 
   /* ── TOP BAR ── */
   .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05);}
   .brand{display:flex;align-items:center;gap:12px;}
   .brand-name{display:flex;align-items:center;line-height:1;}
-  /* Actual Skillmatics wordmark image (matches the logo exactly when online) */
   .brand-wordmark-img{height:auto;width:auto;display:block;}
-  /* Text fallback styled to resemble the Skillmatics logo */
   .brand-wordmark-text{font-family:'Nunito',sans-serif;font-style:italic;font-weight:800;font-size:23px;letter-spacing:-.5px;color:#1d81c4;}
   .brand-divider{width:1px;height:24px;background:var(--border2);}
   .brand-title{font-size:16.5px;font-weight:700;color:#1d81c4;letter-spacing:-.2px;white-space:nowrap;}
@@ -177,37 +142,18 @@
   .live-text{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;}
   .last-updated{font-size:11px;color:var(--text3);}
 
-  /* ── REFRESH BUTTON ── */
+  /* ── REFRESH / LOGOUT ── */
   .refresh-btn{display:flex;align-items:center;gap:7px;padding:7px 14px;background:#e0f2f1;color:#004d40;border:1px solid #80cbc4;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .2s;white-space:nowrap;}
   .refresh-btn:hover:not(:disabled){background:#b2dfdb;border-color:#4db6ac;}
   .refresh-btn:disabled{opacity:.55;cursor:not-allowed;}
   .refresh-icon{display:inline-block;transition:transform .3s;}
   .refresh-btn.spinning .refresh-icon{animation:spin .7s linear infinite;}
-
-  /* ── LOGOUT BUTTON ── */
   .logout-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:none;color:var(--text2);border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .2s;white-space:nowrap;}
   .logout-btn:hover{background:var(--red-light);color:var(--red);border-color:var(--red);}
   .logout-btn svg{flex-shrink:0;}
 
   /* ── FILTER BAR ── */
   .filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:60px;z-index:96;box-shadow:0 2px 6px rgba(0,0,0,.05);}
-  .filter-group{display:flex;align-items:center;gap:7px;}
-  .filter-label{font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;text-transform:uppercase;letter-spacing:.4px;}
-  .filter-select{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none;transition:border-color .2s;min-width:100px;}
-  .filter-select:focus{border-color:var(--accent);}
-  .date-input{padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;}
-  .date-input:focus{border-color:var(--accent);}
-  .filter-sep{width:1px;height:22px;background:var(--border2);}
-  .btn-reset{padding:7px 13px;background:var(--warm-light);color:var(--warm);border:1px solid var(--warm);border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all .2s;}
-  .btn-reset:hover{background:var(--warm);color:#fff;}
-
-  /* Multi-select dropdown */
-  .ms-wrap{position:relative;}
-  .ms-trigger{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none;min-width:120px;max-width:200px;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;transition:border-color .2s;}
-  .ms-trigger.open{border-color:var(--accent);}
-  .ms-trigger > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow-md);min-width:220px;max-width:340px;}
-  .ms-panel.open{display:block;}
   .ms-search{width:100%;padding:10px 12px;border:none;border-bottom:1px solid var(--border);font-size:13px;font-family:inherit;outline:none;background:var(--surface2);border-radius:var(--r) var(--r) 0 0;}
   .ms-list{max-height:220px;overflow-y:auto;padding:4px 0;}
   .ms-item{display:flex;align-items:center;gap:9px;padding:6px 13px;cursor:pointer;transition:background .12s;font-size:13px;}
@@ -216,10 +162,11 @@
   .ms-actions{padding:7px 11px;border-top:1px solid var(--border);display:flex;gap:6px;}
   .ms-action-btn{padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);transition:all .12s;font-family:inherit;}
   .ms-action-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-reset{padding:7px 13px;background:var(--warm-light);color:var(--warm);border:1px solid var(--warm);border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all .2s;}
+  .btn-reset:hover{background:var(--warm);color:#fff;}
 
   /* ── COMPACT SEGMENTED FILTERS ── */
   .fbar{display:flex;align-items:center;gap:9px;width:100%;flex-wrap:wrap;}
-  /* A labelled segment groups related filters (Period / Location / Product) */
   .seg{display:flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);}
   .seg-period{background:linear-gradient(135deg,#eef4fb,#e1ecf8);border-color:#cfe0f0;}
   .seg-location{background:linear-gradient(135deg,#ecf6f0,#dcefe4);border-color:#c5e3d1;}
@@ -228,9 +175,6 @@
   .seg-label{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);white-space:nowrap;}
   .seg-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
   .fbar-spacer{flex:1;}
-  .fbar-records{font-size:11px;color:var(--text3);white-space:nowrap;}
-
-  /* One-click multi-select chip */
   .mc{position:relative;}
   .mc-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s;}
   .mc-btn:hover{border-color:var(--accent);color:var(--text);}
@@ -242,21 +186,19 @@
   .mc-btn.active .mc-chev{color:var(--accent);}
   .mc-panel{display:none;position:absolute;top:calc(100% + 5px);left:0;z-index:200;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow-md);width:250px;max-width:84vw;}
   .mc-panel.open{display:block;animation:fadeIn .14s ease;}
-  /* compact date inputs inside Period segment */
   .mc-date{padding:4px 7px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:all .15s;}
   .mc-date:hover{border-color:var(--accent);}
   .mc-date.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
   .mc-dlbl{font-size:10px;font-weight:600;color:var(--text3);}
   .mc-dash{color:var(--text3);font-size:12px;}
 
-  /* ── MAIN ── */
+  /* ── MAIN / SECTION HEADERS ── */
   .main{padding:22px 28px;}
-
-  /* ── SECTION HEADERS ── */
   .sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;margin-top:28px;}
   .sec-header:first-of-type{margin-top:0;}
   .sec-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--text);display:flex;align-items:center;gap:9px;}
   .sec-badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;font-family:'DM Sans',sans-serif;letter-spacing:.4px;text-transform:uppercase;}
+  .tab-empty{padding:60px 24px;text-align:center;color:var(--text3);font-size:14px;background:var(--surface);border:1px dashed var(--border2);border-radius:var(--r);}
 
   /* ── TAB NAVIGATION ── */
   .tab-nav-sticky{position:sticky;top:60px;z-index:95;background:var(--bg);padding:7px 0;margin-bottom:9px;}
@@ -273,51 +215,63 @@
   .tab-panel.active{display:block;animation:fadeIn .25s ease;}
   @media(max-width:768px){.tab-nav{display:flex;width:100%;overflow-x:auto;}.tab-btn{padding:8px 12px;font-size:12px;flex:1;justify-content:center;}.tab-btn span{display:none;}.tab-ic{opacity:.9;}}
 
-  /* ── EXECUTIVE KPI CARDS (multi-value) ── */
-  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
-  @media(max-width:1024px){.kpi-grid{grid-template-columns:1fr;}}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;transition:box-shadow .2s;}
-  .kpi-card:hover{box-shadow:var(--shadow);}
-  .kpi-card-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:13px;}
-  .kpi-row{display:flex;align-items:stretch;}
-  .kpi-col{flex:1;display:flex;flex-direction:column;gap:5px;padding:0 12px;min-width:0;}
-  .kpi-row.left .kpi-col{align-items:flex-start;text-align:left;}
-  .kpi-row.center .kpi-col{align-items:center;text-align:center;}
-  .kpi-col:first-child{padding-left:0;}
-  .kpi-col:last-child{padding-right:0;}
-  .kpi-val{font-size:24px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;}
-  .kpi-val.sm{font-size:21px;}
-  .kpi-sub{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-  .kpi-divider{width:1px;background:var(--border);align-self:stretch;flex-shrink:0;}
+  /* ── REPORT CONTROL BAR (bt-bar) ── */
+  .bt-bar{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;background:linear-gradient(115deg,#eaf2fa,#e6eff7 60%,#dde9f4);border:1px solid #cbdcec;border-radius:var(--r);padding:12px 16px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .bt-fg{display:flex;flex-direction:column;gap:4px;}
+  .bt-flabel{font-size:9.5px;font-weight:700;color:#6f8aa3;text-transform:uppercase;letter-spacing:.5px;}
+  .bt-note{margin-top:7px;font-size:11px;color:var(--text2);}
+  .bt-period{margin-left:auto;align-self:center;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+  .bt-period-rng{font-size:13.5px;font-weight:700;color:var(--blue-dark);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .bt-period-tag{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.4px;}
+  .bt-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .kpi-reset{align-self:flex-end;padding:6px 12px;border:1px solid #cbdcec;background:var(--surface);color:var(--blue-dark);border-radius:var(--rs);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .18s;}
+  .kpi-reset:hover{background:var(--blue-dark);color:#fff;border-color:var(--blue-dark);}
+  .kpi-search-wrap{position:relative;display:flex;align-items:center;}
+  .kpi-search-ic{position:absolute;left:9px;font-size:13px;color:var(--text3);pointer-events:none;}
+  .kpi-searchbox{width:100%;padding:6px 10px 6px 27px;border:1px solid #cbdcec;border-radius:var(--rs);background:var(--surface);color:var(--text);font-family:inherit;font-size:12px;transition:all .18s;}
+  .kpi-searchbox:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light);}
+  .kpi-searchbox::placeholder{color:var(--text3);}
+  .filter-select{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none;transition:border-color .2s;min-width:100px;}
 
-  /* ── ZONE / REGION MoM REPORT ── */
-  .zmom-controls{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:14px;position:sticky;top:126px;z-index:85;background:var(--bg);padding:8px 0;}
-  .zmom-pillset{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-  .zmom-pillset .pset-label{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);margin-right:2px;}
+  /* pills used by report control bars */
   .zmom-pill{padding:6px 13px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text2);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .zmom-pill:hover{border-color:var(--blue);color:var(--text);}
   .zmom-pill.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 1px 4px rgba(43,90,126,.20);}
+  .zmom-pill.m-pill.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 1px 5px rgba(184,60,66,.26);}
+  .zmom-pill.v-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 1px 5px rgba(26,95,58,.26);}
+  .zmom-pill.fy-pill.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 1px 4px rgba(43,90,126,.20);}
+
+  /* ── ZONE/REGION + PRODUCT matrix table (.zmom) ── */
   .zmom-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:72vh;}
   table.zmom{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.zmom th,table.zmom td{padding:13px 15px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;}
   table.zmom thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:right;border-bottom:1px solid var(--border);box-shadow:inset 0 -2px 0 rgba(43,90,126,.22);}
+  table.zmom thead th .th-sub{display:block;font-size:10px;font-weight:600;color:rgba(43,90,126,.70);letter-spacing:.2px;margin-top:4px;text-transform:none;}
   table.zmom th.zcol,table.zmom td.zcol{position:sticky;left:0;z-index:5;background:var(--surface);text-align:left;font-weight:600;color:var(--text);min-width:96px;}
+  table.zmom th.zcol.zlast,table.zmom td.zcol.zlast{box-shadow:1px 0 0 var(--border);}
+  table.zmom th.zcol.zwrap,table.zmom td.zcol.zwrap{white-space:normal;word-break:break-word;line-height:1.3;padding:9px 11px;font-size:12px;}
+  table.zmom thead th.zcol{z-index:7;background:var(--blue-light);color:var(--blue-dark);text-align:left;}
+  table.zmom th.fycol,table.zmom td.fycol{background:var(--gold-light);}
+  table.zmom thead th.fycol{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);}
+  table.zmom thead th.fycol .th-sub{color:rgba(184,137,46,.7);}
   table.zmom tbody tr:hover td{background:var(--bg);}
+  table.zmom tbody tr:hover td.zcol{background:var(--surface2);}
+  table.zmom tbody tr:hover td.fycol{background:#f7ecca;}
   table.zmom tr.total-row td{font-weight:700;background:var(--blue-light);border-top:2px solid var(--blue-dark);}
   table.zmom tr.total-row td.zcol{background:var(--blue-light);color:var(--blue-dark);}
+  table.zmom tr.total-row:hover td{background:var(--blue-light);}
+  .zcell{text-align:right;}
+  .pt-cell{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+  .pt-sale{font-size:14px;font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
+  .pt-qty{font-size:11.5px;color:var(--text2);font-weight:700;font-variant-numeric:tabular-nums;min-height:11px;}
 
-  /* ── DAILY TRENDS / shared multi-metric table styling ── */
-  .yoy-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
-    background:linear-gradient(115deg,#eaf2fa,#e6eff7 60%,#dde9f4);border:1px solid #cbdcec;border-radius:var(--r);padding:11px 15px;box-shadow:var(--shadow);margin-bottom:13px;}
+  /* ── DAILY TRENDS table (.ddt) ── */
   .ddt-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;box-shadow:var(--shadow);}
   table.ddt{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.ddt th,table.ddt td{padding:9px 13px;white-space:nowrap;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;}
   table.ddt thead th{position:sticky;background:var(--blue-light);color:var(--blue-dark);font-weight:700;letter-spacing:.4px;box-shadow:inset 0 -2px 0 rgba(43,90,126,.18);}
   table.ddt thead tr.grp th{top:0;z-index:7;text-align:center;font-size:11.5px;text-transform:uppercase;border-left:1px solid rgba(43,90,126,.16);}
-  table.ddt thead tr.grp th .ddt-rng{font-weight:600;color:rgba(43,90,126,.66);text-transform:none;letter-spacing:0;}
   table.ddt thead tr.grp th.grp-tot{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);}
-  table.ddt thead tr.sub th{top:34px;z-index:6;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--blue-dark);border-left:1px solid rgba(43,90,126,.10);}
-  table.ddt thead tr.sub th.sub-tot{background:var(--gold-light);color:var(--gold);}
   table.ddt thead tr.single th{top:0;z-index:7;}
   table.ddt th.dcol,table.ddt td.dcol{position:sticky;left:0;z-index:5;text-align:left;font-weight:700;color:var(--text);background:var(--surface);min-width:96px;}
   table.ddt th.dcol2,table.ddt td.dcol2{position:sticky;z-index:5;text-align:left;font-weight:600;color:var(--text2);background:var(--surface);min-width:118px;font-size:12px;box-shadow:1px 0 0 var(--border);}
@@ -328,6 +282,7 @@
   table.ddt tbody tr:hover td.dcol,table.ddt tbody tr:hover td.dcol2{background:var(--surface2);}
   table.ddt td.grp-start{border-left:1px solid rgba(43,90,126,.16);}
   table.ddt td.totcell{background:var(--gold-light);font-weight:800;color:#6b5212;border-left:1px solid rgba(184,137,46,.28);}
+  table.ddt th.grp-tot.grp-start{background:#f7ecca;color:var(--gold);}
   table.ddt tr.total-row td{font-weight:800;background:var(--blue-light)!important;color:var(--blue-dark);border-top:2px solid var(--blue-dark);}
   table.ddt tr.total-row td.dcol,table.ddt tr.total-row td.dcol2{background:var(--blue-light)!important;color:var(--blue-dark);}
   table.ddt tr.total-row td.totcell{background:#f1e6c4!important;color:#5a4310;}
@@ -338,21 +293,6 @@
   .ddt-muted{color:var(--text3);}
   .ddt-note{margin-top:7px;font-size:11px;color:var(--text2);}
 
-  .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:11px;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.35;white-space:nowrap;}
-  .pill.green{background:var(--green-light);color:var(--green);}
-  .pill.amber{background:var(--warm-light);color:var(--warm);}
-  .pill.red{background:var(--red-light);color:var(--red);}
-  .pill.na{background:var(--surface2);color:var(--text3);}
-  .chip{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:9px;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .chip.up{background:var(--green-light);color:var(--green);}
-  .chip.dn{background:var(--red-light);color:var(--red);}
-  .chip.na{background:var(--surface2);color:var(--text3);}
-
-  /* ── TABLES ── */
-  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  .tn{text-align:right;font-variant-numeric:tabular-nums;}
-
   /* ── NO DATA ── */
   .no-data{padding:40px;text-align:center;color:var(--text3);font-size:14px;}
 
@@ -360,53 +300,26 @@
   #dashboardContent{display:none;}
   #dashboardContent.visible{display:block;animation:slideUp .4s ease;}
 
-  /* ── RESPONSIVE ── */
-  @media(max-width:768px){
-    .top-bar{padding:0 16px;height:54px;}
-    .filter-bar{padding:8px 16px;}
-    .main{padding:16px;}
-    .brand-divider,.brand-title{display:none;}
-  }
+  @media(max-width:768px){.top-bar{padding:0 16px;height:54px;}.filter-bar{padding:8px 16px;}.main{padding:16px;}.brand-divider,.brand-title{display:none;}}
 
-  /* ===== Split-screen login showcase (6 rows, alternating marquee) ===== */
+  /* ===== Split-screen login showcase ===== */
   .lp-showcase{position:relative;flex:1 1 58%;min-width:0;height:100%;overflow:hidden;
     background:radial-gradient(120% 90% at 8% 0%,#eef4fa 0,transparent 55%),radial-gradient(120% 100% at 100% 100%,#fdf3ea 0,transparent 50%),var(--bg);}
   .lp-rows{position:absolute;inset:0;height:100%;display:grid;grid-template-rows:repeat(6,1fr);overflow:hidden;
-    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 94%,transparent 100%);
-            mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 94%,transparent 100%);}
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 94%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 94%,transparent 100%);}
   .lp-row{position:relative;min-height:0;overflow:hidden;display:flex;align-items:center;}
   .lp-track{display:flex;align-items:center;width:max-content;will-change:transform;}
   .lp-row.left  .lp-track{animation:lpLeft  var(--dur,56s) linear infinite;}
   .lp-row.right .lp-track{animation:lpRight var(--dur,56s) linear infinite;}
-  .lp-tile{flex:0 0 auto;margin-right:14px;height:calc((100vh / 6) - 14px);height:calc((100dvh / 6) - 14px);
-    aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:#fff;border:1px solid rgba(30,28,24,.06);
-    box-shadow:0 6px 20px rgba(30,28,24,.08),0 1px 3px rgba(30,28,24,.05);}
+  .lp-tile{flex:0 0 auto;margin-right:14px;height:calc((100vh / 6) - 14px);height:calc((100dvh / 6) - 14px);aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:#fff;border:1px solid rgba(30,28,24,.06);box-shadow:0 6px 20px rgba(30,28,24,.08),0 1px 3px rgba(30,28,24,.05);}
   .lp-tile img{width:100%;height:100%;object-fit:cover;display:block;}
   @keyframes lpLeft {from{transform:translateX(0)}    to{transform:translateX(-50%)}}
   @keyframes lpRight{from{transform:translateX(-50%)} to{transform:translateX(0)}}
-  .lp-showcase::after{content:"";position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(90deg,transparent 62%,rgba(255,255,255,.55) 86%,#fff 100%);}
-  /* ===== RIGHT AUTH PANEL — "Deep Aurora Glass" ===== */
-  .lp-auth{flex:0 0 42%;max-width:560px;min-width:400px;height:100%;position:relative;overflow:hidden;z-index:2;
-    display:flex;align-items:center;justify-content:center;padding:40px;
-    background:
-      radial-gradient(135% 110% at 100% -10%, #34b0ef 0%, rgba(52,176,239,0) 46%),
-      radial-gradient(120% 120% at -10% 110%, #06304e 0%, rgba(6,48,78,0) 52%),
-      linear-gradient(155deg, #0a3a5e 0%, #12568a 48%, #1d81c4 100%);
-    box-shadow:-22px 0 60px rgba(6,28,46,.35);}
-  .lp-auth::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-    background-image:
-      linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
-    background-size:54px 54px;
-    -webkit-mask-image:radial-gradient(120% 90% at 50% 28%, #000 0%, transparent 78%);
-            mask-image:radial-gradient(120% 90% at 50% 28%, #000 0%, transparent 78%);}
-  .lp-orbit{position:absolute;z-index:0;width:118%;aspect-ratio:1;left:50%;top:50%;
-    transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;opacity:.55;filter:blur(6px);
-    background:conic-gradient(from 0deg, rgba(126,214,255,0), rgba(126,214,255,.55), rgba(70,227,210,0) 34%, rgba(170,228,255,.5) 60%, rgba(126,214,255,0) 100%);
-    -webkit-mask:radial-gradient(circle, transparent 39%, #000 40%, #000 60%, transparent 61%);
-            mask:radial-gradient(circle, transparent 39%, #000 40%, #000 60%, transparent 61%);
-    animation:lpOrbit 34s linear infinite;}
+  .lp-showcase::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 62%,rgba(255,255,255,.55) 86%,#fff 100%);}
+  .lp-auth{flex:0 0 42%;max-width:560px;min-width:400px;height:100%;position:relative;overflow:hidden;z-index:2;display:flex;align-items:center;justify-content:center;padding:40px;
+    background:radial-gradient(135% 110% at 100% -10%, #34b0ef 0%, rgba(52,176,239,0) 46%),radial-gradient(120% 120% at -10% 110%, #06304e 0%, rgba(6,48,78,0) 52%),linear-gradient(155deg, #0a3a5e 0%, #12568a 48%, #1d81c4 100%);box-shadow:-22px 0 60px rgba(6,28,46,.35);}
+  .lp-auth::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(120% 90% at 50% 28%, #000 0%, transparent 78%);mask-image:radial-gradient(120% 90% at 50% 28%, #000 0%, transparent 78%);}
+  .lp-orbit{position:absolute;z-index:0;width:118%;aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;opacity:.55;filter:blur(6px);background:conic-gradient(from 0deg, rgba(126,214,255,0), rgba(126,214,255,.55), rgba(70,227,210,0) 34%, rgba(170,228,255,.5) 60%, rgba(126,214,255,0) 100%);-webkit-mask:radial-gradient(circle, transparent 39%, #000 40%, #000 60%, transparent 61%);mask:radial-gradient(circle, transparent 39%, #000 40%, #000 60%, transparent 61%);animation:lpOrbit 34s linear infinite;}
   @keyframes lpOrbit{to{transform:translate(-50%,-50%) rotate(360deg);}}
   .lp-aura{position:absolute;inset:-15%;pointer-events:none;z-index:0;}
   .lp-aura span{position:absolute;display:block;border-radius:50%;filter:blur(70px);opacity:.65;will-change:transform;mix-blend-mode:screen;}
@@ -416,55 +329,29 @@
   @keyframes lpDrift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-9%,11%) scale(1.14)}}
   @keyframes lpDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(11%,-9%) scale(1.16)}}
   @keyframes lpDrift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(7%,-7%) scale(.9)}}
-
-  .lp-card{position:relative;z-index:2;width:100%;max-width:386px;display:flex;flex-direction:column;overflow:hidden;
-    background:linear-gradient(168deg, rgba(255,255,255,.95), rgba(247,251,255,.85));
-    -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
-    border:1px solid rgba(255,255,255,.9);border-radius:26px;padding:30px 36px 30px;
-    box-shadow:0 34px 90px rgba(5,26,44,.5),0 8px 26px rgba(5,26,44,.28),inset 0 1px 0 rgba(255,255,255,.95);
-    animation:lpRise .7s cubic-bezier(.16,1,.3,1) both;}
-  .lp-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
-    background:linear-gradient(90deg,#1d81c4,#34b0ef,#46e3d2,#1d81c4);background-size:200% 100%;
-    animation:lpStrip 6s linear infinite;}
+  .lp-card{position:relative;z-index:2;width:100%;max-width:386px;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(168deg, rgba(255,255,255,.95), rgba(247,251,255,.85));-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);border:1px solid rgba(255,255,255,.9);border-radius:26px;padding:30px 36px 30px;box-shadow:0 34px 90px rgba(5,26,44,.5),0 8px 26px rgba(5,26,44,.28),inset 0 1px 0 rgba(255,255,255,.95);animation:lpRise .7s cubic-bezier(.16,1,.3,1) both;}
+  .lp-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#1d81c4,#34b0ef,#46e3d2,#1d81c4);background-size:200% 100%;animation:lpStrip 6s linear infinite;}
   @keyframes lpStrip{to{background-position:200% 0;}}
-
-  .lp-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;
-    font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;
-    color:#1366a0;background:rgba(29,129,196,.1);border:1px solid rgba(29,129,196,.22);
-    padding:5px 11px;border-radius:999px;margin:8px 0 16px;}
+  .lp-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#1366a0;background:rgba(29,129,196,.1);border:1px solid rgba(29,129,196,.22);padding:5px 11px;border-radius:999px;margin:8px 0 16px;}
   .lp-badge b{width:6px;height:6px;border-radius:50%;background:#2bb24c;box-shadow:0 0 0 3px rgba(43,178,76,.18);}
   .lp-heading{font-size:23px;font-weight:700;color:#10324c;letter-spacing:-.3px;line-height:1.12;}
   .lp-sub{font-size:13.5px;color:#5b748a;margin-top:6px;margin-bottom:22px;line-height:1.4;}
-
   .lp-field{display:flex;flex-direction:column;gap:6px;margin-bottom:13px;}
   .lp-field label{font-size:11px;font-weight:700;color:#1366a0;letter-spacing:.5px;text-transform:uppercase;}
   .lp-input{position:relative;display:flex;align-items:center;}
   .lp-input svg{position:absolute;left:13px;width:17px;height:17px;color:#7c93a6;pointer-events:none;transition:color .2s;}
-  .lp-input input{width:100%;padding:12px 14px 12px 40px;border:1.5px solid #d7e1ea;border-radius:11px;
-    font-size:14px;font-family:inherit;outline:none;background:rgba(255,255,255,.85);color:#10324c;
-    transition:border-color .2s, box-shadow .2s, background .2s;}
+  .lp-input input{width:100%;padding:12px 14px 12px 40px;border:1.5px solid #d7e1ea;border-radius:11px;font-size:14px;font-family:inherit;outline:none;background:rgba(255,255,255,.85);color:#10324c;transition:border-color .2s, box-shadow .2s, background .2s;}
   .lp-input input::placeholder{color:#9fb0bf;}
   .lp-input input:focus{border-color:#1d81c4;background:#fff;box-shadow:0 0 0 4px rgba(29,129,196,.16);}
   .lp-input:focus-within svg{color:#1d81c4;}
-
-  #loginError{font-size:13px;color:#b3261e;background:rgba(179,38,30,.08);border:1px solid rgba(179,38,30,.3);
-    border-radius:10px;padding:9px 13px;text-align:center;margin-bottom:4px;}
-
-  .lp-btn{position:relative;overflow:hidden;margin-top:8px;padding:13px;border:none;border-radius:12px;
-    font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;color:#fff;letter-spacing:.2px;
-    background:linear-gradient(135deg,#1d81c4 0%,#2596d4 55%,#34b0ef 100%);
-    box-shadow:0 10px 24px rgba(29,129,196,.4),inset 0 1px 0 rgba(255,255,255,.3);
-    transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;}
+  #loginError{font-size:13px;color:#b3261e;background:rgba(179,38,30,.08);border:1px solid rgba(179,38,30,.3);border-radius:10px;padding:9px 13px;text-align:center;margin-bottom:4px;}
+  .lp-btn{position:relative;overflow:hidden;margin-top:8px;padding:13px;border:none;border-radius:12px;font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;color:#fff;letter-spacing:.2px;background:linear-gradient(135deg,#1d81c4 0%,#2596d4 55%,#34b0ef 100%);box-shadow:0 10px 24px rgba(29,129,196,.4),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;}
   .lp-btn:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(29,129,196,.5),inset 0 1px 0 rgba(255,255,255,.35);filter:brightness(1.04);}
   .lp-btn:active{transform:translateY(0);}
   .lp-btn:disabled{cursor:default;filter:saturate(.7) brightness(.96);transform:none;}
-  .lp-btn::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;
-    background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
-    transform:skewX(-18deg);animation:lpBtnSheen 3.6s ease-in-out infinite;}
+  .lp-btn::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-18deg);animation:lpBtnSheen 3.6s ease-in-out infinite;}
   @keyframes lpBtnSheen{0%{left:-130%}55%,100%{left:130%}}
-
   .lp-foot{margin-top:18px;text-align:center;font-size:11.5px;color:#7c93a6;letter-spacing:.2px;}
-
   @keyframes lpRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
   @media (prefers-reduced-motion:reduce){.lp-track,.lp-aura span,.lp-orbit,.lp-card::before,.lp-btn::after{animation:none!important;}}
 </style>
@@ -473,11 +360,7 @@
 
 <!-- LOGIN OVERLAY -->
 <div id="loginOverlay" style="position:fixed;inset:0;z-index:9999;display:flex;background:var(--bg);overflow:hidden;">
-  <!-- LEFT: animated product showcase -->
-  <div class="lp-showcase" aria-hidden="true">
-    <div class="lp-rows" id="lpRows"></div>
-  </div>
-  <!-- RIGHT: credentials -->
+  <div class="lp-showcase" aria-hidden="true"><div class="lp-rows" id="lpRows"></div></div>
   <div class="lp-auth">
     <div class="lp-aura" aria-hidden="true"><span></span><span></span><span></span></div>
     <div class="lp-orbit" aria-hidden="true"></div>
@@ -489,130 +372,90 @@
       <div class="lp-badge"><b></b>Skillmatics Swiggy Sales Dashboard</div>
       <div class="lp-heading">Welcome back</div>
       <div class="lp-sub">Sign in to access your live sales workspace.</div>
-
       <div class="lp-field">
         <label for="loginUser">Username</label>
         <div class="lp-input">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <input id="loginUser" type="text" autocomplete="username" placeholder="Enter username"
-            onkeydown="if(event.key==='Enter') document.getElementById('loginPass').focus()">
+          <input id="loginUser" type="text" autocomplete="username" placeholder="Enter username" onkeydown="if(event.key==='Enter') document.getElementById('loginPass').focus()">
         </div>
       </div>
-
       <div class="lp-field">
         <label for="loginPass">Password</label>
         <div class="lp-input">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <input id="loginPass" type="password" autocomplete="current-password" placeholder="Enter password"
-            onkeydown="if(event.key==='Enter') attemptLogin()">
+          <input id="loginPass" type="password" autocomplete="current-password" placeholder="Enter password" onkeydown="if(event.key==='Enter') attemptLogin()">
         </div>
       </div>
-
       <div id="loginError" style="display:none;"></div>
-
       <button id="loginBtn" class="lp-btn" onclick="attemptLogin()">Sign In</button>
-
       <div class="lp-foot">Secure access &middot; Skillmatics</div>
     </div>
   </div>
 </div>
 
 <!-- LOADING OVERLAY -->
-<div id="loadingOverlay" style="
-  position:fixed;inset:0;z-index:9998;
-  background:var(--bg);
-  display:none;align-items:center;justify-content:center;flex-direction:column;
-  transition:opacity .5s ease;
-">
-  <!-- Ambient animated background -->
-  <div class="load-bg" aria-hidden="true">
-    <div class="load-grid"></div>
-  </div>
-
-  <!-- Floating bestseller product cards (background layer, hardcoded CDN URLs) -->
+<div id="loadingOverlay" style="position:fixed;inset:0;z-index:9998;background:var(--bg);display:none;align-items:center;justify-content:center;flex-direction:column;transition:opacity .5s ease;">
+  <div class="load-bg" aria-hidden="true"><div class="load-grid"></div></div>
   <div class="load-cards" aria-hidden="true" id="loadCards">
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL28NTB/0/MKbmj2EbnA-491603818-1.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514691/UVfxWzI8Ojh0-494514691_1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL201RR/0/IpBaANPxuI-492908399-1_2980.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892737/j8ClA1POSL-491892737-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493175401/0/8t7PyPciNh-493175401-1_7149.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176584/0/606zZospln-493176584-1_5767.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL35GAW/0/Z7aAOh3yac-491568705-1_5870.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892736/x20C0Xd1CEM-491892736-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL237FBG/0/_SO_lBt-pE-492908407-1_7960.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176581/0/DblYM7RHUZd-493176581-1_6223.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL36GWS/0/G5rzzZt3HB-491568706-1_6910.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423356/0/sgD4vsPK8q-494423356-1_6733.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL234ICWU/0/2UxlBqFMtV-492908409-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492365397/SaM-JJUUJD-492365397-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL232GBAW/0/_UxLXrKO44-492908408-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL128TOT/0/H5UUcWCdbZ-492908404-1_4495.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176580/0/zznDRkWjB5-493176580-1_1144.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347879/0/VGVA8GqIjfq-494347879-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423354/0/wYyJ8uthhS-494423354-1_7540.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL119PCB/0/liPEwSMjra-492908402-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892740/hKRco90nfr-491892740-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423355/0/igwz4S7-iD-494423355-1_7835.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494500669/uZlybJEcv-494500669_1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494348582/0/Db55fANkXR-494348582-1_7596.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176583/0/H82s_7mjca-493176583-1_4257.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377539/IVBAp8PEcq-494377539-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347877/0/6ewqSauT5f-494347877-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492407473/v5vgHw8JdU-492407473-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176579/0/oFNKpCmIdzQ-493176579-1_6578.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL194FWH/0/FZHD8d_iURQ-492908400-1_6233.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494230158/0/kx5Q9iQc_W-494230158-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL120CWB/0/FKuQn257A92-492908403-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347876/0/89Bx0blwdK4-494347876-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377540/0/TMwT6Ksj7g-494377540-1_1140.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892739/7DXYxhjNBk-491892739.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL06SEB/0/tBRImV6HDZ-491334540-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377541/0/y67t7EMpMT-494377541-1_4722.webp?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377536/H3UAVGyhtQ-494377536-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492409461/591fDCVZfiqz-492409461-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
-    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347878/0/2lvXU_6zWo-494347878-1.jpg?dpr=1" alt="" decoding="async" fetchpriority="high"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL28NTB/0/MKbmj2EbnA-491603818-1.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514691/UVfxWzI8Ojh0-494514691_1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL201RR/0/IpBaANPxuI-492908399-1_2980.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892737/j8ClA1POSL-491892737-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493175401/0/8t7PyPciNh-493175401-1_7149.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176584/0/606zZospln-493176584-1_5767.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL35GAW/0/Z7aAOh3yac-491568705-1_5870.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892736/x20C0Xd1CEM-491892736-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL237FBG/0/_SO_lBt-pE-492908407-1_7960.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176581/0/DblYM7RHUZd-493176581-1_6223.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL36GWS/0/G5rzzZt3HB-491568706-1_6910.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423356/0/sgD4vsPK8q-494423356-1_6733.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL234ICWU/0/2UxlBqFMtV-492908409-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492365397/SaM-JJUUJD-492365397-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL232GBAW/0/_UxLXrKO44-492908408-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL128TOT/0/H5UUcWCdbZ-492908404-1_4495.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176580/0/zznDRkWjB5-493176580-1_1144.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347879/0/VGVA8GqIjfq-494347879-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423354/0/wYyJ8uthhS-494423354-1_7540.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL119PCB/0/liPEwSMjra-492908402-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892740/hKRco90nfr-491892740-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423355/0/igwz4S7-iD-494423355-1_7835.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494500669/uZlybJEcv-494500669_1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494348582/0/Db55fANkXR-494348582-1_7596.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176583/0/H82s_7mjca-493176583-1_4257.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377539/IVBAp8PEcq-494377539-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347877/0/6ewqSauT5f-494347877-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492407473/v5vgHw8JdU-492407473-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176579/0/oFNKpCmIdzQ-493176579-1_6578.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL194FWH/0/FZHD8d_iURQ-492908400-1_6233.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494230158/0/kx5Q9iQc_W-494230158-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL120CWB/0/FKuQn257A92-492908403-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347876/0/89Bx0blwdK4-494347876-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377540/0/TMwT6Ksj7g-494377540-1_1140.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892739/7DXYxhjNBk-491892739.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL06SEB/0/tBRImV6HDZ-491334540-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377541/0/y67t7EMpMT-494377541-1_4722.webp?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377536/H3UAVGyhtQ-494377536-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492409461/591fDCVZfiqz-492409461-1.jpg?dpr=1" alt="" decoding="async"></div>
+    <div class="lcard"><img src="https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347878/0/2lvXU_6zWo-494347878-1.jpg?dpr=1" alt="" decoding="async"></div>
   </div>
-
-  <!-- Foreground -->
   <div class="load-content">
-    <!-- Skillmatics wordmark (larger, no glow) -->
     <div class="brand-name load-logo">
       <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
       <span class="brand-wordmark-text" style="display:none;">Skillmatics</span>
     </div>
-
-    <!-- Hero progress ring -->
     <div class="load-ring-wrap">
       <svg class="load-ring" viewBox="0 0 120 120" width="196" height="196">
-        <defs>
-          <linearGradient id="loadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#3ba06a"/>
-            <stop offset="55%" stop-color="#1a5f3a"/>
-            <stop offset="100%" stop-color="#b8892e"/>
-          </linearGradient>
-        </defs>
-        <!-- decorative slow-rotating dashed ring -->
+        <defs><linearGradient id="loadGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3ba06a"/><stop offset="55%" stop-color="#1a5f3a"/><stop offset="100%" stop-color="#b8892e"/></linearGradient></defs>
         <circle class="load-ring-deco" cx="60" cy="60" r="56" fill="none" stroke="#d4cfc5" stroke-width="1" stroke-dasharray="1.5 7"/>
-        <!-- track -->
         <circle cx="60" cy="60" r="50" fill="none" stroke="#e2ded6" stroke-width="6"/>
-        <!-- progress arc -->
         <circle id="loadArc" cx="60" cy="60" r="50" fill="none" stroke="url(#loadGrad)" stroke-width="6" stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="314.159" stroke-dashoffset="314.159"/>
-        <!-- comet riding the arc's leading edge -->
-        <g id="loadComet">
-          <circle cx="60" cy="10" r="5.5" fill="#ffffff" stroke="#1a5f3a" stroke-width="2.5"/>
-        </g>
+        <g id="loadComet"><circle cx="60" cy="10" r="5.5" fill="#ffffff" stroke="#1a5f3a" stroke-width="2.5"/></g>
       </svg>
       <div class="load-num"><span id="loadingPct">0</span><span class="load-num-pct">%</span></div>
-      <svg id="loadCheck" class="load-check" viewBox="0 0 52 52" width="66" height="66" style="display:none;">
-        <path d="M14 27 l8 8 l16 -18" fill="none" stroke="#1a5f3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      <svg id="loadCheck" class="load-check" viewBox="0 0 52 52" width="66" height="66" style="display:none;"><path d="M14 27 l8 8 l16 -18" fill="none" stroke="#1a5f3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-
-    <!-- Status -->
     <div id="loadingStatus" class="load-status">Establishing secure connection</div>
     <div id="loadingSubStatus" class="load-sub">Authenticating your session</div>
-
-    <!-- Stage tracker -->
     <div id="loadingSteps" class="load-steps"></div>
   </div>
 </div>
@@ -633,14 +476,10 @@
         <div class="live-dot-wrap"><div class="live-dot"></div><div class="live-ring"></div></div>
         <span class="live-text">Live</span>
       </div>
-      <span id="fileTimestamp" style="display:none;">
-        <span class="last-updated"><span style="font-weight:500;">Updated:</span> <span id="fileTimestampVal"></span></span>
-      </span>
+      <span id="fileTimestamp" style="display:none;"><span class="last-updated"><span style="font-weight:500;">Updated:</span> <span id="fileTimestampVal"></span></span></span>
     </div>
     <div class="hdr-actions">
-      <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
-        <span class="refresh-icon" id="refreshIcon">↻</span> Refresh
-      </button>
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshData()"><span class="refresh-icon" id="refreshIcon">↻</span> Refresh</button>
       <button class="logout-btn" onclick="logout()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Logout
@@ -649,16 +488,12 @@
   </div>
 </div>
 
-<!-- FILTER BAR (global multi-select dropdowns built by JS — populated in a later phase) -->
-<div class="filter-bar" id="filterBar" style="display:none;"></div>
+<!-- FILTER BAR (global multi-select dropdowns built by JS) -->
+<div class="filter-bar" id="filterBar"></div>
 
 <!-- MAIN CONTENT -->
 <div class="main">
-
-  <!-- DASHBOARD SECTIONS (hidden until data loaded) -->
   <div id="dashboardContent">
-
-    <!-- TAB NAVIGATION (sticky) -->
     <div class="tab-nav-sticky">
     <div class="tab-nav">
       <button class="tab-btn active" data-tab="dashboard">
@@ -671,7 +506,7 @@
       </button>
       <button class="tab-btn" data-tab="zonetrends">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5.4 1.8a1 1 0 0 1-1.3-1V6.4a1 1 0 0 1 .7-1L9 3m0 17 6-2m-6 2V3m6 15 5.4 1.8a1 1 0 0 0 1.3-1V4.6a1 1 0 0 0-.7-1L15 1.8m0 16.2V1.8m0 0L9 3"/></svg>
-        <span>Zone Trends</span>
+        <span>Region Trends</span>
       </button>
       <button class="tab-btn" data-tab="producttrends">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 8.4 12 13 3.4 8.4M12 13v8M20.6 8.4 12 3.8 3.4 8.4v7.2L12 20.2l8.6-4.6Z"/></svg>
@@ -680,45 +515,40 @@
     </div>
     </div><!-- /tab-nav-sticky -->
 
-    <!-- ===== TAB: DASHBOARD ===== -->
     <div class="tab-panel active" id="tab-dashboard">
-      <!-- Reports added in a later phase. Data is loaded into RAW / filtered. -->
-    </div><!-- /tab-dashboard -->
+      <div class="tab-empty">Dashboard reports come in the next phase. Use the global filters above — they already drive the loaded data set.</div>
+    </div>
 
-    <!-- ===== TAB: DAILY TRENDS ===== -->
     <div class="tab-panel" id="tab-dailytrends">
-      <!-- Reports added in a later phase. -->
-    </div><!-- /tab-dailytrends -->
+      <div class="sec-header"><div class="sec-title">Daily Trends — Week × Day of Week <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Value · ASP</span></div></div>
+      <div id="secDailyTrends"></div>
+    </div>
 
-    <!-- ===== TAB: ZONE TRENDS ===== -->
     <div class="tab-panel" id="tab-zonetrends">
-      <!-- Reports added in a later phase. -->
-    </div><!-- /tab-zonetrends -->
+      <div class="sec-header"><div class="sec-title">Region Performance Trends <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
+      <div id="secRegionMoM"></div>
+    </div>
 
-    <!-- ===== TAB: PRODUCT TRENDS ===== -->
     <div class="tab-panel" id="tab-producttrends">
-      <!-- Reports added in a later phase. -->
-    </div><!-- /tab-producttrends -->
-
+      <div class="sec-header"><div class="sec-title">Product Performance Trends <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
+      <div id="secProductMoM"></div>
+    </div>
   </div>
 </div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// SKILLMATICS SWIGGY — Phase 1 shell with GT-style data loading
-// Login/logout, loading overlay, animations, colours, live indicator,
-// and refresh are wired. Data IS fetched from JSON (same pipeline as GT)
-// so the dashboard goes live; report rendering & filters come next.
+// SKILLMATICS SWIGGY — Sales Dashboard
+// Login/logout, loading, animations, colours, live indicator, refresh = GT.
+// Data fetched from JSON (GT pipeline). Reports: Daily / Region / Product Trends.
+// Dashboard tab reports & other logics come in a later phase.
 // ═══════════════════════════════════════════════════════════════
 
 // ── DATA & STATE ───────────────────────────────────────────────
-let RAW = [];        // normalized sales rows (UPPER-cased dimensions, like GT)
-let filtered = [];   // current view (no global filters yet → mirrors RAW)
+let RAW = [];
+let filtered = [];
 let dataMinDate = '', dataMaxDate = '';
 
-// ── API URL configuration ──
-// Sales JSON sits next to this HTML file. Stock & ads-cost JSON will be
-// added to this list in a later phase. isTarget kept for GT parity (unused).
 const API_SOURCES = [
   { url: "./data.json", isTarget: false },   // Swiggy sales
 ];
@@ -727,55 +557,32 @@ const API_SOURCES = [
 async function attemptLogin() {
   const userInput = document.getElementById('loginUser').value.trim();
   const passInput = document.getElementById('loginPass').value;
-  const btn       = document.getElementById('loginBtn');
-  const errEl     = document.getElementById('loginError');
-
-  if (!userInput || !passInput) {
-    showLoginError('Please enter both username and password.');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Verifying…';
-  errEl.style.display = 'none';
-
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  if (!userInput || !passInput) { showLoginError('Please enter both username and password.'); return; }
+  btn.disabled = true; btn.textContent = 'Verifying…'; errEl.style.display = 'none';
   try {
-    const storedUser = 'admin';
-    const storedPass = 'admin';
-
-    if (userInput === storedUser && passInput === storedPass) {
+    if (userInput === 'admin' && passInput === 'admin') {
       sessionStorage.setItem('sk_logged_in', '1');
       document.getElementById('loginOverlay').style.display = 'none';
       const loadOv = document.getElementById('loadingOverlay');
-      loadOv.style.display = 'flex';
-      loadOv.style.opacity = '1';
-      resetLoadingVisual();
-      startLoadingCycle();
-
+      loadOv.style.display = 'flex'; loadOv.style.opacity = '1';
+      resetLoadingVisual(); startLoadingCycle();
       await loadDashboardData();
-
       stopLoadingCycle();
       finishLoading('success', 'Dashboard ready', 'Launching your workspace');
       setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
     } else {
       showLoginError('Invalid username or password. Please try again.');
-      btn.disabled = false;
-      btn.textContent = 'Sign In';
+      btn.disabled = false; btn.textContent = 'Sign In';
     }
   } catch (err) {
     console.error('Login error:', err);
     showLoginError('Could not verify credentials. Check your connection and try again.');
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
+    btn.disabled = false; btn.textContent = 'Sign In';
   }
 }
-
-function showLoginError(msg) {
-  const el = document.getElementById('loginError');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
+function showLoginError(msg) { const el = document.getElementById('loginError'); el.textContent = msg; el.style.display = 'block'; }
 function logout() {
   sessionStorage.removeItem('sk_logged_in');
   document.getElementById('loginOverlay').style.display = 'flex';
@@ -788,62 +595,41 @@ function logout() {
   document.getElementById('fileTimestamp').style.display = 'none';
 }
 
-// ── REFRESH STATE ──────────────────────────────────────────────
+// ── REFRESH ────────────────────────────────────────────────────
 function setRefreshState(loading) {
   const btn = document.getElementById('refreshBtn');
   const indicator = document.getElementById('liveIndicator');
-  if (loading) {
-    btn.disabled = true;
-    btn.classList.add('spinning');
-    indicator.classList.remove('visible');
-  } else {
-    btn.disabled = false;
-    btn.classList.remove('spinning');
-  }
+  if (loading) { btn.disabled = true; btn.classList.add('spinning'); indicator.classList.remove('visible'); }
+  else { btn.disabled = false; btn.classList.remove('spinning'); }
 }
-
-function showLiveIndicator() {
-  document.getElementById('liveIndicator').classList.add('visible');
-}
-
+function showLiveIndicator() { document.getElementById('liveIndicator').classList.add('visible'); }
 async function refreshData() {
   setRefreshState(true);
   const loadOv = document.getElementById('loadingOverlay');
-  loadOv.style.display = 'flex';
-  loadOv.style.opacity = '1';
-  resetLoadingVisual();
-  startLoadingCycle();
+  loadOv.style.display = 'flex'; loadOv.style.opacity = '1';
+  resetLoadingVisual(); startLoadingCycle();
   try {
     await loadDashboardData();
     stopLoadingCycle();
     finishLoading('success', 'Dashboard updated', 'Latest figures are in');
     setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
-  } catch (e) {
-    stopLoadingCycle();
-  } finally {
-    setRefreshState(false);
-  }
+  } catch (e) { stopLoadingCycle(); }
+  finally { setRefreshState(false); }
 }
 
-// ── FETCH JSON FILES FROM API (same robust pipeline as GT) ─────
+// ── FETCH JSON (GT pipeline) ───────────────────────────────────
 async function loadDashboardData() {
   setRefreshState(true);
   try {
-    const total = API_SOURCES.length;
-
     async function fetchSource(src) {
-      const res  = await fetch(src.url + '?_=' + Date.now());
+      const res = await fetch(src.url + '?_=' + Date.now());
       const lastModified = res.headers.get('Last-Modified') || res.headers.get('last-modified');
       const text = await res.text();
-      const json = parseJsonText(text); // BOM-strip + "}{" repair
+      const json = parseJsonText(text);
       if (!json) throw new Error(`Could not parse JSON from ${src.url}`);
       return { url: src.url, isTarget: src.isTarget, json, lastModified };
     }
-
-    // Run all fetches in parallel (one failure doesn't block the others)
     const fetchResults = await Promise.allSettled(API_SOURCES.map(fetchSource));
-
-    // Most recent Last-Modified header across all files → header "Updated" stamp
     let latestModified = null;
     for (const r of fetchResults) {
       if (r.status === 'fulfilled' && r.value.lastModified) {
@@ -857,61 +643,36 @@ async function loadDashboardData() {
       document.getElementById('fileTimestampVal').textContent = lmStr;
       document.getElementById('fileTimestamp').style.display = 'inline';
     }
-
-    fetchResults.forEach((r, i) => {
-      if (r.status === 'rejected') console.warn(`[API source ${i}] ${API_SOURCES[i]?.url} — failed:`, r.reason);
-    });
-
+    fetchResults.forEach((r, i) => { if (r.status === 'rejected') console.warn(`[API source ${i}] ${API_SOURCES[i]?.url} — failed:`, r.reason); });
     const salesResults = fetchResults.filter(r => r.status === 'fulfilled' && !r.value.isTarget);
 
-    // ── Build RAW from all sales files ──
-    const parsedFiles = [];
-    let totalEstimate = 0;
-
+    const parsedFiles = []; let totalEstimate = 0;
     for (const r of salesResults) {
       const { json, url } = r.value;
-      if (!Array.isArray(json) || json.length === 0) {
-        console.warn(`No array data in ${url}, skipping`);
-        continue;
-      }
+      if (!Array.isArray(json) || json.length === 0) { console.warn(`No array data in ${url}, skipping`); continue; }
       const sample = json[0] || {};
-      const hasDate  = Object.prototype.hasOwnProperty.call(sample, 'date');
-      const hasSales = Object.prototype.hasOwnProperty.call(sample, 'value') ||
-                       Object.prototype.hasOwnProperty.call(sample, 'sku_code');
-      if (!hasDate || !hasSales) {
-        console.warn(`No Skillmatics Swiggy sales fields found in ${url}, skipping`);
-        continue;
-      }
+      const hasDate = Object.prototype.hasOwnProperty.call(sample, 'date');
+      const hasSales = Object.prototype.hasOwnProperty.call(sample, 'value') || Object.prototype.hasOwnProperty.call(sample, 'sku_code');
+      if (!hasDate || !hasSales) { console.warn(`No Swiggy sales fields in ${url}, skipping`); continue; }
       totalEstimate += json.length;
       parsedFiles.push({ records: json, name: url.split('/').pop() });
       console.log(`Fetched ${url}: ~${json.length.toLocaleString()} rows`);
     }
+    if (parsedFiles.length === 0) throw Object.assign(new Error('No compatible Swiggy sales data was found.'), { kind: 'incompatible' });
 
-    if (parsedFiles.length === 0) {
-      throw Object.assign(new Error('No compatible Skillmatics Swiggy sales data was found.'), { kind: 'incompatible' });
-    }
-
-    // ── Build RAW array in one pass with chunked yields ──
     RAW = new Array(totalEstimate);
-    let writeIdx = 0;
-    const YIELD_INTERVAL = 80000;
-    let sinceLastYield = 0;
-
+    let writeIdx = 0; const YIELD_INTERVAL = 80000; let sinceLastYield = 0;
     for (let si = 0; si < parsedFiles.length; si++) {
       const records = parsedFiles[si].records;
       for (let ri = 0, len = records.length; ri < len; ri++) {
-        const row = records[ri];
-        if (!row) continue;
+        const row = records[ri]; if (!row) continue;
         const yr = (row['year'] != null ? row['year'] : row['cy']);
         if (yr === '' || yr == null) continue;
-
-        // UPPER + trim every text dimension so case/space variants group as one (see up()).
         const ac = up(row['sku_code']), ad = up(row['sku_name']);
         const sku = ac && ad ? (ac + ' - ' + ad) : (ac || ad);
-
         RAW[writeIdx++] = {
           bill_date:    excelDateToISO(row['date']),
-          cy:           str(yr),                 // calendar year (JSON 'year')
+          cy:           str(yr),
           quarter:      up(row['quarter']),
           month:        up(row['month']),
           week:         up(row['week']),
@@ -920,7 +681,7 @@ async function loadDashboardData() {
           amount:       +row['value'] || 0,
           sku_code:     ac,
           sku_name:     ad,
-          product_code: sku,                     // "CODE - NAME" composite, like GT
+          product_code: sku,
           brand_name:   up(row['brand']),
           category:     up(row['category']),
           sub_category: up(row['sub_category']),
@@ -929,65 +690,56 @@ async function loadDashboardData() {
           city_name:    up(row['city']),
           maping_city:  up(row['maping_city'])
         };
-
         sinceLastYield++;
         if (sinceLastYield >= YIELD_INTERVAL) { sinceLastYield = 0; await yieldToUI(); }
       }
-      parsedFiles[si].records = null; // free memory
+      parsedFiles[si].records = null;
     }
-
     if (writeIdx < RAW.length) RAW.length = writeIdx;
     console.log('Total RAW rows:', RAW.length);
     _dateCache.clear();
+    if (RAW.length === 0) throw Object.assign(new Error('No valid sales rows found.'), { kind: 'incompatible' });
 
-    if (RAW.length === 0) {
-      throw Object.assign(new Error('No valid sales rows found.'), { kind: 'incompatible' });
-    }
-
-    // Date bounds (used by reports/filters later). No global filters yet → view = all.
     const dates = RAW.map(r => r.bill_date).filter(Boolean).sort();
     dataMinDate = dates[0] || '';
     dataMaxDate = dates[dates.length - 1] || '';
-    filtered = RAW.slice();
 
-    // ── Reveal dashboard shell (reports rendered in a later phase) ──
+    // Reveal the dashboard shell and (re)build filters + reset report state.
     document.getElementById('dashboardContent').style.display = 'block';
     document.getElementById('dashboardContent').classList.add('visible');
     await yieldToUI();
 
+    buildFilterBar();
+    if (dataMinDate) document.getElementById('dateFrom').value = dataMinDate;
+    if (dataMaxDate) document.getElementById('dateTo').value = dataMaxDate;
+    FILTERS.forEach(cfg => { renderList(cfg); updateTrigger(cfg); });
+    updateDateActive();
+    applyFilters();                 // builds `filtered`
+    markIndependentTabsDirty();     // trend tabs rebuild when next viewed
+    dailyYear = regionFY = productFY = null;  // re-pick latest year on next render
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) ensureIndependentTab(activeTab.dataset.tab);
+    syncFilterBarVisibility();
+
     setRefreshState(false);
     showLiveIndicator();
-
   } catch (error) {
     console.error('Dashboard Load Error:', error);
     setRefreshState(false);
-    if (error && error.kind === 'incompatible') {
-      finishLoading('error', 'Data not compatible', "We couldn't find Skillmatics Swiggy sales data. Please check your JSON sources.");
-    } else {
-      finishLoading('error', 'Something went wrong', "We couldn't load your dashboard. Please check your connection and try again.");
-    }
-    setTimeout(() => {
-      const loadOv = document.getElementById('loadingOverlay');
-      loadOv.style.opacity = '0';
-      setTimeout(() => { loadOv.style.display = 'none'; }, 500);
-    }, 4000);
+    if (error && error.kind === 'incompatible') finishLoading('error', 'Data not compatible', "We couldn't find Swiggy sales data. Please check your JSON sources.");
+    else finishLoading('error', 'Something went wrong', "We couldn't load your dashboard. Please check your connection and try again.");
+    setTimeout(() => { const loadOv = document.getElementById('loadingOverlay'); loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 4000);
     throw error;
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DATA HELPERS  (identical behaviour to GT)
+// DATA HELPERS (identical behaviour to GT)
 // ═══════════════════════════════════════════════════════════════
 function yieldToUI() { return new Promise(resolve => setTimeout(resolve, 0)); }
-
-// Fast string coerce
 function str(v) { return v == null ? '' : typeof v === 'string' ? v : String(v); }
-
-// Canonicalize a dimension value: UPPER + trim so "North"/"NORTH"/" north "
-// collapse into ONE group across every report.
 function up(v) { return v == null ? '' : (typeof v === 'string' ? v : String(v)).trim().toUpperCase(); }
-
-// Excel serial / ISO date string → ISO yyyy-mm-dd (cached).
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 const _dateCache = new Map();
 function excelDateToISO(serial) {
   if (!serial && serial !== 0) return '';
@@ -997,142 +749,535 @@ function excelDateToISO(serial) {
     if (/^\d+(\.\d+)?$/.test(t)) { serial = +t; }
     else { if (t.length >= 8) { const d = new Date(t); if (!isNaN(d)) return d.toISOString().slice(0, 10); } return ''; }
   }
-  let cached = _dateCache.get(serial);
-  if (cached) return cached;
-  const ms = (serial - 25569) * 86400000; // 25569 = days from 1899-12-30 to 1970-01-01
+  let cached = _dateCache.get(serial); if (cached) return cached;
+  const ms = (serial - 25569) * 86400000;
   const d = new Date(ms);
-  const y = d.getUTCFullYear();
-  const m = (d.getUTCMonth() + 1);
-  const day = d.getUTCDate();
+  const y = d.getUTCFullYear(), m = (d.getUTCMonth() + 1), day = d.getUTCDate();
   cached = y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
-  _dateCache.set(serial, cached);
-  return cached;
+  _dateCache.set(serial, cached); return cached;
 }
-
-// Robust JSON parse: strip BOM + tolerate "}{" exports missing the comma.
 function parseJsonText(text) {
   if (text && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-  text = (text || '').trim();
-  if (!text) return null;
+  text = (text || '').trim(); if (!text) return null;
   try { return JSON.parse(text); }
-  catch (e) {
-    try { return JSON.parse(text.replace(/\}\s*\{/g, '},{')); }
-    catch (e2) { return null; }
-  }
+  catch (e) { try { return JSON.parse(text.replace(/\}\s*\{/g, '},{')); } catch (e2) { return null; } }
+}
+// number formatting (GT)
+function fmt(n) { return n == null ? '—' : Number(n).toLocaleString('en-IN'); }
+function fmtRs(n) { return (n == null || !isFinite(n)) ? '—' : '₹' + Math.round(n).toLocaleString('en-IN'); }
+function fmtV(n) { if (n == null) return '—'; if (Math.abs(n) >= 10000000) return '₹' + (n/10000000).toFixed(2) + ' Cr'; if (Math.abs(n) >= 100000) return '₹' + (n/100000).toFixed(2) + ' L'; if (Math.abs(n) >= 1000) return '₹' + (n/1000).toFixed(1) + 'K'; return '₹' + fmt(n); }
+// month label / shift (calendar months YYYY-MM)
+function zmomKeyShift(key, dMonths) { let [y, m] = key.split('-').map(Number); m += dMonths; while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; } return y + '-' + String(m).padStart(2, '0'); }
+function zmomMonLabel(key) { const [y, m] = key.split('-').map(Number); return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }); }
+function zmomFyLabel(fy) { return String(fy); }
+const _MONTH_IDX = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+function monthSortKey(value) {
+  const s = String(value).trim(); let m;
+  m = s.match(/([A-Za-z]{3,})[\s\-\/.,']*?(\d{2,4})/);
+  if (m && _MONTH_IDX[m[1].slice(0, 3).toLowerCase()] != null) { let yr = parseInt(m[2], 10); if (yr < 100) yr += 2000; return yr * 12 + _MONTH_IDX[m[1].slice(0, 3).toLowerCase()]; }
+  m = s.match(/^(\d{4})[\-\/.](\d{1,2})$/); if (m) return parseInt(m[1], 10) * 12 + (parseInt(m[2], 10) - 1);
+  m = s.match(/^(\d{1,2})[\-\/.](\d{4})$/); if (m) return parseInt(m[2], 10) * 12 + (parseInt(m[1], 10) - 1);
+  if (_MONTH_IDX[s.slice(0, 3).toLowerCase()] != null) return _MONTH_IDX[s.slice(0, 3).toLowerCase()];
+  if (/^\d{1,2}$/.test(s)) return parseInt(s, 10) - 1;
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════════════
-// LOADING OVERLAY HELPERS  (kept identical to GT)
+// GLOBAL FILTERS  (Period / Location / Product — no store filters)
+// ═══════════════════════════════════════════════════════════════
+const GROUPS = [
+  { key:'period',   label:'Period' },
+  { key:'location', label:'Location' },
+  { key:'product',  label:'Product' },
+];
+const FILTERS = [
+  { key:'fy',      label:'Year',         field:'cy',           parents:[],               group:'period' },
+  { key:'quarter', label:'Quarter',      field:'quarter',      parents:['fy'],           group:'period' },
+  { key:'month',   label:'Month',        field:'month',        parents:['fy','quarter'], group:'period' },
+  { key:'zone',    label:'Zone',         field:'zone_name',    parents:[],               group:'location' },
+  { key:'state',   label:'State',        field:'state_name',   parents:['zone'],         group:'location' },
+  { key:'city',    label:'City',         field:'city_name',    parents:['zone','state'], group:'location' },
+  { key:'brand',   label:'Brand',        field:'brand_name',   parents:[],               group:'product' },
+  { key:'category',label:'Category',     field:'category',     parents:[],               group:'product' },
+  { key:'subcat',  label:'Sub Category', field:'sub_category', parents:['category'],     group:'product' },
+  { key:'product', label:'Product',      field:'product_code', parents:[],               group:'product' },
+];
+const FMAP = Object.fromEntries(FILTERS.map(f => [f.key, f]));
+const selected = {}; FILTERS.forEach(f => selected[f.key] = new Set());
+const DEPENDENTS = {}; FILTERS.forEach(f => f.parents.forEach(p => { (DEPENDENTS[p] = DEPENDENTS[p] || []).push(f.key); }));
+const lastOpts = {};
+let filterTimer = null;
+function debouncedApply() { if (filterTimer) clearTimeout(filterTimer); filterTimer = setTimeout(applyFilters, 150); }
+
+function computeOptions(cfg) {
+  const vals = new Set();
+  for (let i = 0, len = RAW.length; i < len; i++) {
+    const r = RAW[i]; let ok = true;
+    for (const p of cfg.parents) { const sel = selected[p]; if (sel.size > 0 && !sel.has(r[FMAP[p].field])) { ok = false; break; } }
+    if (!ok) continue;
+    const v = r[cfg.field]; if (v) vals.add(v);
+  }
+  const arr = [...vals];
+  if (cfg.key === 'month') {
+    arr.sort((a, b) => { const ka = monthSortKey(a), kb = monthSortKey(b); if (ka == null && kb == null) return String(a).localeCompare(String(b)); if (ka == null) return 1; if (kb == null) return -1; return ka - kb; });
+  } else arr.sort();
+  return arr.map(v => ({ value: v, label: v }));
+}
+function visibleOptions(cfg) {
+  const sb = document.getElementById('mc-search-' + cfg.key);
+  const q = (sb && sb.value ? sb.value : '').toLowerCase();
+  const opts = computeOptions(cfg);
+  if (!q) return opts;
+  return opts.filter(o => o.label.toLowerCase().includes(q));
+}
+function renderList(cfg, search) {
+  const opts = computeOptions(cfg);
+  const sel = selected[cfg.key];
+  const q = (search || '').toLowerCase();
+  const shown = q ? opts.filter(o => o.label.toLowerCase().includes(q)) : opts;
+  lastOpts[cfg.key] = shown;
+  const el = document.getElementById('mc-list-' + cfg.key); if (!el) return;
+  el.innerHTML = shown.map((o, i) => `<label class="ms-item"><input type="checkbox" data-i="${i}" ${sel.has(o.value) ? 'checked' : ''}><span>${escapeHtml(o.label)}</span></label>`).join('') || '<div style="padding:10px 13px;color:var(--text3);font-size:12px;">No matches</div>';
+  el.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => {
+    const o = lastOpts[cfg.key][+cb.dataset.i]; if (!o) return;
+    if (cb.checked) sel.add(o.value); else sel.delete(o.value);
+    updateTrigger(cfg); onFilterChanged(cfg.key);
+  }));
+}
+function updateTrigger(cfg) {
+  const btn = document.getElementById('mc-btn-' + cfg.key);
+  const badge = document.getElementById('mc-badge-' + cfg.key);
+  if (!btn || !badge) return;
+  const n = selected[cfg.key].size;
+  badge.textContent = n; badge.classList.toggle('show', n > 0); btn.classList.toggle('active', n > 0);
+}
+function updateDateActive() {
+  const df = document.getElementById('dateFrom'), dt = document.getElementById('dateTo');
+  if (df) df.classList.toggle('active', !!(df.value && df.value !== dataMinDate));
+  if (dt) dt.classList.toggle('active', !!(dt.value && dt.value !== dataMaxDate));
+}
+function onFilterChanged(key) { refreshDependents(key); applyFilters(); }
+function refreshDependents(key) {
+  const deps = DEPENDENTS[key] || [];
+  for (const dk of deps) {
+    const cfg = FMAP[dk];
+    const valid = new Set(computeOptions(cfg).map(o => o.value));
+    for (const v of [...selected[dk]]) if (!valid.has(v)) selected[dk].delete(v);
+    const sb = document.getElementById('mc-search-' + dk);
+    renderList(cfg, sb ? sb.value : ''); updateTrigger(cfg); refreshDependents(dk);
+  }
+}
+function selectAllOptions(cfg) { visibleOptions(cfg).forEach(o => selected[cfg.key].add(o.value)); const sb = document.getElementById('mc-search-' + cfg.key); renderList(cfg, sb ? sb.value : ''); updateTrigger(cfg); onFilterChanged(cfg.key); }
+function clearAllOptions(cfg) { selected[cfg.key].clear(); const sb = document.getElementById('mc-search-' + cfg.key); if (sb) sb.value = ''; renderList(cfg); updateTrigger(cfg); onFilterChanged(cfg.key); }
+function closeAllPanels() { document.querySelectorAll('.mc-panel.open').forEach(p => p.classList.remove('open')); document.querySelectorAll('.mc-btn.open').forEach(b => b.classList.remove('open')); }
+
+function buildFilterBar() {
+  const mcChip = cfg => `
+    <div class="mc">
+      <button class="mc-btn" id="mc-btn-${cfg.key}" type="button"><span>${cfg.label}</span><span class="mc-badge" id="mc-badge-${cfg.key}">0</span><span class="mc-chev">▾</span></button>
+      <div class="mc-panel" id="mc-panel-${cfg.key}">
+        <input type="text" class="ms-search" id="mc-search-${cfg.key}" placeholder="Search ${cfg.label.toLowerCase()}…">
+        <div class="ms-list" id="mc-list-${cfg.key}"></div>
+        <div class="ms-actions"><button class="ms-action-btn" data-act="all" data-key="${cfg.key}">Select All</button><button class="ms-action-btn" data-act="clear" data-key="${cfg.key}">Clear All</button></div>
+      </div>
+    </div>`;
+  const dateControls = `
+    <span class="mc-dlbl">From</span><input type="date" class="mc-date" id="dateFrom" title="From date">
+    <span class="mc-dash">–</span>
+    <span class="mc-dlbl">To</span><input type="date" class="mc-date" id="dateTo" title="To date">`;
+  const segHtml = g => {
+    const chips = FILTERS.filter(f => f.group === g.key).map(mcChip).join('');
+    const inner = (g.key === 'period' ? dateControls : '') + chips;
+    return `<div class="seg seg-${g.key}"><span class="seg-label">${g.label}</span><div class="seg-filters">${inner}</div></div>`;
+  };
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = `<div class="fbar">${GROUPS.map(segHtml).join('')}<div class="fbar-spacer"></div><button class="btn-reset" id="resetBtn">↺ Reset</button></div>`;
+  FILTERS.forEach(cfg => {
+    const btn = document.getElementById('mc-btn-' + cfg.key);
+    const panel = document.getElementById('mc-panel-' + cfg.key);
+    btn.addEventListener('click', () => {
+      const isOpen = panel.classList.contains('open');
+      closeAllPanels();
+      if (!isOpen) { panel.classList.add('open'); btn.classList.add('open'); const sb = document.getElementById('mc-search-' + cfg.key); if (sb) setTimeout(() => sb.focus(), 0); }
+    });
+    const sb = document.getElementById('mc-search-' + cfg.key);
+    if (sb) sb.addEventListener('input', () => renderList(cfg, sb.value));
+  });
+  bar.querySelectorAll('.ms-action-btn').forEach(btn => btn.addEventListener('click', () => { const cfg = FMAP[btn.dataset.key]; if (btn.dataset.act === 'all') selectAllOptions(cfg); else clearAllOptions(cfg); }));
+  document.getElementById('dateFrom').addEventListener('change', () => { updateDateActive(); debouncedApply(); });
+  document.getElementById('dateTo').addEventListener('change', () => { updateDateActive(); debouncedApply(); });
+  document.getElementById('resetBtn').addEventListener('click', resetFilters);
+  document.addEventListener('click', e => { if (!e.target.closest('.mc')) closeAllPanels(); });
+}
+function matchesSelected(r) {
+  for (let k = 0; k < FILTERS.length; k++) {
+    const cfg = FILTERS[k]; const sel = selected[cfg.key];
+    if (sel.size > 0 && !sel.has(r[cfg.field])) return false;
+  }
+  return true;
+}
+function applyFilters() {
+  const df = document.getElementById('dateFrom'), dt = document.getElementById('dateTo');
+  const dateFrom = df ? df.value : '', dateTo = dt ? dt.value : '';
+  filtered = [];
+  for (let i = 0, len = RAW.length; i < len; i++) {
+    const r = RAW[i];
+    if (dateFrom && r.bill_date < dateFrom) continue;
+    if (dateTo && r.bill_date > dateTo) continue;
+    if (!matchesSelected(r)) continue;
+    filtered.push(r);
+  }
+  updateDateActive();
+  renderAll();
+}
+function resetFilters() {
+  FILTERS.forEach(cfg => { selected[cfg.key].clear(); const sb = document.getElementById('mc-search-' + cfg.key); if (sb) sb.value = ''; renderList(cfg); updateTrigger(cfg); });
+  if (dataMinDate) document.getElementById('dateFrom').value = dataMinDate;
+  if (dataMaxDate) document.getElementById('dateTo').value = dataMaxDate;
+  applyFilters();
+}
+// Dashboard-tab reports come in a later phase; the global filters still build `filtered`.
+function renderAll() { /* no dashboard reports yet */ }
+
+// ═══════════════════════════════════════════════════════════════
+// INDEPENDENT TREND TABS (render lazily, re-arm after each data load)
+// ═══════════════════════════════════════════════════════════════
+const INDEP_TAB_RENDER = {
+  dailytrends:   renderDailyTrends,
+  zonetrends:    renderRegionMoM,
+  producttrends: renderProductMoM,
+};
+let _indepTabsDirty = new Set();
+function markIndependentTabsDirty() { _indepTabsDirty = new Set(Object.keys(INDEP_TAB_RENDER)); }
+function ensureIndependentTab(tab) { const fn = INDEP_TAB_RENDER[tab]; if (fn && _indepTabsDirty.has(tab)) { fn(); _indepTabsDirty.delete(tab); } }
+
+// ═══════════════════════════════════════════════════════════════
+// DAILY TRENDS  (week × day-of-week — same format as GT)
+// ═══════════════════════════════════════════════════════════════
+const DOW_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAILY_METRICS = [{k:'all',label:'All'},{k:'qty',label:'Qty'},{k:'value',label:'Value'},{k:'asp',label:'ASP'}];
+const WT_FILTERS = [
+  { key:'zone',    label:'Zone',         field:'zone_name',    group:'loc' },
+  { key:'state',   label:'State',        field:'state_name',   group:'loc' },
+  { key:'city',    label:'City',         field:'city_name',    group:'loc' },
+  { key:'brand',   label:'Brand',        field:'brand_name',   group:'prod' },
+  { key:'category',label:'Category',     field:'category',     group:'prod' },
+  { key:'subcat',  label:'Sub Category', field:'sub_category', group:'prod' },
+  { key:'sku',     label:'Product',      field:'product_code', group:'prod' },
+];
+let dailyYear = null, dailyMetric = 'all';
+const dailyFilt = {}; WT_FILTERS.forEach(f => dailyFilt[f.key] = new Set());
+
+function renderDailyTrends(){
+  const host = document.getElementById('secDailyTrends');
+  if (!host) return;
+  if (!RAW || !RAW.length){ host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+
+  const dowOf = iso => { const d = new Date(iso + 'T00:00:00Z').getUTCDay(); return (d + 6) % 7; };
+  const fyOf  = r => { if (!r.bill_date || r.bill_date.length < 7) return null; return +r.bill_date.slice(0,4); };
+  const wkOf  = r => { const m = String(r.week).match(/\d+/); return m ? +m[0] : null; };
+
+  const yearSet = new Set();
+  for (let i=0;i<RAW.length;i++){ const y = fyOf(RAW[i]); if (y!=null) yearSet.add(y); }
+  const yearList = [...yearSet].sort((a,b)=>b-a);
+  if (!yearList.length){ host.innerHTML='<div class="no-data">No dated sales rows found.</div>'; return; }
+  if (dailyYear == null || !yearSet.has(dailyYear)) dailyYear = yearList[0];
+  const fyLbl = String(dailyYear);
+
+  const optSets={}; WT_FILTERS.forEach(f=>optSets[f.key]=new Set());
+  for (const r of RAW){ WT_FILTERS.forEach(f=>{ const v=r[f.field]; if(v!=null&&v!=='') optSets[f.key].add(String(v)); }); }
+  const opts={}; WT_FILTERS.forEach(f=>{ opts[f.key]=[...optSets[f.key]].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})); });
+  WT_FILTERS.forEach(f=>{ [...dailyFilt[f.key]].forEach(v=>{ if(!optSets[f.key].has(v)) dailyFilt[f.key].delete(v); }); });
+  const passFilters = r => WT_FILTERS.every(f => !dailyFilt[f.key].size || dailyFilt[f.key].has(String(r[f.field])));
+  const fmtDM = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+
+  function paint(){
+    const wk = {};
+    for (let i=0;i<RAW.length;i++){
+      const r = RAW[i];
+      if (fyOf(r) !== dailyYear) continue;
+      if (!r.bill_date || r.bill_date.length<10) continue;
+      if (!passFilters(r)) continue;
+      const w = wkOf(r); if (w==null) continue;
+      const di = dowOf(r.bill_date);
+      let e = wk[w]; if (!e){ e = wk[w] = { w, days:Array.from({length:7},()=>({q:0,s:0})), min:r.bill_date, max:r.bill_date }; }
+      e.days[di].q += r.quantity||0; e.days[di].s += r.amount||0;
+      if (r.bill_date < e.min) e.min = r.bill_date;
+      if (r.bill_date > e.max) e.max = r.bill_date;
+    }
+    const weeks = Object.values(wk).sort((a,b)=> a.min<b.min?-1 : a.min>b.min?1 : a.w-b.w);
+    const M = dailyMetric;
+    const cellInner = c => {
+      const has = c.q||c.s, asp = c.q ? c.s/c.q : null;
+      if (!has) return '<span class="ddt-muted">—</span>';
+      if (M==='qty')   return fmt(c.q);
+      if (M==='value') return fmtV(c.s);
+      if (M==='asp')   return asp==null?'—':fmtRs(asp);
+      return `<div class="ddt-cell"><span class="cq">${fmt(c.q)}</span><span class="cv">${fmtV(c.s)} <span class="ca">(${asp==null?'—':fmtRs(asp)})</span></span></div>`;
+    };
+    let maxS = 0;
+    if (M==='value' || M==='all') weeks.forEach(e=>e.days.forEach(c=>{ if(c.s>maxS) maxS=c.s; }));
+    const shade = s => maxS ? `style="background:rgba(45,122,78,${(0.04+0.30*Math.min(1,s/maxS)).toFixed(3)})"` : '';
+    const rowFor = e => {
+      const dayCells = e.days.map((c,di)=>`<td class="${di===0?'grp-start':''}" ${shade(c.s)}>${cellInner(c)}</td>`).join('');
+      const tq = e.days.reduce((a,c)=>a+c.q,0), ts = e.days.reduce((a,c)=>a+c.s,0);
+      return `<tr><td class="dcol">Week ${e.w}</td><td class="dcol2">${fmtDM(e.min)} – ${fmtDM(e.max)}</td>${dayCells}<td class="totcell">${cellInner({q:tq,s:ts})}</td></tr>`;
+    };
+    const totDays = Array.from({length:7},()=>({q:0,s:0}));
+    weeks.forEach(e=>e.days.forEach((c,di)=>{ totDays[di].q+=c.q; totDays[di].s+=c.s; }));
+    const gQ = totDays.reduce((a,c)=>a+c.q,0), gS = totDays.reduce((a,c)=>a+c.s,0);
+    const totDayCells = totDays.map((c,di)=>`<td class="${di===0?'grp-start':''}">${cellInner(c)}</td>`).join('');
+    const totalRow = `<tr class="total-row"><td class="dcol">Total</td><td class="dcol2">${fyLbl} · all weeks</td>${totDayCells}<td class="totcell">${cellInner({q:gQ,s:gS})}</td></tr>`;
+    const dayHead = DOW_NAMES.map((d,di)=>`<th${di===0?' class="grp-start"':''}>${d}</th>`).join('');
+    const thead = `<thead><tr class="single"><th class="dcol">Week</th><th class="dcol2">Date Range</th>${dayHead}<th class="grp-tot grp-start">Total</th></tr></thead>`;
+    const colCount = 2 + 7 + 1;
+    const body = weeks.length ? weeks.map(rowFor).join('') + totalRow
+      : `<tr><td class="dcol">—</td><td class="dcol2">—</td><td colspan="${colCount-2}" style="text-align:center;padding:18px;color:var(--text3)">No sales match the current filters for ${fyLbl}.</td></tr>`;
+    const t = document.getElementById('dailyTableHost');
+    if (t) t.innerHTML = `<div class="ddt-wrap"><table class="ddt">${thead}<tbody>${body}</tbody></table></div>`;
+  }
+
+  function updateChipBadge(key){ const b=host.querySelector('#dcbadge-'+key); if(!b) return; const n=dailyFilt[key].size; b.textContent=n; b.classList.toggle('show',!!n); b.style.display=n?'inline-flex':'none'; }
+  function renderChipList(key,search){
+    const list=host.querySelector('#dclist-'+key); if(!list) return;
+    const sq=(search||'').trim().toLowerCase(); const sel=dailyFilt[key];
+    const items=opts[key].filter(o=>!sq||o.toLowerCase().includes(sq));
+    list.innerHTML=items.length?items.map(o=>`<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${sel.has(o)?'checked':''}><span>${escapeHtml(o)}</span></label>`).join(''):'<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
+    list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{ const v=cb.dataset.v; if(cb.checked) sel.add(v); else sel.delete(v); updateChipBadge(key); paint(); }));
+  }
+
+  const yearPills = yearList.map(y=>`<button class="zmom-pill fy-pill${y===dailyYear?' active':''}" data-dyear="${y}">${y}</button>`).join('');
+  const mPills = DAILY_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===dailyMetric?' active':''}" data-dmetric="${m.k}">${m.label}</button>`).join('');
+  const chip = f=>`<div class="mc"><button class="mc-btn" id="dcbtn-${f.key}" type="button"><span>${escapeHtml(f.label)}</span><span class="mc-badge" id="dcbadge-${f.key}" style="display:none">0</span><span class="mc-chev">▾</span></button><div class="mc-panel" id="dcpanel-${f.key}"><input type="text" class="ms-search" id="dcsearch-${f.key}" placeholder="Search ${escapeHtml(f.label.toLowerCase())}…"><div class="ms-list" id="dclist-${f.key}"></div><div class="ms-actions"><button class="ms-action-btn" data-dcact="all" data-dck="${f.key}">Select All</button><button class="ms-action-btn" data-dcact="clear" data-dck="${f.key}">Clear All</button></div></div></div>`;
+  const locChips = WT_FILTERS.filter(f=>f.group==='loc').map(chip).join('');
+  const prodChips = WT_FILTERS.filter(f=>f.group==='prod').map(chip).join('');
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yearPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Location</label><div class="bt-chips">${locChips}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Product</label><div class="bt-chips">${prodChips}</div></div>
+      <button class="kpi-reset" id="dtReset" title="Clear all Location &amp; Product filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${fyLbl}</b> · by week</span><span class="bt-period-tag">Daily Trends</span></div>
+    </div>
+    <div id="dailyTableHost"></div>
+    <div class="ddt-note">Each row is a week of <b>${fyLbl}</b> split by day of week (Mon–Sun) · day-of-week derived from the bill date · ASP = Value ÷ Qty · <b>Total</b> column = week total, <b>Total</b> row = year total · updates with the Location &amp; Product filters · independent of the global filters.</div>`;
+
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ dailyYear=+b.dataset.dyear; renderDailyTrends(); }));
+  host.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ dailyMetric=b.dataset.dmetric; renderDailyTrends(); }));
+  host.querySelector('#dtReset').addEventListener('click',()=>{ WT_FILTERS.forEach(f=>dailyFilt[f.key].clear()); renderDailyTrends(); });
+  WT_FILTERS.forEach(f=>{
+    const btn=host.querySelector('#dcbtn-'+f.key), panel=host.querySelector('#dcpanel-'+f.key);
+    btn.addEventListener('click',()=>{ const open=panel.classList.contains('open'); closeAllPanels(); if(!open){ panel.classList.add('open'); btn.classList.add('open'); const sb=host.querySelector('#dcsearch-'+f.key); if(sb) setTimeout(()=>sb.focus(),0); } });
+    const sb=host.querySelector('#dcsearch-'+f.key); if(sb) sb.addEventListener('input',()=>renderChipList(f.key,sb.value));
+    renderChipList(f.key,''); updateChipBadge(f.key);
+  });
+  host.querySelectorAll('.ms-action-btn[data-dck]').forEach(b=>b.addEventListener('click',()=>{
+    const key=b.dataset.dck, sb=host.querySelector('#dcsearch-'+key);
+    if(b.dataset.dcact==='all'){ const sq=(sb&&sb.value?sb.value:'').trim().toLowerCase(); (sq?opts[key].filter(o=>o.toLowerCase().includes(sq)):opts[key]).forEach(v=>dailyFilt[key].add(v)); }
+    else { dailyFilt[key].clear(); if(sb) sb.value=''; }
+    renderChipList(key, sb?sb.value:''); updateChipBadge(key); paint();
+  }));
+  paint();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REGION & PRODUCT TRENDS  (month-wise Qty + Sales matrix)
+// Generic month matrix: rows = selected dimension, columns = months,
+// every cell shows Sales (big) + Qty together.
+// ═══════════════════════════════════════════════════════════════
+const REGION_DIMS = [
+  { k:'zone',  label:'Zone',  field:'zone_name'  },
+  { k:'state', label:'State', field:'state_name' },
+  { k:'city',  label:'City',  field:'city_name'  },
+];
+const PRODUCT_DIMS = [
+  { k:'brand',  label:'Brand',        field:'brand_name'   },
+  { k:'category',label:'Category',     field:'category'     },
+  { k:'subcat', label:'Sub Category', field:'sub_category' },
+  { k:'sku',    label:'Product',      field:'product_code' },
+];
+let regionDim='zone', regionFY=null, regionSearch='', regionSearchActive=false;
+let productDim='brand', productFY=null, productSearch='', productSearchActive=false;
+
+// Shared month-matrix renderer.
+function renderMatrix(C){
+  const host=document.getElementById(C.hostId);
+  if(!host) return;
+  if(!RAW || !RAW.length){ host.innerHTML='<div class="no-data">No data loaded.</div>'; return; }
+  const dimCfg=C.dims.find(d=>d.k===C.getDim())||C.dims[0];
+  const field=dimCfg.field;
+  const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
+
+  const qty={}, sale={}, monthsSet=new Set(), keysSet=new Set();
+  for(let i=0;i<RAW.length;i++){
+    const r=RAW[i]; const mk=mkOf(r); if(!mk) continue;
+    const k=(r[field]==null||r[field]==='')?'—':String(r[field]);
+    keysSet.add(k); monthsSet.add(mk);
+    (qty[k]||(qty[k]={}))[mk]=(qty[k][mk]||0)+(r.quantity||0);
+    (sale[k]||(sale[k]={}))[mk]=(sale[k][mk]||0)+(r.amount||0);
+  }
+  if(!keysSet.size){ host.innerHTML='<div class="no-data">No data</div>'; return; }
+  const fyOf=mk=>+mk.split('-')[0];
+  const fySet=new Set(); monthsSet.forEach(mk=>fySet.add(fyOf(mk)));
+  const fyList=[...fySet].sort((a,b)=>b-a);
+  let selFY=C.getFY();
+  if(selFY==null || !fySet.has(selFY)){ selFY=fyList[0]; C.setFY(selFY); }
+  const fyMonths=[]; for(let i=0;i<12;i++) fyMonths.push(zmomKeyShift(selFY+'-01',i));
+
+  const qAt=(k,mk)=>(qty[k]&&qty[k][mk])||0, sAt=(k,mk)=>(sale[k]&&sale[k][mk])||0;
+  const fyQ={}, fyS={};
+  keysSet.forEach(k=>{ let q=0,s=0; fyMonths.forEach(mk=>{ q+=qAt(k,mk); s+=sAt(k,mk); }); fyQ[k]=q; fyS[k]=s; });
+  let rowsArr=[...keysSet].filter(k=>fyQ[k]||fyS[k]).sort((a,b)=>String(a).localeCompare(String(b)));
+  const sq=(C.getSearch()||'').trim().toLowerCase();
+  if(sq) rowsArr=rowsArr.filter(k=>String(k).toLowerCase().includes(sq));
+
+  const cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:'Sales · Qty' }));
+  const val=(k,c)=>({ q:qAt(k,c.id), s:sAt(k,c.id) });
+
+  let maxSale=0; rowsArr.forEach(k=>cols.forEach(c=>{ maxSale=Math.max(maxSale, val(k,c).s); }));
+  const TOTAL='__ALL__';
+  fyQ[TOTAL]=rowsArr.reduce((a,k)=>a+fyQ[k],0); fyS[TOTAL]=rowsArr.reduce((a,k)=>a+fyS[k],0);
+  const colTotal=c=>{ let q=0,s=0; rowsArr.forEach(k=>{ const v=val(k,c); q+=v.q; s+=v.s; }); return {q,s}; };
+
+  const dimW=190;
+  const cellHtml=v=>{ const has=v.q||v.s;
+    const style=has?`background:rgba(45,122,78,${(0.05+0.30*(maxSale?Math.min(1,v.s/maxSale):0)).toFixed(3)});`:'';
+    return `<td class="zcell" style="${style}"><div class="pt-cell"><div class="pt-sale">${has?fmtV(v.s):'—'}</div><div class="pt-qty">${has?fmt(v.q)+' qty':''}</div></div></td>`;
+  };
+  const rowFor=(k,isTotal)=>{
+    const cells=cols.map(c=>cellHtml(isTotal?colTotal(c):val(k,c))).join('');
+    const fq=isTotal?fyQ[TOTAL]:fyQ[k], fs=isTotal?fyS[TOTAL]:fyS[k];
+    const fyCell=`<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(fs)}</div><div class="pt-qty">${fmt(fq)} qty</div></div></td>`;
+    const dimCell=isTotal
+      ? `<td class="zcol zlast" style="left:0;min-width:${dimW}px">TOTAL</td>`
+      : `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(k)}">${escapeHtml(k)}</td>`;
+    return `<tr class="${isTotal?'total-row':''}">${dimCell}${fyCell}${cells}</tr>`;
+  };
+  const headCells=cols.map(c=>`<th>${escapeHtml(c.label)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
+  const thead=`<thead><tr><th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th><th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">Sales · Qty</span></th>${headCells}</tr></thead>`;
+  const body=rowsArr.length
+    ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
+    : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
+
+  const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
+  const dimPills=C.dims.map(d=>`<button class="zmom-pill v-pill${d.k===C.getDim()?' active':''}" data-dim="${d.k}">${d.label}</button>`).join('');
+
+  host.innerHTML=`
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox mx-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(C.getSearch())}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">${escapeHtml(C.dimLabel)}</label><div class="bt-chips">${dimPills}</div></div>
+      <button class="kpi-reset" id="mxReset" title="Clear search">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Jan–Dec</span><span class="bt-period-tag">${escapeHtml(C.tag)}</span></div>
+    </div>
+    <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · each cell shows Sales &amp; Qty · independent of the global filters.</div>`;
+
+  host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ C.setFY(+b.dataset.fy); C.rerender(); }));
+  host.querySelectorAll('.v-pill').forEach(b=>b.addEventListener('click',()=>{ C.setDim(b.dataset.dim); C.setSearch(''); C.setSearchActive(false); C.rerender(); }));
+  const si=host.querySelector('.mx-search');
+  if(si){
+    si.addEventListener('input',()=>{ C.setSearch(si.value); C.setSearchActive(true); C.rerender(); });
+    si.addEventListener('focus',()=>{ C.setSearchActive(true); });
+    si.addEventListener('blur',()=>{ C.setSearchActive(false); });
+    if(C.getSearchActive()){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
+  }
+  const rb=host.querySelector('#mxReset');
+  if(rb) rb.addEventListener('click',()=>{ C.setSearch(''); C.setSearchActive(false); C.rerender(); });
+}
+
+function renderRegionMoM(){
+  renderMatrix({
+    hostId:'secRegionMoM', dims:REGION_DIMS, dimLabel:'View', tag:'Region Trends',
+    getDim:()=>regionDim, setDim:v=>{regionDim=v;},
+    getFY:()=>regionFY, setFY:v=>{regionFY=v;},
+    getSearch:()=>regionSearch, setSearch:v=>{regionSearch=v;},
+    getSearchActive:()=>regionSearchActive, setSearchActive:v=>{regionSearchActive=v;},
+    rerender:renderRegionMoM,
+  });
+}
+function renderProductMoM(){
+  renderMatrix({
+    hostId:'secProductMoM', dims:PRODUCT_DIMS, dimLabel:'Dimension', tag:'Product Trends',
+    getDim:()=>productDim, setDim:v=>{productDim=v;},
+    getFY:()=>productFY, setFY:v=>{productFY=v;},
+    getSearch:()=>productSearch, setSearch:v=>{productSearch=v;},
+    getSearchActive:()=>productSearchActive, setSearchActive:v=>{productSearchActive=v;},
+    rerender:renderProductMoM,
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOADING OVERLAY HELPERS (kept identical to GT)
 // ═══════════════════════════════════════════════════════════════
 let _msgTO = null;
 function setLoadingMsg(main, sub, instant) {
-  const s = document.getElementById('loadingStatus');
-  const ss = document.getElementById('loadingSubStatus');
+  const s = document.getElementById('loadingStatus'), ss = document.getElementById('loadingSubStatus');
   if (_msgTO) { clearTimeout(_msgTO); _msgTO = null; }
-  const apply = () => {
-    if (s)  { s.textContent = main; s.style.opacity = '1'; }
-    if (ss) { ss.textContent = sub || ''; ss.style.opacity = '1'; }
-  };
+  const apply = () => { if (s) { s.textContent = main; s.style.opacity = '1'; } if (ss) { ss.textContent = sub || ''; ss.style.opacity = '1'; } };
   if (instant) { apply(); return; }
-  if (s)  s.style.opacity = '0';
-  if (ss) ss.style.opacity = '0';
+  if (s) s.style.opacity = '0'; if (ss) ss.style.opacity = '0';
   _msgTO = setTimeout(apply, 180);
 }
-
 const LOADING_STAGES = [
   { p: 6,  main: 'Establishing secure connection', sub: 'Authenticating your session' },
   { p: 22, main: 'Connecting to data warehouse',   sub: 'Reaching the Skillmatics data layer' },
   { p: 44, main: 'Retrieving sales data',          sub: 'Streaming transactions across all periods' },
   { p: 66, main: 'Consolidating datasets',         sub: 'Unifying zones & products' },
-  { p: 83, main: 'Computing performance metrics',  sub: 'Aggregating KPIs, trends & inventory' },
+  { p: 83, main: 'Computing performance metrics',  sub: 'Aggregating trends & inventory' },
   { p: 93, main: 'Finalizing your dashboard',      sub: 'Preparing your workspace' },
 ];
-const _LOAD_CAP = 96;
-const _LOAD_CIRC = 2 * Math.PI * 50;
+const _LOAD_CAP = 96, _LOAD_CIRC = 2 * Math.PI * 50;
 let _loadCycle = null, _loadProgress = 0, _loadStageIdx = -1;
-
-function _renderLoadSteps() {
-  const host = document.getElementById('loadingSteps');
-  if (!host) return;
-  host.innerHTML = LOADING_STAGES.map(() => '<div class="lstep"><div class="lstep-fill"></div></div>').join('');
-}
-
+function _renderLoadSteps() { const host = document.getElementById('loadingSteps'); if (!host) return; host.innerHTML = LOADING_STAGES.map(() => '<div class="lstep"><div class="lstep-fill"></div></div>').join(''); }
 function _paintLoadProgress() {
   const p = _loadProgress;
-  const arc   = document.getElementById('loadArc');
-  const comet = document.getElementById('loadComet');
-  const pct   = document.getElementById('loadingPct');
-  if (arc)   arc.style.strokeDashoffset = (_LOAD_CIRC * (1 - p / 100)).toFixed(2);
+  const arc = document.getElementById('loadArc'), comet = document.getElementById('loadComet'), pct = document.getElementById('loadingPct');
+  if (arc) arc.style.strokeDashoffset = (_LOAD_CIRC * (1 - p / 100)).toFixed(2);
   if (comet) comet.style.transform = 'rotate(' + (p * 3.6) + 'deg)';
-  if (pct)   pct.textContent = Math.round(p);
-  let idx = 0;
-  for (let i = 0; i < LOADING_STAGES.length; i++) { if (p >= LOADING_STAGES[i].p) idx = i; }
-  if (idx !== _loadStageIdx) {
-    _loadStageIdx = idx;
-    setLoadingMsg(LOADING_STAGES[idx].main, LOADING_STAGES[idx].sub);
-  }
-  document.querySelectorAll('#loadingSteps .lstep').forEach((el, i) => {
-    el.classList.toggle('on', i <= _loadStageIdx);
-  });
+  if (pct) pct.textContent = Math.round(p);
+  let idx = 0; for (let i = 0; i < LOADING_STAGES.length; i++) { if (p >= LOADING_STAGES[i].p) idx = i; }
+  if (idx !== _loadStageIdx) { _loadStageIdx = idx; setLoadingMsg(LOADING_STAGES[idx].main, LOADING_STAGES[idx].sub); }
+  document.querySelectorAll('#loadingSteps .lstep').forEach((el, i) => el.classList.toggle('on', i <= _loadStageIdx));
 }
-
 function resetLoadingVisual() {
   _loadProgress = 0; _loadStageIdx = -1;
-  const arc   = document.getElementById('loadArc');
-  const comet = document.getElementById('loadComet');
-  const pct   = document.getElementById('loadingPct');
-  const num   = document.querySelector('.load-num');
-  const check = document.getElementById('loadCheck');
-  const s     = document.getElementById('loadingStatus');
-  if (arc)   { arc.style.transition = ''; arc.style.stroke = 'url(#loadGrad)'; arc.style.strokeDashoffset = _LOAD_CIRC.toFixed(2); }
+  const arc = document.getElementById('loadArc'), comet = document.getElementById('loadComet'), pct = document.getElementById('loadingPct'), num = document.querySelector('.load-num'), check = document.getElementById('loadCheck'), s = document.getElementById('loadingStatus');
+  if (arc) { arc.style.transition = ''; arc.style.stroke = 'url(#loadGrad)'; arc.style.strokeDashoffset = _LOAD_CIRC.toFixed(2); }
   if (comet) { comet.style.transition = ''; comet.style.transform = 'rotate(0deg)'; comet.style.display = ''; }
-  if (pct)   { pct.style.color = ''; pct.textContent = '0'; }
-  if (num)   num.style.display = 'flex';
+  if (pct) { pct.style.color = ''; pct.textContent = '0'; }
+  if (num) num.style.display = 'flex';
   if (check) { check.style.display = 'none'; check.classList.remove('draw'); }
-  if (s)     s.style.color = '';
+  if (s) s.style.color = '';
   _renderLoadSteps();
   setLoadingMsg(LOADING_STAGES[0].main, LOADING_STAGES[0].sub, true);
 }
-
 function startLoadingCycle() {
   stopLoadingCycle();
   if (_loadProgress < 2) _loadProgress = 2;
   _paintLoadProgress();
-  _loadCycle = setInterval(() => {
-    _loadProgress += Math.max(0.12, (_LOAD_CAP - _loadProgress) * 0.012);
-    if (_loadProgress > _LOAD_CAP) _loadProgress = _LOAD_CAP;
-    _paintLoadProgress();
-  }, 30);
+  _loadCycle = setInterval(() => { _loadProgress += Math.max(0.12, (_LOAD_CAP - _loadProgress) * 0.012); if (_loadProgress > _LOAD_CAP) _loadProgress = _LOAD_CAP; _paintLoadProgress(); }, 30);
 }
-
-function stopLoadingCycle() {
-  if (_loadCycle) { clearInterval(_loadCycle); _loadCycle = null; }
-}
-
+function stopLoadingCycle() { if (_loadCycle) { clearInterval(_loadCycle); _loadCycle = null; } }
 function finishLoading(state, main, sub) {
   stopLoadingCycle();
-  const arc   = document.getElementById('loadArc');
-  const comet = document.getElementById('loadComet');
-  const pct   = document.getElementById('loadingPct');
-  const num   = document.querySelector('.load-num');
-  const check = document.getElementById('loadCheck');
-  const s     = document.getElementById('loadingStatus');
+  const arc = document.getElementById('loadArc'), comet = document.getElementById('loadComet'), pct = document.getElementById('loadingPct'), num = document.querySelector('.load-num'), check = document.getElementById('loadCheck'), s = document.getElementById('loadingStatus');
   if (state === 'success') {
     _loadProgress = 100;
-    if (arc)   arc.style.transition = 'stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)';
+    if (arc) arc.style.transition = 'stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)';
     if (comet) comet.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
     _paintLoadProgress();
     document.querySelectorAll('#loadingSteps .lstep').forEach(el => el.classList.add('on'));
     setLoadingMsg(main, sub);
-    setTimeout(() => {
-      if (comet) comet.style.display = 'none';
-      if (num)   num.style.display = 'none';
-      if (check) { check.style.display = 'block'; void check.offsetWidth; check.classList.add('draw'); }
-    }, 600);
+    setTimeout(() => { if (comet) comet.style.display = 'none'; if (num) num.style.display = 'none'; if (check) { check.style.display = 'block'; void check.offsetWidth; check.classList.add('draw'); } }, 600);
   } else {
     if (arc) arc.style.stroke = 'var(--red)';
     if (pct) pct.style.color = 'var(--red)';
-    if (s)   s.style.color = 'var(--red)';
+    if (s) s.style.color = 'var(--red)';
     setLoadingMsg(main, sub);
   }
 }
@@ -1140,22 +1285,28 @@ function finishLoading(state, main, sub) {
 // ═══════════════════════════════════════════════════════════════
 // SETUP & INIT
 // ═══════════════════════════════════════════════════════════════
+// Trend tabs hide the global filter bar (they have their own local controls).
+const TREND_TABS = new Set(['dailytrends','zonetrends','producttrends']);
+function syncFilterBarVisibility() {
+  const active = document.querySelector('.tab-btn.active');
+  const fb = document.getElementById('filterBar');
+  if (!active || !fb) return;
+  fb.style.display = TREND_TABS.has(active.dataset.tab) ? 'none' : '';
+  adjustStickyTops();
+}
 function setup() {
   window.addEventListener('resize', adjustStickyTops);
-
-  // Tab navigation — switch panels only (per-tab report logic comes later).
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.dataset.tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
-      adjustStickyTops();
+      ensureIndependentTab(tab);
+      syncFilterBarVisibility();
     });
   });
   adjustStickyTops();
 }
-
-// Pin the tab nav under the top bar (filter bar hidden until a later phase).
 function adjustStickyTops(){
   const top=document.querySelector('.top-bar'), fb=document.getElementById('filterBar'), tns=document.querySelector('.tab-nav-sticky');
   if(!top||!tns) return;
@@ -1164,19 +1315,13 @@ function adjustStickyTops(){
   const fbVisible=fb && getComputedStyle(fb).display!=='none' && fb.offsetHeight>0;
   tns.style.top=(tH+(fbVisible?fb.offsetHeight:0))+'px';
 }
-
 async function init() {
   setup();
-
-  // If already logged in this session, skip login and load data directly.
   if (sessionStorage.getItem('sk_logged_in') === '1') {
     document.getElementById('loginOverlay').style.display = 'none';
     const loadOv = document.getElementById('loadingOverlay');
-    loadOv.style.display = 'flex';
-    loadOv.style.opacity = '1';
-    resetLoadingVisual();
-    startLoadingCycle();
-
+    loadOv.style.display = 'flex'; loadOv.style.opacity = '1';
+    resetLoadingVisual(); startLoadingCycle();
     try {
       await loadDashboardData();
       stopLoadingCycle();
@@ -1192,19 +1337,19 @@ async function init() {
     }
   }
 }
-
 init();
 </script>
 <script>
-/* ===== Login showcase: build 6 alternating marquee rows (10 imgs/row, ~5 visible) ===== */
+/* ===== Login showcase marquee ===== */
 (function(){
-  var IMAGES = ["https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL28NTB/0/MKbmj2EbnA-491603818-1.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514691/UVfxWzI8Ojh0-494514691_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL201RR/0/IpBaANPxuI-492908399-1_2980.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892737/j8ClA1POSL-491892737-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493175401/0/8t7PyPciNh-493175401-1_7149.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176584/0/606zZospln-493176584-1_5767.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL35GAW/0/Z7aAOh3yac-491568705-1_5870.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892736/x20C0Xd1CEM-491892736-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL237FBG/0/_SO_lBt-pE-492908407-1_7960.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176581/0/DblYM7RHUZd-493176581-1_6223.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL36GWS/0/G5rzzZt3HB-491568706-1_6910.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423356/0/sgD4vsPK8q-494423356-1_6733.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL234ICWU/0/2UxlBqFMtV-492908409-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492365397/SaM-JJUUJD-492365397-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL232GBAW/0/_UxLXrKO44-492908408-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL128TOT/0/H5UUcWCdbZ-492908404-1_4495.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176580/0/zznDRkWjB5-493176580-1_1144.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347879/0/VGVA8GqIjfq-494347879-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423354/0/wYyJ8uthhS-494423354-1_7540.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL119PCB/0/liPEwSMjra-492908402-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892740/hKRco90nfr-491892740-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423355/0/igwz4S7-iD-494423355-1_7835.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494500669/uZlybJEcv-494500669_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494348582/0/Db55fANkXR-494348582-1_7596.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176583/0/H82s_7mjca-493176583-1_4257.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377539/IVBAp8PEcq-494377539-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347877/0/6ewqSauT5f-494347877-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492407473/v5vgHw8JdU-492407473-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176579/0/oFNKpCmIdzQ-493176579-1_6578.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL194FWH/0/FZHD8d_iURQ-492908400-1_6233.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494230158/0/kx5Q9iQc_W-494230158-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL120CWB/0/FKuQn257A92-492908403-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347876/0/89Bx0blwdK4-494347876-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377540/0/TMwT6Ksj7g-494377540-1_1140.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892739/7DXYxhjNBk-491892739.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL06SEB/0/tBRImV6HDZ-491334540-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377541/0/y67t7EMpMT-494377541-1_4722.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377536/H3UAVGyhtQ-494377536-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492409461/591fDCVZfiqz-492409461-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347878/0/2lvXU_6zWo-494347878-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494613965/qQiIlFZ_h_I9-494613965-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494500670/vcbyX3fnaP-494500670_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377537/t3aUQM0I9J-494377537-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL102MWFR/0/c9umpli3Vh-492908401-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494613966/TV6klYd9lcyj-494613966-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494230156/0/7owg_g_q5d-494230156-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494423907/O84LcqIpQ6T-494423907_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514690/PQ-ksYsnWVg3-494514690_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL290FIP/0/xWSDGapUGh-492910832-1_7320.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000493176586/lFNYegvshE-493176586-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492365391/ha1zvff3XR-492365391-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494500262/daMMJfj44RDk-494500262_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL101MWIH/0/txjBdCogL8-492908398-1_5747.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493831287/0/reud9nhKT-9-493831287-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL259MMTB/0/am0r_gtTPG-492910825-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494444836/pdejnSJ0x4A-494444836_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494348580/0/FAKcvrmR8t-494348580-1_9542.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL21MCS/0/4FjNZO1lBG-492409470-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL97CCB/0/3fEzNHYwEo-492908405-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494230159/0/_QjIw1VKJ8-494230159-1.jpg?dpr=1"];
-  var ROWS = 6, PER_ROW = 10;
+  var IMAGES = ["https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL28NTB/0/MKbmj2EbnA-491603818-1.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494514691/UVfxWzI8Ojh0-494514691_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL201RR/0/IpBaANPxuI-492908399-1_2980.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892737/j8ClA1POSL-491892737-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493175401/0/8t7PyPciNh-493175401-1_7149.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176584/0/606zZospln-493176584-1_5767.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL35GAW/0/Z7aAOh3yac-491568705-1_5870.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892736/x20C0Xd1CEM-491892736-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL237FBG/0/_SO_lBt-pE-492908407-1_7960.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176581/0/DblYM7RHUZd-493176581-1_6223.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL36GWS/0/G5rzzZt3HB-491568706-1_6910.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423356/0/sgD4vsPK8q-494423356-1_6733.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL234ICWU/0/2UxlBqFMtV-492908409-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492365397/SaM-JJUUJD-492365397-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL232GBAW/0/_UxLXrKO44-492908408-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL128TOT/0/H5UUcWCdbZ-492908404-1_4495.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176580/0/zznDRkWjB5-493176580-1_1144.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347879/0/VGVA8GqIjfq-494347879-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423354/0/wYyJ8uthhS-494423354-1_7540.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL119PCB/0/liPEwSMjra-492908402-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892740/hKRco90nfr-491892740-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494423355/0/igwz4S7-iD-494423355-1_7835.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494500669/uZlybJEcv-494500669_1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494348582/0/Db55fANkXR-494348582-1_7596.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176583/0/H82s_7mjca-493176583-1_4257.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377539/IVBAp8PEcq-494377539-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347877/0/6ewqSauT5f-494347877-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492407473/v5vgHw8JdU-492407473-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/493176579/0/oFNKpCmIdzQ-493176579-1_6578.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL194FWH/0/FZHD8d_iURQ-492908400-1_6233.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494230158/0/kx5Q9iQc_W-494230158-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL120CWB/0/FKuQn257A92-492908403-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347876/0/89Bx0blwdK4-494347876-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377540/0/TMwT6Ksj7g-494377540-1_1140.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000491892739/7DXYxhjNBk-491892739.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/SKILL06SEB/0/tBRImV6HDZ-491334540-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494377541/0/y67t7EMpMT-494377541-1_4722.webp?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000494377536/H3UAVGyhtQ-494377536-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000000492409461/591fDCVZfiqz-492409461-1.jpg?dpr=1", "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/skillmatics/494347878/0/2lvXU_6zWo-494347878-1.jpg?dpr=1"];
+  var ROWS = 6, PER_ROW = 6;
   var DURS = [58,52,64,50,60,54];
   var host = document.getElementById('lpRows');
   if(!host) return;
   for(var r=0;r<ROWS;r++){
     var set = IMAGES.slice(r*PER_ROW, r*PER_ROW+PER_ROW);
+    if(set.length<PER_ROW) set = IMAGES.slice(0, PER_ROW);
     var row = document.createElement('div');
     row.className = 'lp-row ' + (r%2===0 ? 'left' : 'right');
     var track = document.createElement('div');
