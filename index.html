@@ -302,11 +302,14 @@
   /* frozen descriptive columns */
   table.skx th.dz,table.skx td.dz{position:sticky;z-index:6;background:var(--surface);text-align:left;font-weight:600;color:var(--text);}
   table.skx thead th.dz{z-index:9;background:var(--blue-light);color:var(--blue-dark);text-align:left;}
-  table.skx td.dz.dzwrap{white-space:normal;word-break:break-word;line-height:1.25;font-size:11.5px;}
-  table.skx .dz.dzlast{border-right:1px solid var(--border2);}
+  table.skx td.dzwrap{white-space:normal;word-break:break-word;line-height:1.25;font-size:11.5px;}
+  table.skx .dz.dzlast{border-right:1px solid var(--border2);box-shadow:6px 0 8px -4px rgba(30,28,24,.18);}
+  /* scrolling descriptive attribute columns (Brand / Category / Sub Category) */
+  table.skx th.dattr,table.skx td.dattr{text-align:left;color:var(--text2);font-weight:500;}
+  table.skx thead th.dattr{background:var(--blue-light);color:var(--blue-dark);text-align:left;}
   /* frozen golden Total column */
-  table.skx th.tcol,table.skx td.tcol{position:sticky;z-index:5;background:var(--gold-light);text-align:right;border-right:1px solid var(--border2);}
-  table.skx thead th.tcol{z-index:8;background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);border-right:1px solid var(--border2);}
+  table.skx th.tcol,table.skx td.tcol{background:var(--gold-light);text-align:right;border-right:1px solid var(--border2);}
+  table.skx thead th.tcol{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);border-right:1px solid var(--border2);}
   table.skx thead th.tcol .th-sub{color:rgba(184,137,46,.7);}
   table.skx tbody tr:hover td{background:var(--bg);}
   table.skx tbody tr:hover td.dz{background:var(--surface2);}
@@ -1149,7 +1152,7 @@ const PRODUCT_DIMS = [
   { k:'sku',    label:'Product',      field:'product_code' },
 ];
 let regionDim='zone', regionFY=null, regionSearch='', regionSearchActive=false;
-let productDim='brand', productFY=null, productSearch='', productSearchActive=false;
+let productDim='brand', productFY=null, productSearch='', productSearchActive=false, productMetric='all';
 
 // Shared month-matrix renderer.
 function renderMatrix(C){
@@ -1158,6 +1161,7 @@ function renderMatrix(C){
   if(!RAW || !RAW.length){ host.innerHTML='<div class="no-data">No data loaded.</div>'; return; }
   const dimCfg=C.dims.find(d=>d.k===C.getDim())||C.dims[0];
   const field=dimCfg.field;
+  const M = C.getMetric ? C.getMetric() : 'all';
   const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
 
   const qty={}, sale={}, monthsSet=new Set(), keysSet=new Set();
@@ -1183,36 +1187,48 @@ function renderMatrix(C){
   const sq=(C.getSearch()||'').trim().toLowerCase();
   if(sq) rowsArr=rowsArr.filter(k=>String(k).toLowerCase().includes(sq));
 
-  const cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:'Sales · Qty' }));
+  const colSub = M==='qty' ? 'Qty' : M==='value' ? 'Sales' : 'Sales · Qty';
+  const cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:colSub }));
   const val=(k,c)=>({ q:qAt(k,c.id), s:sAt(k,c.id) });
 
-  let maxSale=0; rowsArr.forEach(k=>cols.forEach(c=>{ maxSale=Math.max(maxSale, val(k,c).s); }));
+  let maxSale=0, maxQty=0; rowsArr.forEach(k=>cols.forEach(c=>{ const v=val(k,c); maxSale=Math.max(maxSale, v.s); maxQty=Math.max(maxQty, v.q); }));
   const TOTAL='__ALL__';
   fyQ[TOTAL]=rowsArr.reduce((a,k)=>a+fyQ[k],0); fyS[TOTAL]=rowsArr.reduce((a,k)=>a+fyS[k],0);
   const colTotal=c=>{ let q=0,s=0; rowsArr.forEach(k=>{ const v=val(k,c); q+=v.q; s+=v.s; }); return {q,s}; };
 
   const dimW=190;
   const cellHtml=v=>{ const has=v.q||v.s;
-    const style=has?`background:rgba(45,122,78,${(0.05+0.30*(maxSale?Math.min(1,v.s/maxSale):0)).toFixed(3)});`:'';
-    return `<td class="zcell" style="${style}"><div class="pt-cell"><div class="pt-sale">${has?fmtV(v.s):'—'}</div><div class="pt-qty">${has?fmt(v.q)+' qty':''}</div></div></td>`;
+    const frac = M==='qty' ? (maxQty?Math.min(1,v.q/maxQty):0) : (maxSale?Math.min(1,v.s/maxSale):0);
+    const style=has?`background:rgba(45,122,78,${(0.05+0.30*frac).toFixed(3)});`:'';
+    let inner;
+    if(M==='qty')        inner=`<div class="pt-sale">${has?fmt(v.q):'—'}</div>`;
+    else if(M==='value') inner=`<div class="pt-sale">${has?fmtV(v.s):'—'}</div>`;
+    else                 inner=`<div class="pt-sale">${has?fmtV(v.s):'—'}</div><div class="pt-qty">${has?fmt(v.q)+' qty':''}</div>`;
+    return `<td class="zcell" style="${style}"><div class="pt-cell">${inner}</div></td>`;
   };
   const rowFor=(k,isTotal)=>{
     const cells=cols.map(c=>cellHtml(isTotal?colTotal(c):val(k,c))).join('');
     const fq=isTotal?fyQ[TOTAL]:fyQ[k], fs=isTotal?fyS[TOTAL]:fyS[k];
-    const fyCell=`<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(fs)}</div><div class="pt-qty">${fmt(fq)} qty</div></div></td>`;
+    let fyInner;
+    if(M==='qty')        fyInner=`<div class="pt-sale">${fmt(fq)}</div>`;
+    else if(M==='value') fyInner=`<div class="pt-sale">${fmtV(fs)}</div>`;
+    else                 fyInner=`<div class="pt-sale">${fmtV(fs)}</div><div class="pt-qty">${fmt(fq)} qty</div>`;
+    const fyCell=`<td class="fycol"><div class="pt-cell">${fyInner}</div></td>`;
     const dimCell=isTotal
       ? `<td class="zcol zlast" style="left:0;min-width:${dimW}px">TOTAL</td>`
       : `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(k)}">${escapeHtml(k)}</td>`;
     return `<tr class="${isTotal?'total-row':''}">${dimCell}${fyCell}${cells}</tr>`;
   };
   const headCells=cols.map(c=>`<th>${escapeHtml(c.label)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
-  const thead=`<thead><tr><th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th><th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">Sales · Qty</span></th>${headCells}</tr></thead>`;
+  const thead=`<thead><tr><th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th><th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">${colSub}</span></th>${headCells}</tr></thead>`;
   const body=rowsArr.length
     ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
     : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
 
   const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
   const dimPills=C.dims.map(d=>`<button class="zmom-pill v-pill${d.k===C.getDim()?' active':''}" data-dim="${d.k}">${d.label}</button>`).join('');
+  const metricPills = C.getMetric ? SK_METRICS.map(m=>`<button class="zmom-pill mtr-pill${m.k===M?' active':''}" data-mtr="${m.k}">${m.label}</button>`).join('') : '';
+  const metricFG = metricPills ? `<div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${metricPills}</div></div>` : '';
 
   host.innerHTML=`
     <div class="bt-bar">
@@ -1220,15 +1236,17 @@ function renderMatrix(C){
         <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox mx-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(C.getSearch())}" autocomplete="off"></div></div>
       <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
+      ${metricFG}
       <div class="bt-fg"><label class="bt-flabel">${escapeHtml(C.dimLabel)}</label><div class="bt-chips">${dimPills}</div></div>
       <button class="kpi-reset" id="mxReset" title="Clear search">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Jan–Dec</span><span class="bt-period-tag">${escapeHtml(C.tag)}</span></div>
     </div>
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
-    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · each cell shows Sales &amp; Qty · independent of the global filters.</div>`;
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · each cell shows ${M==='qty'?'Qty':M==='value'?'Sales':'Sales &amp; Qty'} · independent of the global filters.</div>`;
 
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ C.setFY(+b.dataset.fy); C.rerender(); }));
   host.querySelectorAll('.v-pill').forEach(b=>b.addEventListener('click',()=>{ C.setDim(b.dataset.dim); C.setSearch(''); C.setSearchActive(false); C.rerender(); }));
+  host.querySelectorAll('.mtr-pill').forEach(b=>b.addEventListener('click',()=>{ C.setMetric(b.dataset.mtr); C.rerender(); }));
   const si=host.querySelector('.mx-search');
   if(si){
     si.addEventListener('input',()=>{ C.setSearch(si.value); C.setSearchActive(true); C.rerender(); });
@@ -1257,6 +1275,7 @@ function renderProductMoM(){
     getFY:()=>productFY, setFY:v=>{productFY=v;},
     getSearch:()=>productSearch, setSearch:v=>{productSearch=v;},
     getSearchActive:()=>productSearchActive, setSearchActive:v=>{productSearchActive=v;},
+    getMetric:()=>productMetric, setMetric:v=>{productMetric=v;},
     rerender:renderProductMoM,
   });
 }
@@ -1267,14 +1286,15 @@ function renderProductMoM(){
 // Golden Total column, then period columns (weeks / days of month).
 // Local Location filters (Zone/State/City) — independent of global filters.
 // ═══════════════════════════════════════════════════════════════
+// One FROZEN identifier column (SKU = "Product Code - Product Name") + scrolling attribute columns.
+// Only the first column is pinned; keeping the frozen block narrow lets the period data scroll into
+// view at any window width (the previous 5-column freeze was ~800px wide and hid the data on scroll).
 const SKU_DESC = [
-  { label:'Product Code', w:96,  wrap:false, get:r=>r.sku_code     },
-  { label:'Product Name', w:200, wrap:true,  get:r=>r.sku_name     },
-  { label:'Brand',        w:120, wrap:false, get:r=>r.brand_name   },
-  { label:'Category',     w:120, wrap:false, get:r=>r.category     },
-  { label:'Sub Category', w:130, wrap:false, get:r=>r.sub_category },
+  { label:'SKU',          w:230, wrap:true,  frozen:true,  get:r=>(r.sku_code && r.sku_name) ? (r.sku_code + ' - ' + r.sku_name) : (r.sku_code || r.sku_name || '—') },
+  { label:'Brand',        w:120, wrap:false, frozen:false, get:r=>r.brand_name   },
+  { label:'Category',     w:170, wrap:true,  frozen:false, get:r=>r.category     },
+  { label:'Sub Category', w:190, wrap:true,  frozen:false, get:r=>r.sub_category },
 ];
-const SKU_LEFT = (() => { const a = []; let x = 0; for (const d of SKU_DESC) { a.push(x); x += d.w; } return a; })();
 const SKU_SPAN = SKU_DESC.reduce((a, d) => a + d.w, 0);
 const TOTW = 132;                                  // golden Total column width
 const SKLOC_FILTERS = [
@@ -1292,19 +1312,26 @@ const monthlyFilt = {}; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key] = new Set(
 
 // ── shared markup helpers ──
 function skDescHead() {
-  return SKU_DESC.map((d, i) =>
-    `<th class="dz${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="left:${SKU_LEFT[i]}px;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
+  return SKU_DESC.map((d) =>
+    d.frozen
+      ? `<th class="dz dzlast" style="left:0;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
+      : `<th class="dattr" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
   ).join('');
 }
 function skDescCells(rowObj) {
-  return SKU_DESC.map((d, i) => {
+  return SKU_DESC.map((d) => {
     const v = d.get(rowObj) || '—';
-    return `<td class="dz${i === SKU_DESC.length - 1 ? ' dzlast' : ''}${d.wrap ? ' dzwrap' : ''}" style="left:${SKU_LEFT[i]}px;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
+    const wrap = d.wrap ? ' dzwrap' : '';
+    return d.frozen
+      ? `<td class="dz dzlast${wrap}" style="left:0;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`
+      : `<td class="dattr${wrap}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
   }).join('');
 }
 function skDescTotalCells(label) {
-  return SKU_DESC.map((d, i) =>
-    `<td class="dz${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="left:${SKU_LEFT[i]}px;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${i === 0 ? escapeHtml(label) : ''}</td>`
+  return SKU_DESC.map((d) =>
+    d.frozen
+      ? `<td class="dz dzlast" style="left:0;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(label)}</td>`
+      : `<td class="dattr" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px"></td>`
   ).join('');
 }
 function skWowPct(cw, lw) { if (!lw) return null; return (cw - lw) / lw * 100; }
@@ -1413,7 +1440,7 @@ function renderWeeklyTrends() {
     };
 
     const headWeeks = weeks.map(w => `<th>W${w}<span class="th-sub">CW·LW·WoW</span></th>`).join('');
-    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px">Total<span class="th-sub">${escapeHtml(fyLbl)}</span></th>${headWeeks}</tr></thead>`;
+    const thead = `<thead><tr>${skDescHead()}<th class="tcol">Total<span class="th-sub">${escapeHtml(fyLbl)}</span></th>${headWeeks}</tr></thead>`;
 
     const rowFor = k => {
       const e = rows[k];
@@ -1528,7 +1555,7 @@ function renderMonthlyTrends() {
       return `<div class="pt-cell"><div class="pt-sale">${fmtV(c.s)}</div><div class="pt-qty">${fmt(c.q)} qty</div></div>`;
     };
     const headDays = dayCols.map(c => `<th>${c.label}<span class="th-sub">${c.sub}</span></th>`).join('');
-    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px">Total<span class="th-sub">${escapeHtml(monLbl)}</span></th>${headDays}</tr></thead>`;
+    const thead = `<thead><tr>${skDescHead()}<th class="tcol">Total<span class="th-sub">${escapeHtml(monLbl)}</span></th>${headDays}</tr></thead>`;
 
     const rowFor = k => {
       const e = rows[k];
