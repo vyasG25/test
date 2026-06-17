@@ -293,6 +293,35 @@
   .ddt-muted{color:var(--text3);}
   .ddt-note{margin-top:7px;font-size:11px;color:var(--text2);}
 
+  /* ── SKU × PERIOD matrix (.skx) — Weekly & Monthly Trends ── */
+  .skx-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;box-shadow:var(--shadow);}
+  table.skx{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12.5px;}
+  table.skx th,table.skx td{padding:8px 11px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;}
+  table.skx thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;box-shadow:inset 0 -2px 0 rgba(43,90,126,.22);}
+  table.skx thead th .th-sub{display:block;font-size:9.5px;font-weight:600;color:rgba(43,90,126,.7);letter-spacing:.2px;margin-top:3px;text-transform:none;}
+  /* frozen descriptive columns */
+  table.skx th.dz,table.skx td.dz{position:sticky;z-index:5;background:var(--surface);text-align:left;font-weight:600;color:var(--text);}
+  table.skx thead th.dz{z-index:8;background:var(--blue-light);color:var(--blue-dark);text-align:left;}
+  table.skx td.dz.dzwrap{white-space:normal;word-break:break-word;line-height:1.25;font-size:11.5px;}
+  table.skx .dz.dzlast{box-shadow:1px 0 0 var(--border2);}
+  /* frozen golden Total column */
+  table.skx th.tcol,table.skx td.tcol{position:sticky;z-index:5;background:var(--gold-light);text-align:right;box-shadow:1px 0 0 var(--border2);}
+  table.skx thead th.tcol{z-index:8;background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28),1px 0 0 var(--border2);}
+  table.skx thead th.tcol .th-sub{color:rgba(184,137,46,.7);}
+  table.skx tbody tr:hover td{background:var(--bg);}
+  table.skx tbody tr:hover td.dz{background:var(--surface2);}
+  table.skx tbody tr:hover td.tcol{background:#f7ecca;}
+  table.skx tr.total-row td{font-weight:700;background:var(--blue-light);border-top:2px solid var(--blue-dark);}
+  table.skx tr.total-row td.dz{background:var(--blue-light);color:var(--blue-dark);}
+  table.skx tr.total-row td.tcol{background:#f1e6c4;color:#5a4310;}
+  table.skx tr.total-row:hover td{background:var(--blue-light);}
+  table.skx tr.total-row:hover td.tcol{background:#f1e6c4;}
+  .skcell{display:flex;flex-direction:column;align-items:flex-end;gap:2px;line-height:1.2;font-variant-numeric:tabular-nums;}
+  .sk-cw{font-weight:700;color:var(--text);}
+  .sk-lw{font-size:11px;color:var(--text3);}
+  .sk-wow{font-size:11px;font-weight:700;}
+  .sk-up{color:var(--green);} .sk-dn{color:var(--red);} .sk-flat{color:var(--text3);}
+
   /* ── NO DATA ── */
   .no-data{padding:40px;text-align:center;color:var(--text3);font-size:14px;}
 
@@ -512,6 +541,14 @@
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 8.4 12 13 3.4 8.4M12 13v8M20.6 8.4 12 3.8 3.4 8.4v7.2L12 20.2l8.6-4.6Z"/></svg>
         <span>Product Trends</span>
       </button>
+      <button class="tab-btn" data-tab="weeklytrends">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M12 9v12"/></svg>
+        <span>Weekly Trends</span>
+      </button>
+      <button class="tab-btn" data-tab="monthlytrends">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M7 13h2M11 13h2M15 13h2M7 17h2M11 17h2"/></svg>
+        <span>Monthly Trends</span>
+      </button>
     </div>
     </div><!-- /tab-nav-sticky -->
 
@@ -532,6 +569,16 @@
     <div class="tab-panel" id="tab-producttrends">
       <div class="sec-header"><div class="sec-title">Product Performance Trends <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
       <div id="secProductMoM"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-weeklytrends">
+      <div class="sec-header"><div class="sec-title">Weekly Trends — SKU × Week <span class="sec-badge" style="background:var(--red-light);color:var(--red)">CW · LW · WoW%</span></div></div>
+      <div id="secWeeklyTrends"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-monthlytrends">
+      <div class="sec-header"><div class="sec-title">Monthly Trends — SKU × Day <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
+      <div id="secMonthlyTrends"></div>
     </div>
   </div>
 </div>
@@ -717,6 +764,7 @@ async function loadDashboardData() {
     applyFilters();                 // builds `filtered`
     markIndependentTabsDirty();     // trend tabs rebuild when next viewed
     dailyYear = regionFY = productFY = null;  // re-pick latest year on next render
+    weeklyYear = null; monthlyMonth = null;   // re-pick latest week-year / month on next render
     const activeTab = document.querySelector('.tab-btn.active');
     if (activeTab) ensureIndependentTab(activeTab.dataset.tab);
     syncFilterBarVisibility();
@@ -946,6 +994,8 @@ const INDEP_TAB_RENDER = {
   dailytrends:   renderDailyTrends,
   zonetrends:    renderRegionMoM,
   producttrends: renderProductMoM,
+  weeklytrends:  renderWeeklyTrends,
+  monthlytrends: renderMonthlyTrends,
 };
 let _indepTabsDirty = new Set();
 function markIndependentTabsDirty() { _indepTabsDirty = new Set(Object.keys(INDEP_TAB_RENDER)); }
@@ -1212,6 +1262,308 @@ function renderProductMoM(){
 }
 
 // ═══════════════════════════════════════════════════════════════
+// WEEKLY & MONTHLY TRENDS  (SKU rows × period columns)
+// Rows = SKU (Product Code / Name / Brand / Category / Sub Category).
+// Golden Total column, then period columns (weeks / days of month).
+// Local Location filters (Zone/State/City) — independent of global filters.
+// ═══════════════════════════════════════════════════════════════
+const SKU_DESC = [
+  { label:'Product Code', w:96,  wrap:false, get:r=>r.sku_code     },
+  { label:'Product Name', w:200, wrap:true,  get:r=>r.sku_name     },
+  { label:'Brand',        w:120, wrap:false, get:r=>r.brand_name   },
+  { label:'Category',     w:120, wrap:false, get:r=>r.category     },
+  { label:'Sub Category', w:130, wrap:false, get:r=>r.sub_category },
+];
+const SKU_LEFT = (() => { const a = []; let x = 0; for (const d of SKU_DESC) { a.push(x); x += d.w; } return a; })();
+const SKU_SPAN = SKU_DESC.reduce((a, d) => a + d.w, 0);
+const TOTW = 132;                                  // golden Total column width
+const SKLOC_FILTERS = [
+  { key:'zone',  label:'Zone',  field:'zone_name'  },
+  { key:'state', label:'State', field:'state_name' },
+  { key:'city',  label:'City',  field:'city_name'  },
+];
+const SK_METRICS = [{k:'all',label:'All'},{k:'qty',label:'Qty'},{k:'value',label:'Value'}];
+
+// state
+let weeklyYear = null, weeklyMetric = 'all', weeklySearch = '', weeklySearchActive = false;
+const weeklyFilt = {}; SKLOC_FILTERS.forEach(f => weeklyFilt[f.key] = new Set());
+let monthlyMonth = null, monthlyMetric = 'all', monthlySearch = '', monthlySearchActive = false;
+const monthlyFilt = {}; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key] = new Set());
+
+// ── shared markup helpers ──
+function skDescHead() {
+  return SKU_DESC.map((d, i) =>
+    `<th class="dz${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="left:${SKU_LEFT[i]}px;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
+  ).join('');
+}
+function skDescCells(rowObj) {
+  return SKU_DESC.map((d, i) => {
+    const v = d.get(rowObj) || '—';
+    return `<td class="dz${i === SKU_DESC.length - 1 ? ' dzlast' : ''}${d.wrap ? ' dzwrap' : ''}" style="left:${SKU_LEFT[i]}px;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
+  }).join('');
+}
+function skDescTotalCells(label) {
+  return SKU_DESC.map((d, i) =>
+    `<td class="dz${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="left:${SKU_LEFT[i]}px;min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${i === 0 ? escapeHtml(label) : ''}</td>`
+  ).join('');
+}
+function skWowPct(cw, lw) { if (!lw) return null; return (cw - lw) / lw * 100; }
+function skPctHtml(p) {
+  if (p == null) return '<span class="sk-flat">—</span>';
+  const cls = p > 0.5 ? 'sk-up' : p < -0.5 ? 'sk-dn' : 'sk-flat';
+  return `<span class="${cls}">${p > 0 ? '+' : ''}${p.toFixed(0)}%</span>`;
+}
+// ── shared Location-filter chips (namespaced so the two tabs don't clash) ──
+function skChipHtml(ns, f) {
+  return `<div class="mc"><button class="mc-btn" id="skbtn-${ns}-${f.key}" type="button"><span>${escapeHtml(f.label)}</span><span class="mc-badge" id="skbadge-${ns}-${f.key}" style="display:none">0</span><span class="mc-chev">▾</span></button><div class="mc-panel" id="skpanel-${ns}-${f.key}"><input type="text" class="ms-search" id="sksearch-${ns}-${f.key}" placeholder="Search ${escapeHtml(f.label.toLowerCase())}…"><div class="ms-list" id="sklist-${ns}-${f.key}"></div><div class="ms-actions"><button class="ms-action-btn" data-skact="all">Select All</button><button class="ms-action-btn" data-skact="clear">Clear All</button></div></div></div>`;
+}
+function skWireLocFilters(host, ns, filtState, opts, repaint) {
+  function badge(key) { const b = host.querySelector(`#skbadge-${ns}-${key}`); if (!b) return; const n = filtState[key].size; b.textContent = n; b.style.display = n ? 'inline-flex' : 'none'; b.classList.toggle('show', !!n); }
+  function list(key, search) {
+    const el = host.querySelector(`#sklist-${ns}-${key}`); if (!el) return;
+    const sq = (search || '').trim().toLowerCase(); const sel = filtState[key];
+    const items = opts[key].filter(o => !sq || o.toLowerCase().includes(sq));
+    el.innerHTML = items.length ? items.map(o => `<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${sel.has(o) ? 'checked' : ''}><span>${escapeHtml(o)}</span></label>`).join('') : '<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
+    el.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => { const v = cb.dataset.v; if (cb.checked) sel.add(v); else sel.delete(v); badge(key); repaint(); }));
+  }
+  SKLOC_FILTERS.forEach(f => {
+    const btn = host.querySelector(`#skbtn-${ns}-${f.key}`), panel = host.querySelector(`#skpanel-${ns}-${f.key}`);
+    btn.addEventListener('click', () => { const open = panel.classList.contains('open'); closeAllPanels(); if (!open) { panel.classList.add('open'); btn.classList.add('open'); const sb = host.querySelector(`#sksearch-${ns}-${f.key}`); if (sb) setTimeout(() => sb.focus(), 0); } });
+    const sb = host.querySelector(`#sksearch-${ns}-${f.key}`); if (sb) sb.addEventListener('input', () => list(f.key, sb.value));
+    panel.querySelectorAll('.ms-action-btn').forEach(b => b.addEventListener('click', () => {
+      const sb2 = host.querySelector(`#sksearch-${ns}-${f.key}`);
+      if (b.dataset.skact === 'all') { const sq = (sb2 && sb2.value ? sb2.value : '').trim().toLowerCase(); (sq ? opts[f.key].filter(o => o.toLowerCase().includes(sq)) : opts[f.key]).forEach(v => filtState[f.key].add(v)); }
+      else { filtState[f.key].clear(); if (sb2) sb2.value = ''; }
+      list(f.key, sb2 ? sb2.value : ''); badge(f.key); repaint();
+    }));
+    list(f.key, ''); badge(f.key);
+  });
+}
+function skBuildLocOpts(filtState) {
+  const optSets = {}; SKLOC_FILTERS.forEach(f => optSets[f.key] = new Set());
+  for (let i = 0; i < RAW.length; i++) { const r = RAW[i]; SKLOC_FILTERS.forEach(f => { const v = r[f.field]; if (v != null && v !== '') optSets[f.key].add(String(v)); }); }
+  const opts = {}; SKLOC_FILTERS.forEach(f => { opts[f.key] = [...optSets[f.key]].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })); });
+  SKLOC_FILTERS.forEach(f => { [...filtState[f.key]].forEach(v => { if (!optSets[f.key].has(v)) filtState[f.key].delete(v); }); });
+  return opts;
+}
+function skMatchesLoc(r, filtState) { return SKLOC_FILTERS.every(f => !filtState[f.key].size || filtState[f.key].has(String(r[f.field]))); }
+function skMatchesSearch(desc, sq) { return [desc.sku_code, desc.sku_name, desc.brand_name, desc.category, desc.sub_category].some(x => x && String(x).toLowerCase().includes(sq)); }
+
+// ═══════════════════════════════════════════════════════════════
+// WEEKLY TRENDS  (SKU × week of selected year; CW / LW / WoW%)
+// ═══════════════════════════════════════════════════════════════
+function renderWeeklyTrends() {
+  const host = document.getElementById('secWeeklyTrends'); if (!host) return;
+  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+  const fyOf = r => (r.bill_date && r.bill_date.length >= 4) ? +r.bill_date.slice(0, 4) : null;
+  const wkOf = r => { const m = String(r.week).match(/\d+/); return m ? +m[0] : null; };
+
+  const yearSet = new Set();
+  for (let i = 0; i < RAW.length; i++) { const y = fyOf(RAW[i]); if (y != null) yearSet.add(y); }
+  const yearList = [...yearSet].sort((a, b) => b - a);
+  if (!yearList.length) { host.innerHTML = '<div class="no-data">No dated sales rows found.</div>'; return; }
+  if (weeklyYear == null || !yearSet.has(weeklyYear)) weeklyYear = yearList[0];
+  const fyLbl = String(weeklyYear);
+
+  const opts = skBuildLocOpts(weeklyFilt);
+
+  function paint() {
+    const M = weeklyMetric;
+    const rows = {}; const weeksSet = new Set();
+    for (let i = 0; i < RAW.length; i++) {
+      const r = RAW[i];
+      if (fyOf(r) !== weeklyYear) continue;
+      if (!skMatchesLoc(r, weeklyFilt)) continue;
+      const w = wkOf(r); if (w == null) continue;
+      weeksSet.add(w);
+      const key = r.sku_code || r.sku_name || '—';
+      let e = rows[key]; if (!e) e = rows[key] = { desc: r, wk: {}, tot: { q: 0, s: 0 } };
+      let c = e.wk[w]; if (!c) c = e.wk[w] = { q: 0, s: 0 };
+      c.q += r.quantity || 0; c.s += r.amount || 0;
+      e.tot.q += r.quantity || 0; e.tot.s += r.amount || 0;
+    }
+    const weeks = [...weeksSet].sort((a, b) => a - b);
+    let keys = Object.keys(rows).filter(k => rows[k].tot.q || rows[k].tot.s);
+    const sq = (weeklySearch || '').trim().toLowerCase();
+    if (sq) keys = keys.filter(k => skMatchesSearch(rows[k].desc, sq));
+    keys.sort((a, b) => rows[b].tot.s - rows[a].tot.s);
+
+    const at = (e, w) => e.wk[w] || { q: 0, s: 0 };
+    const cellHtml = (cw, lw) => {
+      const has = cw.q || cw.s;
+      if (M === 'qty')   return has ? fmt(cw.q) : '<span class="sk-flat">—</span>';
+      if (M === 'value') return has ? fmtV(cw.s) : '<span class="sk-flat">—</span>';
+      if (!has && !(lw.q || lw.s)) return '<span class="sk-flat">—</span>';
+      return `<div class="skcell"><div class="sk-cw">${fmt(cw.q)} · ${fmtV(cw.s)}</div><div class="sk-lw">${fmt(lw.q)} · ${fmtV(lw.s)}</div><div class="sk-wow">${skPctHtml(skWowPct(cw.q, lw.q))} · ${skPctHtml(skWowPct(cw.s, lw.s))}</div></div>`;
+    };
+    const totHtml = t => {
+      const has = t.q || t.s;
+      if (M === 'qty')   return has ? fmt(t.q) : '—';
+      if (M === 'value') return has ? fmtV(t.s) : '—';
+      return `<div class="skcell"><div class="sk-cw">${fmt(t.q)} · ${fmtV(t.s)}</div></div>`;
+    };
+
+    const headWeeks = weeks.map(w => `<th>W${w}<span class="th-sub">CW·LW·WoW</span></th>`).join('');
+    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px;min-width:${TOTW}px;max-width:${TOTW}px;width:${TOTW}px">Total<span class="th-sub">${escapeHtml(fyLbl)}</span></th>${headWeeks}</tr></thead>`;
+
+    const rowFor = k => {
+      const e = rows[k];
+      const cells = weeks.map(w => `<td class="zcell">${cellHtml(at(e, w), at(e, w - 1))}</td>`).join('');
+      return `<tr>${skDescCells(e.desc)}<td class="tcol">${totHtml(e.tot)}</td>${cells}</tr>`;
+    };
+    // grand total row
+    const gWk = {}; let gQ = 0, gS = 0;
+    keys.forEach(k => { const e = rows[k]; weeks.forEach(w => { const c = at(e, w); (gWk[w] || (gWk[w] = { q: 0, s: 0 })); gWk[w].q += c.q; gWk[w].s += c.s; }); gQ += e.tot.q; gS += e.tot.s; });
+    const gAt = w => gWk[w] || { q: 0, s: 0 };
+    const totCells = weeks.map(w => `<td class="zcell">${cellHtml(gAt(w), gAt(w - 1))}</td>`).join('');
+    const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL')}<td class="tcol">${totHtml({ q: gQ, s: gS })}</td>${totCells}</tr>` : '';
+
+    const body = keys.length
+      ? keys.map(rowFor).join('') + totalRow
+      : `<tr>${skDescTotalCells('—')}<td class="tcol">—</td><td colspan="${Math.max(1, weeks.length)}" style="text-align:center;padding:18px;color:var(--text3)">No SKUs match the current filters for ${escapeHtml(fyLbl)}.</td></tr>`;
+
+    const t = document.getElementById('wkTableHost');
+    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx">${thead}<tbody>${body}</tbody></table></div>`;
+  }
+
+  const yearPills = yearList.map(y => `<button class="zmom-pill fy-pill${y === weeklyYear ? ' active' : ''}" data-wyear="${y}">${y}</button>`).join('');
+  const mPills = SK_METRICS.map(m => `<button class="zmom-pill m-pill${m.k === weeklyMetric ? ' active' : ''}" data-wmetric="${m.k}">${m.label}</button>`).join('');
+  const locChips = SKLOC_FILTERS.map(f => skChipHtml('wk', f)).join('');
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox wk-search" placeholder="Search product / brand / category…" value="${escapeHtml(weeklySearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yearPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Location</label><div class="bt-chips">${locChips}</div></div>
+      <button class="kpi-reset" id="wkReset" title="Clear search &amp; Location filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(fyLbl)}</b> · by week</span><span class="bt-period-tag">Weekly Trends</span></div>
+    </div>
+    <div id="wkTableHost"></div>
+    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = all weeks of ${escapeHtml(fyLbl)} · each week column (All view): top = <b>current week</b> Qty · Value, middle = <b>previous week</b>, bottom = <b>WoW%</b> (vs the prior week of the same year) · Qty / Value views show the current-week figure only · independent of the global filters.</div>`;
+
+  host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { weeklyYear = +b.dataset.wyear; renderWeeklyTrends(); }));
+  host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { weeklyMetric = b.dataset.wmetric; renderWeeklyTrends(); }));
+  host.querySelector('#wkReset').addEventListener('click', () => { weeklySearch = ''; weeklySearchActive = false; SKLOC_FILTERS.forEach(f => weeklyFilt[f.key].clear()); renderWeeklyTrends(); });
+  const si = host.querySelector('.wk-search');
+  if (si) {
+    si.addEventListener('input', () => { weeklySearch = si.value; weeklySearchActive = true; paint(); });
+    si.addEventListener('focus', () => { weeklySearchActive = true; });
+    si.addEventListener('blur', () => { weeklySearchActive = false; });
+    if (weeklySearchActive) { si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
+  }
+  skWireLocFilters(host, 'wk', weeklyFilt, opts, paint);
+  paint();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MONTHLY TRENDS  (SKU × day of selected month)
+// ═══════════════════════════════════════════════════════════════
+function renderMonthlyTrends() {
+  const host = document.getElementById('secMonthlyTrends'); if (!host) return;
+  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+  const ymOf = r => (r.bill_date && r.bill_date.length >= 7) ? r.bill_date.slice(0, 7) : '';
+
+  const ymSet = new Set();
+  for (let i = 0; i < RAW.length; i++) { const m = ymOf(RAW[i]); if (m) ymSet.add(m); }
+  const ymList = [...ymSet].sort().reverse();
+  if (!ymList.length) { host.innerHTML = '<div class="no-data">No dated sales rows found.</div>'; return; }
+  if (monthlyMonth == null || !ymSet.has(monthlyMonth)) monthlyMonth = ymList[0];
+  const [yy, mm] = monthlyMonth.split('-').map(Number);
+  const daysInMonth = new Date(Date.UTC(yy, mm, 0)).getUTCDate();
+  const dows = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayCols = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dd = String(d).padStart(2, '0');
+    const dow = dows[new Date(Date.UTC(yy, mm - 1, d)).getUTCDay()];
+    dayCols.push({ d, key: `${monthlyMonth}-${dd}`, label: dd, sub: dow });
+  }
+  const monLbl = zmomMonLabel(monthlyMonth);
+
+  const opts = skBuildLocOpts(monthlyFilt);
+
+  function paint() {
+    const M = monthlyMetric;
+    const rows = {};
+    for (let i = 0; i < RAW.length; i++) {
+      const r = RAW[i];
+      if (ymOf(r) !== monthlyMonth) continue;
+      if (!skMatchesLoc(r, monthlyFilt)) continue;
+      const dd = +r.bill_date.slice(8, 10); if (!dd) continue;
+      const key = r.sku_code || r.sku_name || '—';
+      let e = rows[key]; if (!e) e = rows[key] = { desc: r, day: {}, tot: { q: 0, s: 0 } };
+      let c = e.day[dd]; if (!c) c = e.day[dd] = { q: 0, s: 0 };
+      c.q += r.quantity || 0; c.s += r.amount || 0;
+      e.tot.q += r.quantity || 0; e.tot.s += r.amount || 0;
+    }
+    let keys = Object.keys(rows).filter(k => rows[k].tot.q || rows[k].tot.s);
+    const sq = (monthlySearch || '').trim().toLowerCase();
+    if (sq) keys = keys.filter(k => skMatchesSearch(rows[k].desc, sq));
+    keys.sort((a, b) => rows[b].tot.s - rows[a].tot.s);
+
+    const cell = c => {
+      const has = c.q || c.s;
+      if (!has) return '<span class="sk-flat">—</span>';
+      if (M === 'qty')   return fmt(c.q);
+      if (M === 'value') return fmtV(c.s);
+      return `<div class="pt-cell"><div class="pt-sale">${fmtV(c.s)}</div><div class="pt-qty">${fmt(c.q)} qty</div></div>`;
+    };
+    const headDays = dayCols.map(c => `<th>${c.label}<span class="th-sub">${c.sub}</span></th>`).join('');
+    const thead = `<thead><tr>${skDescHead()}<th class="tcol" style="left:${SKU_SPAN}px;min-width:${TOTW}px;max-width:${TOTW}px;width:${TOTW}px">Total<span class="th-sub">${escapeHtml(monLbl)}</span></th>${headDays}</tr></thead>`;
+
+    const rowFor = k => {
+      const e = rows[k];
+      const cells = dayCols.map(c => `<td class="zcell">${cell(e.day[c.d] || { q: 0, s: 0 })}</td>`).join('');
+      return `<tr>${skDescCells(e.desc)}<td class="tcol">${cell(e.tot)}</td>${cells}</tr>`;
+    };
+    const gDay = {}; let gQ = 0, gS = 0;
+    keys.forEach(k => { const e = rows[k]; dayCols.forEach(c => { const v = e.day[c.d] || { q: 0, s: 0 }; (gDay[c.d] || (gDay[c.d] = { q: 0, s: 0 })); gDay[c.d].q += v.q; gDay[c.d].s += v.s; }); gQ += e.tot.q; gS += e.tot.s; });
+    const totCells = dayCols.map(c => `<td class="zcell">${cell(gDay[c.d] || { q: 0, s: 0 })}</td>`).join('');
+    const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL')}<td class="tcol">${cell({ q: gQ, s: gS })}</td>${totCells}</tr>` : '';
+
+    const body = keys.length
+      ? keys.map(rowFor).join('') + totalRow
+      : `<tr>${skDescTotalCells('—')}<td class="tcol">—</td><td colspan="${Math.max(1, dayCols.length)}" style="text-align:center;padding:18px;color:var(--text3)">No SKUs match the current filters for ${escapeHtml(monLbl)}.</td></tr>`;
+
+    const t = document.getElementById('mdTableHost');
+    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx">${thead}<tbody>${body}</tbody></table></div>`;
+  }
+
+  const monthPills = ymList.map(m => `<button class="zmom-pill fy-pill${m === monthlyMonth ? ' active' : ''}" data-mmonth="${m}">${zmomMonLabel(m)}</button>`).join('');
+  const mPills = SK_METRICS.map(m => `<button class="zmom-pill m-pill${m.k === monthlyMetric ? ' active' : ''}" data-mmetric="${m.k}">${m.label}</button>`).join('');
+  const locChips = SKLOC_FILTERS.map(f => skChipHtml('md', f)).join('');
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox md-search" placeholder="Search product / brand / category…" value="${escapeHtml(monthlySearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Month</label><div class="bt-chips">${monthPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${mPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Location</label><div class="bt-chips">${locChips}</div></div>
+      <button class="kpi-reset" id="mdReset" title="Clear search &amp; Location filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(monLbl)}</b> · by day</span><span class="bt-period-tag">Monthly Trends</span></div>
+    </div>
+    <div id="mdTableHost"></div>
+    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = full ${escapeHtml(monLbl)} · one column per calendar day (${daysInMonth} days) · All view shows Sales &amp; Qty, Qty / Value views show a single figure · pick a month above (defaults to the latest) · independent of the global filters.</div>`;
+
+  host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { monthlyMonth = b.dataset.mmonth; renderMonthlyTrends(); }));
+  host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { monthlyMetric = b.dataset.mmetric; renderMonthlyTrends(); }));
+  host.querySelector('#mdReset').addEventListener('click', () => { monthlySearch = ''; monthlySearchActive = false; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key].clear()); renderMonthlyTrends(); });
+  const si = host.querySelector('.md-search');
+  if (si) {
+    si.addEventListener('input', () => { monthlySearch = si.value; monthlySearchActive = true; paint(); });
+    si.addEventListener('focus', () => { monthlySearchActive = true; });
+    si.addEventListener('blur', () => { monthlySearchActive = false; });
+    if (monthlySearchActive) { si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
+  }
+  skWireLocFilters(host, 'md', monthlyFilt, opts, paint);
+  paint();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // LOADING OVERLAY HELPERS (kept identical to GT)
 // ═══════════════════════════════════════════════════════════════
 let _msgTO = null;
@@ -1286,7 +1638,7 @@ function finishLoading(state, main, sub) {
 // SETUP & INIT
 // ═══════════════════════════════════════════════════════════════
 // Trend tabs hide the global filter bar (they have their own local controls).
-const TREND_TABS = new Set(['dailytrends','zonetrends','producttrends']);
+const TREND_TABS = new Set(['dailytrends','zonetrends','producttrends','weeklytrends','monthlytrends']);
 function syncFilterBarVisibility() {
   const active = document.querySelector('.tab-btn.active');
   const fb = document.getElementById('filterBar');
