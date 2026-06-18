@@ -247,6 +247,12 @@
   table.zmom th,table.zmom td{padding:13px 15px;white-space:nowrap;border-bottom:1px solid var(--border);vertical-align:middle;}
   table.zmom thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:right;border-bottom:1px solid var(--border);box-shadow:inset 0 -2px 0 rgba(43,90,126,.22);}
   table.zmom thead th .th-sub{display:block;font-size:10px;font-weight:600;color:rgba(43,90,126,.70);letter-spacing:.2px;margin-top:4px;text-transform:none;}
+  /* ── sortable column headers (shared across all trend tables) ── */
+  thead th.th-sortable{cursor:pointer;user-select:none;-webkit-user-select:none;transition:background .12s,color .12s;}
+  thead th.th-sortable:hover{filter:brightness(.97);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;}
+  thead th.th-sortable .sort-ar{display:inline-block;min-width:9px;margin-left:3px;font-size:9px;line-height:1;vertical-align:middle;opacity:.9;}
+  thead th.th-sortable.sorted{box-shadow:inset 0 -3px 0 var(--accent)!important;}
+  thead th.th-sortable.sorted .sort-ar{color:var(--accent);font-weight:900;}
   table.zmom th.zcol,table.zmom td.zcol{position:sticky;left:0;z-index:5;background:var(--surface);text-align:left;font-weight:600;color:var(--text);min-width:96px;}
   table.zmom th.zcol.zlast,table.zmom td.zcol.zlast{box-shadow:1px 0 0 var(--border);}
   table.zmom th.zcol.zwrap,table.zmom td.zcol.zwrap{white-space:normal;word-break:break-word;line-height:1.3;padding:9px 11px;font-size:12px;}
@@ -1132,6 +1138,55 @@ function markIndependentTabsDirty() { _indepTabsDirty = new Set(Object.keys(INDE
 function ensureIndependentTab(tab) { const fn = INDEP_TAB_RENDER[tab]; if (fn && _indepTabsDirty.has(tab)) { fn(); _indepTabsDirty.delete(tab); } }
 
 // ═══════════════════════════════════════════════════════════════
+// COLUMN SORT — shared across all trend reports
+// Each report owns a sort slot keyed by name → { col, dir }.
+// Headers built with sortTh() carry data-sc="<colId>"; clicking
+// toggles direction or switches column, then re-renders. A report's
+// paint sorts its row array with sortApply() before building the body
+// (grand-total rows are always appended after, so they stay pinned).
+// ═══════════════════════════════════════════════════════════════
+const SORT = {};
+function sortGet(key, defCol, defDir) {
+  let s = SORT[key];
+  if (!s) s = SORT[key] = { col: defCol, dir: defDir || 'desc' };
+  return s;
+}
+function sortToggle(key, col, defDir) {
+  const s = SORT[key] || (SORT[key] = { col, dir: defDir || 'desc' });
+  if (s.col === col) s.dir = (s.dir === 'desc') ? 'asc' : 'desc';
+  else { s.col = col; s.dir = defDir || 'desc'; }
+  return s;
+}
+// Build a clickable header cell. `inner` is already-safe HTML for the label.
+function sortTh(key, col, inner, sub, extraClass, extraAttr) {
+  const s = SORT[key];
+  const on = s && s.col === col;
+  const car = on ? (s.dir === 'desc' ? '▼' : '▲') : '';
+  const subHtml = sub ? `<span class="th-sub">${sub}</span>` : '';
+  return `<th class="th-sortable${on ? ' sorted' : ''}${extraClass ? ' ' + extraClass : ''}" data-sc="${escapeHtml(String(col))}"${extraAttr ? ' ' + extraAttr : ''}>${inner}${subHtml}<span class="sort-ar">${car}</span></th>`;
+}
+// Stable sort of `arr` by a value-getter; numbers numeric, else locale/numeric string.
+function sortApply(arr, dir, getVal) {
+  const m = (dir === 'asc') ? 1 : -1;
+  return arr.map((v, i) => [v, i]).sort((A, B) => {
+    const va = getVal(A[0]), vb = getVal(B[0]);
+    const na = (typeof va === 'number' && !isNaN(va)), nb = (typeof vb === 'number' && !isNaN(vb));
+    let c;
+    if (na && nb) c = (va === vb) ? 0 : (va - vb);   // handles ±Infinity; Infinity-Infinity→NaN avoided
+    else if (na) c = 1;            // numbers ahead of blanks
+    else if (nb) c = -1;
+    else c = String(va == null ? '' : va).localeCompare(String(vb == null ? '' : vb), undefined, { numeric: true });
+    return c ? c * m : (A[1] - B[1]);
+  }).map(p => p[0]);
+}
+// Attach click handlers to every sortable header inside `host`.
+function sortWire(host, key, rerender, defDir) {
+  host.querySelectorAll('th.th-sortable[data-sc]').forEach(th => {
+    th.addEventListener('click', () => { sortToggle(key, th.dataset.sc, defDir); rerender(); });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // DAILY TRENDS  (week × day-of-week — same format as GT)
 // ═══════════════════════════════════════════════════════════════
 const DOW_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -1186,8 +1241,19 @@ function renderDailyTrends(){
       if (r.bill_date < e.min) e.min = r.bill_date;
       if (r.bill_date > e.max) e.max = r.bill_date;
     }
-    const weeks = Object.values(wk).sort((a,b)=> a.min<b.min?-1 : a.min>b.min?1 : a.w-b.w);
+    let weeks = Object.values(wk).sort((a,b)=> a.min<b.min?-1 : a.min>b.min?1 : a.w-b.w);
     const M = dailyMetric;
+    const _dts = SORT['daily'];   // undefined until a header is clicked → keep chronological
+    if (_dts) {
+      const _mv = c => M==='qty' ? c.q : M==='asp' ? (c.q?c.s/c.q:0) : c.s;
+      const _dval = (e, col) => {
+        if (col==='wk') return e.w;
+        if (col==='range') return e.min;
+        if (col==='tot') return _mv({ q:e.days.reduce((a,c)=>a+c.q,0), s:e.days.reduce((a,c)=>a+c.s,0) });
+        return _mv(e.days[+col.slice(3)] || {q:0,s:0});   // 'dow'+di
+      };
+      weeks = sortApply(weeks, _dts.dir, e => _dval(e, _dts.col));
+    }
     const cellInner = c => {
       const has = c.q||c.s, asp = c.q ? c.s/c.q : null;
       if (!has) return '<span class="ddt-muted">—</span>';
@@ -1209,13 +1275,13 @@ function renderDailyTrends(){
     const gQ = totDays.reduce((a,c)=>a+c.q,0), gS = totDays.reduce((a,c)=>a+c.s,0);
     const totDayCells = totDays.map((c,di)=>`<td class="${di===0?'grp-start':''}">${cellInner(c)}</td>`).join('');
     const totalRow = `<tr class="total-row"><td class="dcol">Total</td><td class="dcol2">${fyLbl} · all weeks</td>${totDayCells}<td class="totcell">${cellInner({q:gQ,s:gS})}</td></tr>`;
-    const dayHead = DOW_FULL.map((d,di)=>`<th${di===0?' class="grp-start"':''}>${d}<span class="ddt-sub">Qty · Value · ASP</span></th>`).join('');
-    const thead = `<thead><tr class="single"><th class="dcol">Week</th><th class="dcol2">Date Range</th>${dayHead}<th class="grp-tot grp-start">Total</th></tr></thead>`;
+    const dayHead = DOW_FULL.map((d,di)=>sortTh('daily','dow'+di, d+'<span class="ddt-sub">Qty · Value · ASP</span>', '', di===0?'grp-start':'')).join('');
+    const thead = `<thead><tr class="single">${sortTh('daily','wk','Week','','dcol')}${sortTh('daily','range','Date Range','','dcol2')}${dayHead}${sortTh('daily','tot','Total','','grp-tot grp-start')}</tr></thead>`;
     const colCount = 2 + 7 + 1;
     const body = weeks.length ? weeks.map(rowFor).join('') + totalRow
       : `<tr><td class="dcol">—</td><td class="dcol2">—</td><td colspan="${colCount-2}" style="text-align:center;padding:18px;color:var(--text3)">No sales match the current filters for ${fyLbl}.</td></tr>`;
     const t = document.getElementById('dailyTableHost');
-    if (t) t.innerHTML = `<div class="ddt-wrap"><table class="ddt">${thead}<tbody>${body}</tbody></table></div>`;
+    if (t) { t.innerHTML = `<div class="ddt-wrap"><table class="ddt">${thead}<tbody>${body}</tbody></table></div>`; sortWire(t, 'daily', renderDailyTrends, 'desc'); }
   }
 
   function updateChipBadge(key){ const b=host.querySelector('#dcbadge-'+key); if(!b) return; const n=dailyFilt[key].size; b.textContent=n; b.classList.toggle('show',!!n); b.style.display=n?'inline-flex':'none'; }
@@ -1312,11 +1378,20 @@ function renderMatrix(C){
   const qAt=(k,mk)=>(qty[k]&&qty[k][mk])||0, sAt=(k,mk)=>(sale[k]&&sale[k][mk])||0;
   const fyQ={}, fyS={};
   keysSet.forEach(k=>{ let q=0,s=0; fyMonths.forEach(mk=>{ q+=qAt(k,mk); s+=sAt(k,mk); }); fyQ[k]=q; fyS[k]=s; });
-  let rowsArr=[...keysSet].filter(k=>fyQ[k]||fyS[k]).sort((a,b)=>String(a).localeCompare(String(b)));
+  let rowsArr=[...keysSet].filter(k=>fyQ[k]||fyS[k]);
   const sq=(C.getSearch()||'').trim().toLowerCase();
   if(sq) rowsArr=rowsArr.filter(k=>String(k).toLowerCase().includes(sq));
 
   const cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:subLbl }));
+  // column sort — default: FY total, largest → smallest
+  const _sk='matrix:'+C.hostId;
+  const _ss=sortGet(_sk,'fy','desc');
+  const _mxVal=(k,col)=>{
+    if(col==='dim') return String(k);
+    if(col==='fy')  return M==='qty'?fyQ[k]:fyS[k];
+    return M==='qty'?qAt(k,col):sAt(k,col);   // col === month id
+  };
+  rowsArr=sortApply(rowsArr,_ss.dir,k=>_mxVal(k,_ss.col));
   const val=(k,c)=>({ q:qAt(k,c.id), s:sAt(k,c.id) });
 
   let maxSale=0; rowsArr.forEach(k=>cols.forEach(c=>{ maxSale=Math.max(maxSale, val(k,c).s); }));
@@ -1342,8 +1417,9 @@ function renderMatrix(C){
       : `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(k)}">${escapeHtml(k)}</td>`;
     return `<tr class="${isTotal?'total-row':''}">${dimCell}${fyCell}${cells}</tr>`;
   };
-  const headCells=cols.map(c=>`<th>${escapeHtml(c.label)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
-  const thead=`<thead><tr><th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th><th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">${escapeHtml(subLbl)}</span></th>${headCells}</tr></thead>`;
+  const dimAttr=`style='left:0;min-width:${dimW}px'`;
+  const headCells=cols.map(c=>sortTh(_sk,c.id,escapeHtml(c.label),escapeHtml(c.sub))).join('');
+  const thead=`<thead><tr>${sortTh(_sk,'dim',escapeHtml(dimCfg.label),'','zcol zlast',dimAttr)}${sortTh(_sk,'fy',zmomFyLabel(selFY),escapeHtml(subLbl),'fycol')}${headCells}</tr></thead>`;
   const body=rowsArr.length
     ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
     : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
@@ -1380,6 +1456,7 @@ function renderMatrix(C){
   }
   const rb=host.querySelector('#mxReset');
   if(rb) rb.addEventListener('click',()=>{ C.setSearch(''); C.setSearchActive(false); C.rerender(); });
+  sortWire(host,_sk,C.rerender,'desc');
 }
 
 function renderRegionMoM(){
@@ -1434,10 +1511,16 @@ let monthlyMonth = null, monthlyMetric = 'all', monthlySearch = '', monthlySearc
 const monthlyFilt = {}; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key] = new Set());
 
 // ── shared markup helpers ──
-function skDescHead() {
-  return SKU_DESC.map((d, i) =>
-    `<th class="dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
-  ).join('');
+// When `sortKey` is supplied, the descriptor columns become sortable
+// (col ids "d0".."d3"); otherwise they render as plain headers.
+function skDescHead(sortKey) {
+  return SKU_DESC.map((d, i) => {
+    const cls = `dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}`;
+    const attr = `style='min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px'`;
+    return sortKey
+      ? sortTh(sortKey, 'd' + i, escapeHtml(d.label), '', cls, attr)
+      : `<th class="${cls}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`;
+  }).join('');
 }
 function skDescCells(rowObj) {
   return SKU_DESC.map((d, i) => {
@@ -1555,7 +1638,15 @@ function renderWeeklyTrends() {
     let keys = Object.keys(rows).filter(k => rows[k].tot.q || rows[k].tot.s);
     const sq = (weeklySearch || '').trim().toLowerCase();
     if (sq) keys = keys.filter(k => skMatchesSearch(rows[k].desc, sq));
-    keys.sort((a, b) => rows[b].tot.s - rows[a].tot.s);
+    const _wk='weekly';
+    const _ws=sortGet(_wk,'tot','desc');
+    const _wval=(k,col)=>{
+      const e=rows[k];
+      if(col.charAt(0)==='d') return SKU_DESC[+col.slice(1)].get(e.desc)||'';
+      const v = col==='tot' ? e.tot : (e.wk[+col.slice(1)]||{q:0,s:0});
+      return M==='qty'? v.q : v.s;
+    };
+    keys=sortApply(keys,_ws.dir,k=>_wval(k,_ws.col));
 
     const at = (e, w) => e.wk[w] || { q: 0, s: 0 };
     // last week: prior week within the year; for the first week of the year, the last week of the previous year
@@ -1574,8 +1665,8 @@ function renderWeeklyTrends() {
       return `<div class="skcell"><div class="sk-cw">${fmt(t.q)} · ${fmtV(t.s)}</div></div>`;
     };
 
-    const headWeeks = weeks.map(w => `<th>W${w}<span class="th-sub">CW·LW·WoW</span></th>`).join('');
-    const thead = `<thead><tr>${skDescHead()}<th class="tcol">Total<span class="th-sub">${escapeHtml(fyLbl)}</span></th>${headWeeks}</tr></thead>`;
+    const headWeeks = weeks.map(w => sortTh(_wk,'w'+w,'W'+w,'CW·LW·WoW')).join('');
+    const thead = `<thead><tr>${skDescHead(_wk)}${sortTh(_wk,'tot','Total',escapeHtml(fyLbl),'tcol')}${headWeeks}</tr></thead>`;
 
     const rowFor = k => {
       const e = rows[k];
@@ -1602,6 +1693,8 @@ function renderWeeklyTrends() {
     const tw = SKU_SPAN + TOTW + weeks.length * 92;
     const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:92px">`.repeat(weeks.length)}</colgroup>`;
     skRender('wkTableHost', tw, colg, thead, body);
+    const _th = document.getElementById('wkTableHost');
+    if (_th) sortWire(_th, _wk, renderWeeklyTrends, 'desc');
   }
 
   const yearPills = yearList.map(y => `<button class="zmom-pill fy-pill${y === weeklyYear ? ' active' : ''}" data-wyear="${y}">${y}</button>`).join('');
@@ -1679,7 +1772,15 @@ function renderMonthlyTrends() {
     let keys = Object.keys(rows).filter(k => rows[k].tot.q || rows[k].tot.s);
     const sq = (monthlySearch || '').trim().toLowerCase();
     if (sq) keys = keys.filter(k => skMatchesSearch(rows[k].desc, sq));
-    keys.sort((a, b) => rows[b].tot.s - rows[a].tot.s);
+    const _mk='monthly';
+    const _ms=sortGet(_mk,'tot','desc');
+    const _mval=(k,col)=>{
+      const e=rows[k];
+      if(col==='tot'){ const v=e.tot; return M==='qty'?v.q:v.s; }
+      if(col.slice(0,2)==='dy'){ const v=e.day[+col.slice(2)]||{q:0,s:0}; return M==='qty'?v.q:v.s; }
+      return SKU_DESC[+col.slice(1)].get(e.desc)||'';   // descriptor d0..d3
+    };
+    keys=sortApply(keys,_ms.dir,k=>_mval(k,_ms.col));
 
     const cell = c => {
       const has = c.q || c.s;
@@ -1692,8 +1793,8 @@ function renderMonthlyTrends() {
     keys.forEach(k => dayCols.forEach(c => { const v = rows[k].day[c.d]; if (v && v.s > maxSale) maxSale = v.s; }));
     const shade = s => maxSale ? `background:rgba(45,122,78,${(0.05 + 0.30 * Math.min(1, s / maxSale)).toFixed(3)});` : '';
     const dayTd = v => `<td class="zcell" style="${(v.q || v.s) ? shade(v.s) : ''}">${cell(v)}</td>`;
-    const headDays = dayCols.map(c => `<th>${c.label}<span class="th-sub">${c.sub}</span></th>`).join('');
-    const thead = `<thead><tr>${skDescHead()}<th class="tcol">Total<span class="th-sub">${escapeHtml(monLbl)}</span></th>${headDays}</tr></thead>`;
+    const headDays = dayCols.map(c => sortTh(_mk,'dy'+c.d, escapeHtml(c.label), escapeHtml(c.sub))).join('');
+    const thead = `<thead><tr>${skDescHead(_mk)}${sortTh(_mk,'tot','Total',escapeHtml(monLbl),'tcol')}${headDays}</tr></thead>`;
 
     const rowFor = k => {
       const e = rows[k];
@@ -1712,6 +1813,8 @@ function renderMonthlyTrends() {
     const tw = SKU_SPAN + TOTW + dayCols.length * 78;
     const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:78px">`.repeat(dayCols.length)}</colgroup>`;
     skRender('mdTableHost', tw, colg, thead, body);
+    const _th = document.getElementById('mdTableHost');
+    if (_th) sortWire(_th, _mk, renderMonthlyTrends, 'desc');
   }
 
   const monthSel = `<div class="mc"><button class="mc-btn active" id="mdMonthBtn" type="button"><span id="mdMonthLbl">${escapeHtml(monLbl)}</span><span class="mc-chev">▾</span></button><div class="mc-panel" id="mdMonthPanel"><input type="text" class="ms-search" id="mdMonthSearch" placeholder="Search month…"><div class="ms-list" id="mdMonthList"></div></div></div>`;
@@ -1898,7 +2001,23 @@ function renderDOH() {
     let keys = Object.keys(desc);
     const sq = (dohSearch || '').trim().toLowerCase();
     if (sq) keys = keys.filter(k => skMatchesSearch(desc[k], sq));
-    keys.sort((a, b) => ((salesAllMap[b] || 0) - (salesAllMap[a] || 0)) || ((stockAllMap[b] || 0) - (stockAllMap[a] || 0)));
+    keys.sort((a, b) => (stockAllMap[b] || 0) - (stockAllMap[a] || 0));   // stable secondary
+    const _ds = sortGet('doh', 'drr', 'desc');
+    const _dval = (k, col) => {
+      if (col.charAt(0) === 'd' && col.length <= 2) return SKU_DESC[+col.slice(1)].get(desc[k]) || '';   // d0..d3
+      if (col === 'tstock') return stockAllMap[k] || 0;
+      if (col === 'drr')    return (salesAllMap[k] || 0) / DIV;
+      if (col === 'doc')    { const stk = stockAllMap[k] || 0, win = salesAllMap[k] || 0; return win ? stk * DIV / win : (stk ? Infinity : 0); }
+      const ci = col.indexOf(':'); const tag = col.slice(0, ci), c = col.slice(ci + 1);
+      const sm = salesMap[k] || {}, km = stockMap[k] || {};
+      if (tag === 'cdrr') return (sm[c] || 0) / DIV;
+      if (tag === 'cb')   return (km[c] && km[c].b) || 0;
+      if (tag === 'cf')   return (km[c] && km[c].f) || 0;
+      if (tag === 'ct')   return (km[c] && km[c].t) || 0;
+      if (tag === 'cdoh') { const t = (km[c] && km[c].t) || 0, w = sm[c] || 0; return w ? t * DIV / w : (t ? Infinity : 0); }
+      return 0;
+    };
+    keys = sortApply(keys, _ds.dir, k => _dval(k, _ds.col));
 
     const num = v => v ? fmt(v) : '<span class="sk-flat">—</span>';
     // per-city (sales-derived) DRR — 2 decimals; golden summary DRR — 1 decimal
@@ -1914,18 +2033,20 @@ function renderDOH() {
     };
 
     // ── header (single sticky row) ──
-    const grp = label => cities.map((c, i) =>
-      `<th class="zcell${i === 0 ? ' gsep' : ''}">${escapeHtml(c)}<span class="th-sub">${label}</span></th>`).join('');
+    const grp = (label, tag) => cities.map((c, i) =>
+      sortTh('doh', tag + ':' + c, escapeHtml(c), label, 'zcell' + (i === 0 ? ' gsep' : ''))).join('');
+    const stockTags = ['cb', 'cf', 'ct'];
     const grpStock = cities.map((c, ci) =>
       ['BACKEND', 'FRONTEND', 'STOCK'].map((lab, si) => {
         const first = ci === 0 && si === 0;
-        return `<th class="zcell${first ? ' gsep' : (si === 0 ? ' csep' : '')}">${escapeHtml(c)}<span class="th-sub">${lab}</span></th>`;
+        const cls = 'zcell' + (first ? ' gsep' : (si === 0 ? ' csep' : ''));
+        return sortTh('doh', stockTags[si] + ':' + c, escapeHtml(c), lab, cls);
       }).join('')).join('');
     const gsumHead =
-      `<th class="gsum gsum0">TOTAL STOCK<span class="th-sub">all cities</span></th>` +
-      `<th class="gsum">DRR ${DIV}<span class="th-sub">${WIN}d ÷ ${DIV}</span></th>` +
-      `<th class="gsum">DOC<span class="th-sub">stock ÷ DRR</span></th>`;
-    const thead = `<thead><tr>${skDescHead()}${gsumHead}${grp(`DRR ${DIV}`)}${grpStock}${grp('DOH')}</tr></thead>`;
+      sortTh('doh', 'tstock', 'TOTAL STOCK', 'all cities', 'gsum gsum0') +
+      sortTh('doh', 'drr', `DRR ${DIV}`, `${WIN}d ÷ ${DIV}`, 'gsum') +
+      sortTh('doh', 'doc', 'DOC', 'stock ÷ DRR', 'gsum');
+    const thead = `<thead><tr>${skDescHead('doh')}${gsumHead}${grp(`DRR ${DIV}`, 'cdrr')}${grpStock}${grp('DOH', 'cdoh')}</tr></thead>`;
 
     const rowFor = k => {
       const sm = salesMap[k] || {}, km = stockMap[k] || {};
@@ -1962,6 +2083,8 @@ function renderDOH() {
       `<col style="width:${GW1}px"><col style="width:${GW}px"><col style="width:${GW}px">` +
       `${`<col style="width:${CW}px">`.repeat(cities.length * 5)}</colgroup>`;
     skRender('dohTableHost', tw, colg, thead, body);
+    const _th = document.getElementById('dohTableHost');
+    if (_th) sortWire(_th, 'doh', renderDOH, 'desc');
   }
 
   const viewPills = [['30', 'DRR 30'], ['7', 'DRR 7']]
@@ -2114,10 +2237,29 @@ function renderCM2(){
     return `<span class="${cls}">${p>0?'+':''}${p.toFixed(1)}%</span>`;
   };
 
+  // ── column-sort value getter (CM2 stays chronological until a header is clicked) ──
+  const cmVal = (e, col) => {
+    switch (col) {
+      case 'gmv': return e.gmv; case 'cog': return e.cog; case 'logi': return e.logi;
+      case 'qty': return e.qty; case 'asp': return e.qty ? e.gmv / e.qty : 0;
+      case 'mk': return e.mk; case 'br': return e.br; case 'cm2': return e.cm2;
+      case 'cm2p': return e.gmv ? e.cm2 / e.gmv : 0;
+      case 'agmv': return e.agmv; case 'im': return e.im; case 'cl': return e.cl; case 'ord': return e.ord;
+      case 'cpm': return e.im ? e.mk / e.im * 1000 : 0; case 'ctr': return e.im ? e.cl / e.im : 0; case 'conv': return e.im ? e.ord / e.im : 0;
+      case 'roas': return e.mk ? e.agmv / e.mk : 0;
+      case 'dod': return e.dod == null ? -Infinity : e.dod; case 'wow': return e.wow == null ? -Infinity : e.wow;
+      case 'yoy': return e.yoy == null ? -Infinity : e.yoy; case 'mom': return e.mom == null ? -Infinity : e.mom;
+      case 'year': return e.year; case 'wk': return e.wk == null ? -Infinity : e.wk;
+      case 'month': return e.month || ''; case 'date': return e.date || ''; case 'day': return e.day || ''; case 'range': return e.range || '';
+      default: return 0;
+    }
+  };
+
   // ── numeric columns (shared, GMV → Conv%) ──
-  const numHead = `<th>GMV Sales</th><th>Cogs</th><th>Logistics</th><th>Total Qty</th><th>ASP</th>`+
-    `<th>Marketing</th><th>Branding</th><th class="cm2hl cmpsep">CM2</th><th class="cm2hl">CM2%</th>`+
-    `<th class="cmpsep">Ads GMV</th><th>Impr.</th><th>Clicks</th><th>Ads Orders</th><th>CPM</th><th>CTR</th><th>Conv %</th>`;
+  const numHead =
+    sortTh('cm2','gmv','GMV Sales')+sortTh('cm2','cog','Cogs')+sortTh('cm2','logi','Logistics')+sortTh('cm2','qty','Total Qty')+sortTh('cm2','asp','ASP')+
+    sortTh('cm2','mk','Marketing')+sortTh('cm2','br','Branding')+sortTh('cm2','cm2','CM2','','cm2hl cmpsep')+sortTh('cm2','cm2p','CM2%','','cm2hl')+
+    sortTh('cm2','agmv','Ads GMV','','cmpsep')+sortTh('cm2','im','Impr.')+sortTh('cm2','cl','Clicks')+sortTh('cm2','ord','Ads Orders')+sortTh('cm2','cpm','CPM')+sortTh('cm2','ctr','CTR')+sortTh('cm2','conv','Conv %');
   const numCells = e => {
     const cpm  = e.im ? e.mk/e.im*1000 : 0;
     const ctr  = e.im ? e.cl/e.im : null;
@@ -2135,24 +2277,24 @@ function renderCM2(){
   // ── granularity-specific label + comparison columns ──
   const GRAN = {
     daily: {
-      tag:'Daily', lblHead:`<th class="lbl">Year</th><th class="lbl">Month</th><th class="lbl">Date</th><th class="lbl">Day</th><th class="lbl">Week</th><th class="lbl lblend">Date Range</th>`,
-      cmpHead:`<th class="cmpsep">DoD %</th><th>WoW %</th><th>YoY %</th>`,
+      tag:'Daily', lblHead:sortTh('cm2','year','Year','','lbl')+sortTh('cm2','month','Month','','lbl')+sortTh('cm2','date','Date','','lbl')+sortTh('cm2','day','Day','','lbl')+sortTh('cm2','wk','Week','','lbl')+sortTh('cm2','range','Date Range','','lbl lblend'),
+      cmpHead:sortTh('cm2','dod','DoD %','','cmpsep')+sortTh('cm2','wow','WoW %')+sortTh('cm2','yoy','YoY %'),
       lblCells:e=>`<td class="lbl">${e.year}</td><td class="lbl dim">${escapeHtml(e.month||'')}</td><td class="lbl">${escapeHtml(e.date)}</td><td class="lbl dim">${escapeHtml(e.day||'')}</td><td class="lbl dim">Week ${e.wk||''}</td><td class="lbl dim lblend">${escapeHtml(e.range||'')}</td>`,
       cmpCells:e=>`<td class="cmpsep">${grow(e.dod)}</td><td>${grow(e.wow)}</td><td>${grow(e.yoy)}</td>`,
       search:e=>[e.year,e.month,e.date,e.day,'week '+e.wk,e.range].join(' ').toLowerCase(),
       cmpBlank:`<td class="cmpsep">—</td><td>—</td><td>—</td>`, labels:6,
     },
     weekly: {
-      tag:'Weekly', lblHead:`<th class="lbl">Year</th><th class="lbl">Week</th><th class="lbl lblend">Date Range</th>`,
-      cmpHead:`<th class="cmpsep">WoW %</th><th>YoY %</th>`,
+      tag:'Weekly', lblHead:sortTh('cm2','year','Year','','lbl')+sortTh('cm2','wk','Week','','lbl')+sortTh('cm2','range','Date Range','','lbl lblend'),
+      cmpHead:sortTh('cm2','wow','WoW %','','cmpsep')+sortTh('cm2','yoy','YoY %'),
       lblCells:e=>`<td class="lbl">${e.year}</td><td class="lbl">Week ${e.wk||''}</td><td class="lbl dim lblend">${escapeHtml(e.range||'')}</td>`,
       cmpCells:e=>`<td class="cmpsep">${grow(e.wow)}</td><td>${grow(e.yoy)}</td>`,
       search:e=>[e.year,'week '+e.wk,e.range].join(' ').toLowerCase(),
       cmpBlank:`<td class="cmpsep">—</td><td>—</td>`, labels:3,
     },
     monthly: {
-      tag:'Monthly', lblHead:`<th class="lbl">Year</th><th class="lbl lblend">Month</th>`,
-      cmpHead:`<th class="cmpsep">MoM %</th><th>YoY %</th>`,
+      tag:'Monthly', lblHead:sortTh('cm2','year','Year','','lbl')+sortTh('cm2','month','Month','','lbl lblend'),
+      cmpHead:sortTh('cm2','mom','MoM %','','cmpsep')+sortTh('cm2','yoy','YoY %'),
       lblCells:e=>`<td class="lbl">${e.year}</td><td class="lbl lblend">${escapeHtml(e.month||'')}</td>`,
       cmpCells:e=>`<td class="cmpsep">${grow(e.mom)}</td><td>${grow(e.yoy)}</td>`,
       search:e=>[e.year,e.month].join(' ').toLowerCase(),
@@ -2166,8 +2308,10 @@ function renderCM2(){
     let rows = (cm2Year==='all') ? all : all.filter(r=>r.year===cm2Year);
     const sq = (cm2Search||'').trim().toLowerCase();
     if (sq) rows = rows.filter(r => g.search(r).includes(sq));
+    const _cs = SORT['cm2'];   // chronological until a header is clicked
+    if (_cs) rows = sortApply(rows, _cs.dir, e => cmVal(e, _cs.col));
 
-    const thead = `<thead><tr>${g.lblHead}${numHead}${g.cmpHead}<th>ROAS</th></tr></thead>`;
+    const thead = `<thead><tr>${g.lblHead}${numHead}${g.cmpHead}${sortTh('cm2','roas','ROAS')}</tr></thead>`;
     const colCount = g.labels + 16 + (cm2Gran==='daily'?3:2) + 1;
 
     let body;
@@ -2182,7 +2326,7 @@ function renderCM2(){
       body += `<tr class="total-row">${totLbl}${numCells(t)}${g.cmpBlank}${roasCell(t)}</tr>`;
     }
     const tHost = document.getElementById('cm2TableHost');
-    if (tHost) tHost.innerHTML = `<div class="cm2-wrap"><table class="cm2">${thead}<tbody>${body}</tbody></table></div>`;
+    if (tHost) { tHost.innerHTML = `<div class="cm2-wrap"><table class="cm2">${thead}<tbody>${body}</tbody></table></div>`; sortWire(tHost, 'cm2', renderCM2, 'desc'); }
   }
 
   const yearPills = [`<button class="zmom-pill fy-pill${cm2Year==='all'?' active':''}" data-cyear="all">All</button>`]
