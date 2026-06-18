@@ -345,6 +345,29 @@
   table.skx tr.total-row td.gsum{background:#f1e6c4;color:#5a4310;}
   table.skx tr.total-row:hover td.gsum{background:#f1e6c4;}
 
+  /* ── CM2 (Contribution Margin) — period rows × P&L columns ── */
+  .cm2-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;max-height:74vh;box-shadow:var(--shadow);}
+  table.cm2{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;}
+  table.cm2 th,table.cm2 td{padding:8px 11px;white-space:nowrap;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;}
+  table.cm2 thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;box-shadow:inset 0 -2px 0 rgba(43,90,126,.2);}
+  table.cm2 th.lbl,table.cm2 td.lbl{text-align:left;}
+  table.cm2 td.lbl{font-weight:600;color:var(--text);}
+  table.cm2 td.lbl.dim{color:var(--text2);font-weight:500;}
+  table.cm2 .lblend{border-right:2px solid var(--border2);}
+  table.cm2 tbody tr:nth-child(even) td{background:#f6f4ef;}
+  table.cm2 tbody tr:hover td{background:rgba(43,90,126,.06);}
+  table.cm2 td.cm2hl,table.cm2 th.cm2hl{background:var(--gold-light);}
+  table.cm2 thead th.cm2hl{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);}
+  table.cm2 tbody tr:nth-child(even) td.cm2hl{background:#f6edd4;}
+  table.cm2 tbody tr:hover td.cm2hl{background:#f3e7c4;}
+  table.cm2 td.cm2hl{font-weight:700;color:#6b5212;}
+  table.cm2 td.neg{color:var(--red);}
+  table.cm2 .cm-up{color:var(--green);font-weight:600;} table.cm2 .cm-dn{color:var(--red);font-weight:600;} table.cm2 .cm-flat{color:var(--text3);}
+  table.cm2 .cmpsep{border-left:1px solid rgba(43,90,126,.18);}
+  table.cm2 td.muted{color:var(--text3);}
+  table.cm2 thead th .th-sub{display:block;font-size:9px;font-weight:600;color:rgba(43,90,126,.7);letter-spacing:.2px;margin-top:3px;text-transform:none;}
+  table.cm2 thead th.cm2hl .th-sub{color:rgba(184,137,46,.75);}
+
   .ms-item.mc-opt{cursor:pointer;}
   .ms-item.mc-opt.sel{background:var(--accent-light);color:var(--accent);font-weight:700;}
 
@@ -579,6 +602,10 @@
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
         <span>DOH</span>
       </button>
+      <button class="tab-btn" data-tab="cm2">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg>
+        <span>CM2</span>
+      </button>
     </div>
     </div><!-- /tab-nav-sticky -->
 
@@ -615,6 +642,11 @@
       <div class="sec-header"><div class="sec-title">DOH — Product × City <span class="sec-badge" style="background:var(--red-light);color:var(--red)">DRR · Stock · DOH</span></div></div>
       <div id="secDOH"></div>
     </div>
+
+    <div class="tab-panel" id="tab-cm2">
+      <div class="sec-header"><div class="sec-title">CM2 — Contribution Margin <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Daily · Weekly · Monthly</span></div></div>
+      <div id="secCM2"></div>
+    </div>
   </div>
 </div>
 
@@ -629,6 +661,8 @@
 // ── DATA & STATE ───────────────────────────────────────────────
 let RAW = [];
 let STOCK = [];                 // stock snapshot (DOH tab) — [{sku_code, mapping_city, total_stock, backend, frontend}]
+let ADS = {};                   // ads.json keyed by ISO date → {mk, br, agmv, im, cl, ord} (powers the CM2 tab)
+let COGS = {};                  // cogs.json keyed by sku_code → cost of product (per-unit)
 let filtered = [];
 let dataMinDate = '', dataMaxDate = '';
 
@@ -804,6 +838,43 @@ async function loadDashboardData() {
       console.log('Stock rows:', STOCK.length);
     } catch (e) { console.warn('stock.json not loaded:', e); STOCK = []; }
 
+    // ── ADS + COGS sources (power the CM2 tab) ───────────────────
+    // Both are independent of the global filters. ADS is summed by date,
+    // COGS is a per-unit cost keyed by sku_code (uppercased to match RAW).
+    try {
+      const ares = await fetch('./ads.json?_=' + Date.now());
+      const ajson = parseJsonText(await ares.text());
+      ADS = {};
+      if (Array.isArray(ajson)) {
+        for (const a of ajson) {
+          const d = excelDateToISO(a['date']); if (!d) continue;
+          let e = ADS[d]; if (!e) e = ADS[d] = { mk:0, br:0, agmv:0, im:0, cl:0, ord:0 };
+          e.mk   += +a['marketing_cost'] || 0;
+          e.br   += +a['branding_cost']  || 0;
+          e.agmv += +a['ads_gmv']        || 0;
+          e.im   += +a['impression']     || 0;
+          e.cl   += +a['clicks']         || 0;
+          e.ord  += +a['ads_orders']     || 0;
+        }
+      }
+      console.log('Ads dates:', Object.keys(ADS).length);
+    } catch (e) { console.warn('ads.json not loaded:', e); ADS = {}; }
+
+    try {
+      const cres = await fetch('./cogs.json?_=' + Date.now());
+      const cjson = parseJsonText(await cres.text());
+      COGS = {};
+      if (Array.isArray(cjson)) {
+        for (const c of cjson) {
+          const code = up(c['sku_code']); if (!code) continue;
+          const cost = +(c['Cost of Product'] != null ? c['Cost of Product'] : c['cost_of_product']) || 0;
+          COGS[code] = cost;
+        }
+      }
+      console.log('Cogs SKUs:', Object.keys(COGS).length);
+    } catch (e) { console.warn('cogs.json not loaded:', e); COGS = {}; }
+    _cm2Data = null;                // CM2 recomputes from the fresh sources on next view
+
     // Reveal the dashboard shell and (re)build filters + reset report state.
     document.getElementById('dashboardContent').style.display = 'block';
     document.getElementById('dashboardContent').classList.add('visible');
@@ -818,6 +889,7 @@ async function loadDashboardData() {
     markIndependentTabsDirty();     // trend tabs rebuild when next viewed
     dailyYear = regionFY = productFY = null;  // re-pick latest year on next render
     weeklyYear = null; monthlyMonth = null;   // re-pick latest week-year / month on next render
+    cm2Year = null;                           // CM2 re-picks latest year on next render
     const activeTab = document.querySelector('.tab-btn.active');
     if (activeTab) ensureIndependentTab(activeTab.dataset.tab);
     syncFilterBarVisibility();
@@ -1050,6 +1122,7 @@ const INDEP_TAB_RENDER = {
   weeklytrends:  renderWeeklyTrends,
   monthlytrends: renderMonthlyTrends,
   dohtrends:     renderDOH,
+  cm2:           renderCM2,
 };
 let _indepTabsDirty = new Set();
 function markIndependentTabsDirty() { _indepTabsDirty = new Set(Object.keys(INDEP_TAB_RENDER)); }
@@ -1918,10 +1991,234 @@ function renderDOH() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// CM2 — Contribution Margin (Daily / Weekly / Monthly P&L view)
+// Independent of the global filters. Built from the sales data (RAW),
+// ads.json (ADS, summed by date) and cogs.json (COGS, per-unit by sku_code),
+// replicating the Excel CM2 model exactly:
+//   GMV       = Σ value                              (per period)
+//   Cogs      = Σ qty × unit-cost(sku)               (cogs.json, 0 if unmatched)
+//   Logistics = GMV × 4%
+//   ASP       = GMV ÷ Qty
+//   Marketing / Branding / Ads GMV / Impr / Clicks / Orders = Σ ads (by date)
+//   CM2       = margin×GMV − Cogs − Logistics − Marketing − Branding
+//               margin = 56.25% up to 22-Sep-2025, 60.32% after
+//   CM2%      = CM2 ÷ GMV · CPM = Mktg÷Impr×1000 · CTR = Clicks÷Impr · Conv% = Orders÷Impr
+//   ROAS      = Ads GMV ÷ Marketing
+//   Daily   : DoD% (prev day) · WoW% (7 days back) · YoY% (same date −1yr)
+//   Weekly  : WoW% (prev week) · YoY% (same week # −1yr)
+//   Monthly : MoM% (prev month) · YoY% (same month −1yr)
+// Weekly/Monthly sums roll up the per-day CM2 rows (matching the workbook).
+// ═══════════════════════════════════════════════════════════════
+const CM2_MARGIN_SWITCH = '2025-09-22';
+const CM2_MARGIN_PRE = 0.5625, CM2_MARGIN_POST = 0.6032;
+let cm2Gran = 'daily', cm2Year = null, cm2Search = '', cm2SearchActive = false;
+let _cm2Data = null;
+
+function cm2WeekNum(w){ const m = String(w).match(/\d+/); return m ? +m[0] : null; }
+function cm2DMY(iso){ return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day:'2-digit', month:'short' }); }
+function cm2PrevYearISO(iso){ return (+iso.slice(0,4) - 1) + iso.slice(4); }   // same month/day, last year
+
+function cm2Compute(){
+  // 1) aggregate sales by date
+  const byDate = new Map();
+  for (let i=0;i<RAW.length;i++){
+    const r = RAW[i]; const d = r.bill_date; if (!d || d.length < 10) continue;
+    let e = byDate.get(d);
+    if (!e){ e = { year:r.cy, month:r.month, week:r.week, day:r.day, gmv:0, qty:0, cog:0 }; byDate.set(d, e); }
+    e.gmv += r.amount || 0;
+    e.qty += r.quantity || 0;
+    e.cog += (r.quantity || 0) * (COGS[r.sku_code] || 0);
+  }
+  // 2) sorted daily rows: merge ads + derive metrics
+  const dates = [...byDate.keys()].sort();
+  const daily = dates.map(d => {
+    const e = byDate.get(d);
+    const ad = ADS[d] || { mk:0, br:0, agmv:0, im:0, cl:0, ord:0 };
+    const logi = e.gmv * 0.04;
+    const margin = (d <= CM2_MARGIN_SWITCH) ? CM2_MARGIN_PRE : CM2_MARGIN_POST;
+    const cm2 = margin*e.gmv - e.cog - logi - ad.mk - ad.br;
+    return { date:d, year:(+e.year || +d.slice(0,4)), wk:cm2WeekNum(e.week), week:e.week,
+             month:e.month, day:e.day, gmv:e.gmv, cog:e.cog, logi, qty:e.qty,
+             mk:ad.mk, br:ad.br, agmv:ad.agmv, im:ad.im, cl:ad.cl, ord:ad.ord, cm2 };
+  });
+  // 3) week date-range (min/max date per year+week) for the "Date Range" column
+  const wrange = new Map();
+  for (const r of daily){
+    const k = r.year+'|'+r.wk; let g = wrange.get(k);
+    if (!g){ g = { min:r.date, max:r.date }; wrange.set(k, g); }
+    if (r.date < g.min) g.min = r.date;
+    if (r.date > g.max) g.max = r.date;
+  }
+  daily.forEach(r => { const g = wrange.get(r.year+'|'+r.wk); r.range = g ? (cm2DMY(g.min)+' - '+cm2DMY(g.max)) : ''; });
+  // 4) daily comparisons
+  const idxByDate = new Map(daily.map((r,i)=>[r.date,i]));
+  daily.forEach((r,i)=>{
+    r.dod = (i>=1 && daily[i-1].gmv) ? (r.gmv-daily[i-1].gmv)/daily[i-1].gmv : null;
+    r.wow = (i>=7 && daily[i-7].gmv) ? (r.gmv-daily[i-7].gmv)/daily[i-7].gmv : null;
+    const py = idxByDate.get(cm2PrevYearISO(r.date));
+    r.yoy = (py!=null && daily[py].gmv) ? (r.gmv-daily[py].gmv)/daily[py].gmv : null;
+  });
+  // generic period roll-up (sums daily rows in first-seen / chronological order)
+  function aggregate(keyOf, labelOf){
+    const map = new Map(); const order = [];
+    for (const r of daily){
+      const k = keyOf(r); let e = map.get(k);
+      if (!e){ e = Object.assign({ rows:0, gmv:0, cog:0, logi:0, qty:0, mk:0, br:0, cm2:0, agmv:0, im:0, cl:0, ord:0 }, labelOf(r)); map.set(k,e); order.push(k); }
+      e.rows++; e.gmv+=r.gmv; e.cog+=r.cog; e.logi+=r.logi; e.qty+=r.qty; e.mk+=r.mk; e.br+=r.br;
+      e.cm2+=r.cm2; e.agmv+=r.agmv; e.im+=r.im; e.cl+=r.cl; e.ord+=r.ord;
+    }
+    return order.map(k=>map.get(k));
+  }
+  const weekly  = aggregate(r=>r.year+'|'+r.wk, r=>({ year:r.year, wk:r.wk, week:r.week, range:r.range }));
+  const monthly = aggregate(r=>r.month,         r=>({ year:r.year, month:r.month }));
+  // weekly: WoW = prev row, YoY = same week # previous year
+  const wByKey = new Map(weekly.map(e=>[e.year+'|'+e.wk, e]));
+  weekly.forEach((e,i)=>{
+    e.wow = (i>=1 && weekly[i-1].gmv) ? (e.gmv-weekly[i-1].gmv)/weekly[i-1].gmv : null;
+    const py = wByKey.get((e.year-1)+'|'+e.wk);
+    e.yoy = (py && py.gmv) ? (e.gmv-py.gmv)/py.gmv : null;
+  });
+  // monthly: MoM = prev row, YoY = same month label previous year ("OCT-24" → "OCT-23")
+  const prevYrMonth = lbl => { const p = String(lbl).split('-'); const yy = +p[p.length-1]; if (p.length<2 || isNaN(yy)) return null; return p.slice(0,-1).join('-')+'-'+String(yy-1).padStart(2,'0'); };
+  const mByLabel = new Map(monthly.map(e=>[e.month, e]));
+  monthly.forEach((e,i)=>{
+    e.mom = (i>=1 && monthly[i-1].gmv) ? (e.gmv-monthly[i-1].gmv)/monthly[i-1].gmv : null;
+    const pl = prevYrMonth(e.month); const py = pl ? mByLabel.get(pl) : null;
+    e.yoy = (py && py.gmv) ? (e.gmv-py.gmv)/py.gmv : null;
+  });
+  _cm2Data = { daily, weekly, monthly };
+  return _cm2Data;
+}
+
+function renderCM2(){
+  const host = document.getElementById('secCM2'); if (!host) return;
+  if (!RAW || !RAW.length){ host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+  const D = _cm2Data || cm2Compute();
+  if (!D.daily.length){ host.innerHTML = '<div class="no-data">No dated sales rows found for CM2.</div>'; return; }
+
+  const years = [...new Set(D.daily.map(r=>r.year))].sort((a,b)=>b-a);
+  if (cm2Year == null) cm2Year = years[0];
+  if (cm2Year !== 'all' && !years.includes(cm2Year)) cm2Year = years[0];
+
+  // ── formatters ──
+  const money = n => fmtRs(n);
+  const pct1  = r => (r==null||!isFinite(r)) ? '<span class="muted">—</span>' : (r*100).toFixed(1)+'%';
+  const pct2  = r => (r==null||!isFinite(r)) ? '<span class="muted">—</span>' : (r*100).toFixed(2)+'%';
+  const roas  = n => (n==null||!isFinite(n)) ? '<span class="muted">—</span>' : n.toFixed(2)+'x';
+  const grow  = r => {
+    if (r==null || !isFinite(r)) return '<span class="cm-flat">—</span>';
+    const p = r*100, cls = p>0.05?'cm-up':p<-0.05?'cm-dn':'cm-flat';
+    return `<span class="${cls}">${p>0?'+':''}${p.toFixed(1)}%</span>`;
+  };
+
+  // ── numeric columns (shared, GMV → Conv%) ──
+  const numHead = `<th>GMV Sales</th><th>Cogs</th><th>Logistics</th><th>Total Qty</th><th>ASP</th>`+
+    `<th>Marketing</th><th>Branding</th><th class="cm2hl cmpsep">CM2</th><th class="cm2hl">CM2%</th>`+
+    `<th class="cmpsep">Ads GMV</th><th>Impr.</th><th>Clicks</th><th>Ads Orders</th><th>CPM</th><th>CTR</th><th>Conv %</th>`;
+  const numCells = e => {
+    const cpm  = e.im ? e.mk/e.im*1000 : 0;
+    const ctr  = e.im ? e.cl/e.im : null;
+    const conv = e.im ? e.ord/e.im : null;
+    const asp  = e.qty ? e.gmv/e.qty : 0;
+    const cm2p = e.gmv ? e.cm2/e.gmv : null;
+    return `<td>${money(e.gmv)}</td><td>${money(e.cog)}</td><td>${money(e.logi)}</td><td>${fmt(e.qty)}</td><td>${money(asp)}</td>`+
+      `<td>${money(e.mk)}</td><td>${money(e.br)}</td>`+
+      `<td class="cm2hl cmpsep${e.cm2<0?' neg':''}">${money(e.cm2)}</td><td class="cm2hl">${pct1(cm2p)}</td>`+
+      `<td class="cmpsep">${money(e.agmv)}</td><td>${fmt(e.im)}</td><td>${fmt(e.cl)}</td><td>${fmt(e.ord)}</td>`+
+      `<td>${money(cpm)}</td><td>${pct2(ctr)}</td><td>${pct2(conv)}</td>`;
+  };
+  const roasCell = e => `<td>${roas(e.mk ? e.agmv/e.mk : null)}</td>`;
+
+  // ── granularity-specific label + comparison columns ──
+  const GRAN = {
+    daily: {
+      tag:'Daily', lblHead:`<th class="lbl">Year</th><th class="lbl">Month</th><th class="lbl">Date</th><th class="lbl">Day</th><th class="lbl">Week</th><th class="lbl lblend">Date Range</th>`,
+      cmpHead:`<th class="cmpsep">DoD %</th><th>WoW %</th><th>YoY %</th>`,
+      lblCells:e=>`<td class="lbl">${e.year}</td><td class="lbl dim">${escapeHtml(e.month||'')}</td><td class="lbl">${escapeHtml(e.date)}</td><td class="lbl dim">${escapeHtml(e.day||'')}</td><td class="lbl dim">Week ${e.wk||''}</td><td class="lbl dim lblend">${escapeHtml(e.range||'')}</td>`,
+      cmpCells:e=>`<td class="cmpsep">${grow(e.dod)}</td><td>${grow(e.wow)}</td><td>${grow(e.yoy)}</td>`,
+      search:e=>[e.year,e.month,e.date,e.day,'week '+e.wk,e.range].join(' ').toLowerCase(),
+      cmpBlank:`<td class="cmpsep">—</td><td>—</td><td>—</td>`, labels:6,
+    },
+    weekly: {
+      tag:'Weekly', lblHead:`<th class="lbl">Year</th><th class="lbl">Week</th><th class="lbl lblend">Date Range</th>`,
+      cmpHead:`<th class="cmpsep">WoW %</th><th>YoY %</th>`,
+      lblCells:e=>`<td class="lbl">${e.year}</td><td class="lbl">Week ${e.wk||''}</td><td class="lbl dim lblend">${escapeHtml(e.range||'')}</td>`,
+      cmpCells:e=>`<td class="cmpsep">${grow(e.wow)}</td><td>${grow(e.yoy)}</td>`,
+      search:e=>[e.year,'week '+e.wk,e.range].join(' ').toLowerCase(),
+      cmpBlank:`<td class="cmpsep">—</td><td>—</td>`, labels:3,
+    },
+    monthly: {
+      tag:'Monthly', lblHead:`<th class="lbl">Year</th><th class="lbl lblend">Month</th>`,
+      cmpHead:`<th class="cmpsep">MoM %</th><th>YoY %</th>`,
+      lblCells:e=>`<td class="lbl">${e.year}</td><td class="lbl lblend">${escapeHtml(e.month||'')}</td>`,
+      cmpCells:e=>`<td class="cmpsep">${grow(e.mom)}</td><td>${grow(e.yoy)}</td>`,
+      search:e=>[e.year,e.month].join(' ').toLowerCase(),
+      cmpBlank:`<td class="cmpsep">—</td><td>—</td>`, labels:2,
+    },
+  };
+
+  function paint(){
+    const g = GRAN[cm2Gran];
+    const all = cm2Gran==='weekly' ? D.weekly : cm2Gran==='monthly' ? D.monthly : D.daily;
+    let rows = (cm2Year==='all') ? all : all.filter(r=>r.year===cm2Year);
+    const sq = (cm2Search||'').trim().toLowerCase();
+    if (sq) rows = rows.filter(r => g.search(r).includes(sq));
+
+    const thead = `<thead><tr>${g.lblHead}${numHead}${g.cmpHead}<th>ROAS</th></tr></thead>`;
+    const colCount = g.labels + 16 + (cm2Gran==='daily'?3:2) + 1;
+
+    let body;
+    if (!rows.length){
+      body = `<tr><td class="lbl" colspan="${colCount}" style="text-align:center;padding:20px;color:var(--text3)">No CM2 rows match the current year / search.</td></tr>`;
+    } else {
+      body = rows.map(e => `<tr>${g.lblCells(e)}${numCells(e)}${g.cmpCells(e)}${roasCell(e)}</tr>`).join('');
+      // TOTAL row across the displayed rows (additive sums; ratios recomputed; comparisons blank)
+      const t = rows.reduce((a,e)=>{ a.gmv+=e.gmv;a.cog+=e.cog;a.logi+=e.logi;a.qty+=e.qty;a.mk+=e.mk;a.br+=e.br;a.cm2+=e.cm2;a.agmv+=e.agmv;a.im+=e.im;a.cl+=e.cl;a.ord+=e.ord;return a; },
+        {gmv:0,cog:0,logi:0,qty:0,mk:0,br:0,cm2:0,agmv:0,im:0,cl:0,ord:0});
+      const totLbl = `<td class="lbl lblend" colspan="${g.labels}">TOTAL · ${rows.length} ${cm2Gran==='daily'?'days':cm2Gran==='weekly'?'weeks':'months'}</td>`;
+      body += `<tr class="total-row">${totLbl}${numCells(t)}${g.cmpBlank}${roasCell(t)}</tr>`;
+    }
+    const tHost = document.getElementById('cm2TableHost');
+    if (tHost) tHost.innerHTML = `<div class="cm2-wrap"><table class="cm2">${thead}<tbody>${body}</tbody></table></div>`;
+  }
+
+  const yearPills = [`<button class="zmom-pill fy-pill${cm2Year==='all'?' active':''}" data-cyear="all">All</button>`]
+    .concat(years.map(y=>`<button class="zmom-pill fy-pill${y===cm2Year?' active':''}" data-cyear="${y}">${y}</button>`)).join('');
+  const granPills = [['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']]
+    .map(([k,l])=>`<button class="zmom-pill m-pill${k===cm2Gran?' active':''}" data-cgran="${k}">${l}</button>`).join('');
+  const scopeLbl = cm2Year==='all' ? 'all years' : String(cm2Year);
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:220px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox cm2-search" placeholder="Search date / month / week…" value="${escapeHtml(cm2Search)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yearPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${granPills}</div></div>
+      <button class="kpi-reset" id="cm2Reset" title="Clear search &amp; reset year">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(scopeLbl)}</b> · ${GRAN[cm2Gran].tag.toLowerCase()}</span><span class="bt-period-tag">CM2</span></div>
+    </div>
+    <div id="cm2TableHost"></div>
+    <div class="ddt-note">Contribution Margin built from sales, <b>ads.json</b> &amp; <b>cogs.json</b> · CM2 = <b>${(CM2_MARGIN_PRE*100).toFixed(2)}%</b> × GMV − Cogs − Logistics − Marketing − Branding (margin rises to <b>${(CM2_MARGIN_POST*100).toFixed(2)}%</b> from 22-Sep-2025) · Logistics = 4% of GMV · ROAS = Ads GMV ÷ Marketing · Daily compares prev day / 7 days back / same date last year; Weekly &amp; Monthly compare the previous period &amp; same period last year · independent of the global filters.</div>`;
+
+  host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { const v=b.dataset.cyear; cm2Year = (v==='all')?'all':+v; renderCM2(); }));
+  host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { cm2Gran = b.dataset.cgran; renderCM2(); }));
+  host.querySelector('#cm2Reset').addEventListener('click', () => { cm2Search=''; cm2SearchActive=false; cm2Year=years[0]; renderCM2(); });
+  const si = host.querySelector('.cm2-search');
+  if (si){
+    si.addEventListener('input', () => { cm2Search = si.value; cm2SearchActive = true; paint(); });
+    si.addEventListener('focus', () => { cm2SearchActive = true; });
+    si.addEventListener('blur', () => { cm2SearchActive = false; });
+    if (cm2SearchActive){ si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
+  }
+  paint();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // SETUP & INIT
 // ═══════════════════════════════════════════════════════════════
 // Trend tabs hide the global filter bar (they have their own local controls).
-const TREND_TABS = new Set(['dailytrends','zonetrends','producttrends','weeklytrends','monthlytrends','dohtrends']);
+const TREND_TABS = new Set(['dailytrends','zonetrends','producttrends','weeklytrends','monthlytrends','dohtrends','cm2']);
 function syncFilterBarVisibility() {
   const active = document.querySelector('.tab-btn.active');
   const fb = document.getElementById('filterBar');
