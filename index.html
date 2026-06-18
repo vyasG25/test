@@ -323,6 +323,9 @@
   table.skx tr.total-row td.tcol{background:#f1e6c4;color:#5a4310;}
   table.skx tr.total-row:hover td{background:var(--blue-light);}
   table.skx tr.total-row:hover td.tcol{background:#f1e6c4;}
+  /* DOH tab — metric-group separators + overstock tint */
+  table.skx th.gsep,table.skx td.gsep{border-left:2px solid var(--border2);}
+  .sk-wm{color:var(--gold);font-weight:700;}
   .skcell{display:flex;flex-direction:column;align-items:flex-end;gap:2px;line-height:1.2;font-variant-numeric:tabular-nums;}
   .sk-cw{font-weight:700;color:var(--text);}
   .sk-lw{font-size:11px;color:var(--text3);}
@@ -559,6 +562,10 @@
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M7 13h2M11 13h2M15 13h2M7 17h2M11 17h2"/></svg>
         <span>Monthly Trends</span>
       </button>
+      <button class="tab-btn" data-tab="dohtrends">
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+        <span>Stock &amp; DOH</span>
+      </button>
     </div>
     </div><!-- /tab-nav-sticky -->
 
@@ -590,6 +597,11 @@
       <div class="sec-header"><div class="sec-title">Monthly Trends — Product × Day <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
       <div id="secMonthlyTrends"></div>
     </div>
+
+    <div class="tab-panel" id="tab-dohtrends">
+      <div class="sec-header"><div class="sec-title">Stock &amp; Days on Hand — Product × City <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Sales · Stock · DOH</span></div></div>
+      <div id="secDOH"></div>
+    </div>
   </div>
 </div>
 
@@ -603,6 +615,7 @@
 
 // ── DATA & STATE ───────────────────────────────────────────────
 let RAW = [];
+let STOCK = [];                 // stock snapshot (DOH tab) — [{sku_code, mapping_city, total_stock, backend, frontend}]
 let filtered = [];
 let dataMinDate = '', dataMaxDate = '';
 
@@ -760,6 +773,23 @@ async function loadDashboardData() {
     const dates = RAW.map(r => r.bill_date).filter(Boolean).sort();
     dataMinDate = dates[0] || '';
     dataMaxDate = dates[dates.length - 1] || '';
+
+    // ── STOCK snapshot (powers the Stock / DOH tab) ──────────────
+    try {
+      const sres = await fetch('./stock.json?_=' + Date.now());
+      const sjson = parseJsonText(await sres.text());
+      STOCK = Array.isArray(sjson) ? sjson.map(s => {
+        const be = +s['backend_inv_qty'] || 0, fe = +s['frontend_inv_qty'] || 0;
+        return {
+          sku_code:     up(s['sku_code']),
+          mapping_city: up(s['mapping_city']),
+          backend:      be,
+          frontend:     fe,
+          total_stock:  +(s['total_stock'] != null ? s['total_stock'] : (be + fe)) || 0,
+        };
+      }) : [];
+      console.log('Stock rows:', STOCK.length);
+    } catch (e) { console.warn('stock.json not loaded:', e); STOCK = []; }
 
     // Reveal the dashboard shell and (re)build filters + reset report state.
     document.getElementById('dashboardContent').style.display = 'block';
@@ -1006,6 +1036,7 @@ const INDEP_TAB_RENDER = {
   producttrends: renderProductMoM,
   weeklytrends:  renderWeeklyTrends,
   monthlytrends: renderMonthlyTrends,
+  dohtrends:     renderDOH,
 };
 let _indepTabsDirty = new Set();
 function markIndependentTabsDirty() { _indepTabsDirty = new Set(Object.keys(INDEP_TAB_RENDER)); }
@@ -1715,10 +1746,134 @@ function finishLoading(state, main, sub) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// STOCK & DAYS ON HAND  (Product × City — Sales · Stock · DOH)
+// Sales = units sold in the trailing window (Last 30 / Last 7 days,
+// anchored to the latest sales date). Stock = total_stock summed per
+// mapping city from stock.json. DOH = Stock ÷ (units ÷ window days).
+// Independent of the global filters; has its own search + view toggle.
+// ═══════════════════════════════════════════════════════════════
+let dohView = '30', dohSearch = '', dohSearchActive = false;
+
+function renderDOH() {
+  const host = document.getElementById('secDOH'); if (!host) return;
+  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+
+  const anchor = dataMaxDate;
+  if (!anchor) { host.innerHTML = '<div class="no-data">No dated sales rows found.</div>'; return; }
+  const isoMinus = (iso, days) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - days); return d.toISOString().slice(0, 10); };
+  const niceDate = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  // mapping cities present in SALES data, excluding NA / blanks
+  const citySet = new Set();
+  for (let i = 0; i < RAW.length; i++) { const c = RAW[i].maping_city; if (c && c !== 'NA') citySet.add(c); }
+  const cities = [...citySet].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+  // stock per (sku, city) — summed across facilities, NA excluded
+  const stockMap = {};
+  for (let i = 0; i < STOCK.length; i++) {
+    const s = STOCK[i]; const c = s.mapping_city; if (!c || c === 'NA') continue;
+    const k = s.sku_code; (stockMap[k] || (stockMap[k] = {}));
+    stockMap[k][c] = (stockMap[k][c] || 0) + (s.total_stock || 0);
+  }
+
+  function paint() {
+    const N = dohView === '7' ? 7 : 30;
+    const start = isoMinus(anchor, N - 1);
+
+    // window sales (qty) per (sku, city) + product descriptor for every sku in the sales data
+    const desc = {}; const salesMap = {};
+    for (let i = 0; i < RAW.length; i++) {
+      const r = RAW[i]; const k = r.sku_code || r.sku_name || '—';
+      if (!desc[k]) desc[k] = r;
+      if (r.bill_date < start || r.bill_date > anchor) continue;
+      const c = r.maping_city; if (!c || c === 'NA') continue;
+      (salesMap[k] || (salesMap[k] = {}));
+      salesMap[k][c] = (salesMap[k][c] || 0) + (r.quantity || 0);
+    }
+
+    // rows = every product in the sales data
+    let keys = Object.keys(desc);
+    const sq = (dohSearch || '').trim().toLowerCase();
+    if (sq) keys = keys.filter(k => skMatchesSearch(desc[k], sq));
+    const totSalesOf = k => { const m = salesMap[k]; let t = 0; if (m) for (const c of cities) t += m[c] || 0; return t; };
+    const totStockOf = k => { const m = stockMap[k]; let t = 0; if (m) for (const c of cities) t += m[c] || 0; return t; };
+    keys.sort((a, b) => (totSalesOf(b) - totSalesOf(a)) || (totStockOf(b) - totStockOf(a)));
+
+    const num = v => v ? fmt(v) : '<span class="sk-flat">—</span>';
+    const dohCell = (stk, sales) => {
+      if (!stk) return '<span class="sk-flat">—</span>';
+      if (!sales) return '<span class="sk-up" title="Stock on hand, no sales in window">∞</span>';
+      const d = Math.round(stk * N / sales);
+      const cls = d <= 7 ? 'sk-dn' : (d >= 90 ? 'sk-wm' : '');
+      return `<span class="${cls}">${fmt(d)}</span>`;
+    };
+
+    // header — single sticky row, cities repeated per metric group (Sales · Stock · DOH)
+    const grp = label => cities.map((c, i) =>
+      `<th class="zcell${i === 0 ? ' gsep' : ''}">${escapeHtml(c)}<span class="th-sub">${label}</span></th>`).join('');
+    const salesLbl = N === 7 ? 'L7 QTY' : 'L30 QTY';
+    const thead = `<thead><tr>${skDescHead()}${grp(salesLbl)}${grp('STOCK')}${grp('DOH')}</tr></thead>`;
+
+    const rowFor = k => {
+      const sm = salesMap[k] || {}, km = stockMap[k] || {};
+      const sales = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(sm[c] || 0)}</td>`).join('');
+      const stock = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(km[c] || 0)}</td>`).join('');
+      const doh   = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell(km[c] || 0, sm[c] || 0)}</td>`).join('');
+      return `<tr>${skDescCells(desc[k])}${sales}${stock}${doh}</tr>`;
+    };
+
+    // grand-total row — per-city sums across the listed products
+    const gSales = {}, gStock = {};
+    keys.forEach(k => { const sm = salesMap[k] || {}, km = stockMap[k] || {}; cities.forEach(c => { gSales[c] = (gSales[c] || 0) + (sm[c] || 0); gStock[c] = (gStock[c] || 0) + (km[c] || 0); }); });
+    const tS = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(gSales[c] || 0)}</td>`).join('');
+    const tK = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(gStock[c] || 0)}</td>`).join('');
+    const tD = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell(gStock[c] || 0, gSales[c] || 0)}</td>`).join('');
+    const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL')}${tS}${tK}${tD}</tr>` : '';
+
+    const body = keys.length
+      ? keys.map(rowFor).join('') + totalRow
+      : `<tr>${skDescTotalCells('—')}<td colspan="${Math.max(1, cities.length * 3)}" style="text-align:center;padding:18px;color:var(--text3)">No products match the search.</td></tr>`;
+
+    const CW = 92;
+    const tw = SKU_SPAN + cities.length * 3 * CW;
+    const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}${`<col style="width:${CW}px">`.repeat(cities.length * 3)}</colgroup>`;
+    skRender('dohTableHost', tw, colg, thead, body);
+  }
+
+  const viewPills = [['30', 'Last 30 Days'], ['7', 'Last 7 Days']]
+    .map(([v, l]) => `<button class="zmom-pill doh-pill${v === dohView ? ' active' : ''}" data-dview="${v}">${l}</button>`).join('');
+  const N0 = dohView === '7' ? 7 : 30;
+  const rangeLbl = `${niceDate(isoMinus(anchor, N0 - 1))} – ${niceDate(anchor)}`;
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:230px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox doh-search" placeholder="Search product / brand / category…" value="${escapeHtml(dohSearch)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+      <button class="kpi-reset" id="dohReset" title="Clear search">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(rangeLbl)}</b></span><span class="bt-period-tag">${N0}-day window</span></div>
+    </div>
+    <div id="dohTableHost"></div>
+    <div class="ddt-note">Columns repeat across every <b>mapping city</b> (from the sales data, excluding NA): first <b>Sales</b> (units sold in the window), then <b>Stock</b> (total_stock summed per city from stock.json), then <b>DOH</b> = Stock ÷ (units ÷ ${N0} days), rounded · <b>∞</b> = stock on hand but no sales in window · <b class="sk-dn">red</b> DOH ≤ 7 (stock-out risk) · golden <b>TOTAL</b> sums each city across the listed products · independent of the global filters.</div>`;
+
+  host.querySelectorAll('.doh-pill').forEach(b => b.addEventListener('click', () => { dohView = b.dataset.dview; renderDOH(); }));
+  host.querySelector('#dohReset').addEventListener('click', () => { dohSearch = ''; dohSearchActive = false; renderDOH(); });
+  const si = host.querySelector('.doh-search');
+  if (si) {
+    si.addEventListener('input', () => { dohSearch = si.value; dohSearchActive = true; paint(); });
+    si.addEventListener('focus', () => { dohSearchActive = true; });
+    si.addEventListener('blur', () => { dohSearchActive = false; });
+    if (dohSearchActive) { si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
+  }
+  paint();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // SETUP & INIT
 // ═══════════════════════════════════════════════════════════════
 // Trend tabs hide the global filter bar (they have their own local controls).
-const TREND_TABS = new Set(['dailytrends','zonetrends','producttrends','weeklytrends','monthlytrends']);
+const TREND_TABS = new Set(['dailytrends','zonetrends','producttrends','weeklytrends','monthlytrends','dohtrends']);
 function syncFilterBarVisibility() {
   const active = document.querySelector('.tab-btn.active');
   const fb = document.getElementById('filterBar');
