@@ -302,14 +302,17 @@
   /* frozen descriptive columns */
   table.skx th.dz,table.skx td.dz{position:sticky;z-index:6;background:var(--surface);text-align:left;font-weight:600;color:var(--text);}
   table.skx thead th.dz{z-index:9;background:var(--blue-light);color:var(--blue-dark);text-align:left;}
-  table.skx td.dzwrap{white-space:normal;word-break:break-word;line-height:1.25;font-size:11.5px;}
-  table.skx .dz.dzlast{border-right:1px solid var(--border2);box-shadow:6px 0 8px -4px rgba(30,28,24,.18);}
-  /* scrolling descriptive attribute columns (Brand / Category / Sub Category) */
-  table.skx th.dattr,table.skx td.dattr{text-align:left;color:var(--text2);font-weight:500;}
-  table.skx thead th.dattr{background:var(--blue-light);color:var(--blue-dark);text-align:left;}
+  table.skx td.dz.dzwrap{white-space:normal;word-break:break-word;line-height:1.25;font-size:11.5px;}
+  table.skx .dz.dzlast{border-right:1px solid var(--border2);}
+  table.skx td.dz0,table.skx th.dz0{left:var(--l0,0px);}
+  table.skx td.dz1,table.skx th.dz1{left:var(--l1,0px);}
+  table.skx td.dz2,table.skx th.dz2{left:var(--l2,0px);}
+  table.skx td.dz3,table.skx th.dz3{left:var(--l3,0px);}
+  table.skx td.dz4,table.skx th.dz4{left:var(--l4,0px);}
+  table.skx td.tcol,table.skx th.tcol{left:var(--lt,0px);}
   /* frozen golden Total column */
-  table.skx th.tcol,table.skx td.tcol{background:var(--gold-light);text-align:right;border-right:1px solid var(--border2);}
-  table.skx thead th.tcol{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);border-right:1px solid var(--border2);}
+  table.skx th.tcol,table.skx td.tcol{position:sticky;z-index:5;background:var(--gold-light);text-align:right;border-right:1px solid var(--border2);}
+  table.skx thead th.tcol{z-index:8;background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);border-right:1px solid var(--border2);}
   table.skx thead th.tcol .th-sub{color:rgba(184,137,46,.7);}
   table.skx tbody tr:hover td{background:var(--bg);}
   table.skx tbody tr:hover td.dz{background:var(--surface2);}
@@ -575,12 +578,12 @@
     </div>
 
     <div class="tab-panel" id="tab-weeklytrends">
-      <div class="sec-header"><div class="sec-title">Weekly Trends — Product × Week <span class="sec-badge" style="background:var(--red-light);color:var(--red)">CW · LW · WoW%</span></div></div>
+      <div class="sec-header"><div class="sec-title">Weekly Trends — SKU × Week <span class="sec-badge" style="background:var(--red-light);color:var(--red)">CW · LW · WoW%</span></div></div>
       <div id="secWeeklyTrends"></div>
     </div>
 
     <div class="tab-panel" id="tab-monthlytrends">
-      <div class="sec-header"><div class="sec-title">Monthly Trends — Product × Day <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
+      <div class="sec-header"><div class="sec-title">Monthly Trends — SKU × Day <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Qty · Sales Value</span></div></div>
       <div id="secMonthlyTrends"></div>
     </div>
   </div>
@@ -1007,7 +1010,7 @@ function ensureIndependentTab(tab) { const fn = INDEP_TAB_RENDER[tab]; if (fn &&
 // ═══════════════════════════════════════════════════════════════
 // DAILY TRENDS  (week × day-of-week — same format as GT)
 // ═══════════════════════════════════════════════════════════════
-const DOW_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DOW_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const DAILY_METRICS = [{k:'all',label:'All'},{k:'qty',label:'Qty'},{k:'value',label:'Value'},{k:'asp',label:'ASP'}];
 const WT_FILTERS = [
   { key:'zone',    label:'Zone',         field:'zone_name',    group:'loc' },
@@ -1162,6 +1165,7 @@ function renderMatrix(C){
   const dimCfg=C.dims.find(d=>d.k===C.getDim())||C.dims[0];
   const field=dimCfg.field;
   const M = C.getMetric ? C.getMetric() : 'all';
+  const subLbl = M==='qty' ? 'Qty' : M==='value' ? 'Sales' : 'Sales · Qty';
   const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
 
   const qty={}, sale={}, monthsSet=new Set(), keysSet=new Set();
@@ -1187,48 +1191,43 @@ function renderMatrix(C){
   const sq=(C.getSearch()||'').trim().toLowerCase();
   if(sq) rowsArr=rowsArr.filter(k=>String(k).toLowerCase().includes(sq));
 
-  const colSub = M==='qty' ? 'Qty' : M==='value' ? 'Sales' : 'Sales · Qty';
-  const cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:colSub }));
+  const cols=fyMonths.slice().sort().reverse().map(mk=>({ id:mk, label:zmomMonLabel(mk), sub:subLbl }));
   const val=(k,c)=>({ q:qAt(k,c.id), s:sAt(k,c.id) });
 
-  let maxSale=0, maxQty=0; rowsArr.forEach(k=>cols.forEach(c=>{ const v=val(k,c); maxSale=Math.max(maxSale, v.s); maxQty=Math.max(maxQty, v.q); }));
+  let maxSale=0; rowsArr.forEach(k=>cols.forEach(c=>{ maxSale=Math.max(maxSale, val(k,c).s); }));
   const TOTAL='__ALL__';
   fyQ[TOTAL]=rowsArr.reduce((a,k)=>a+fyQ[k],0); fyS[TOTAL]=rowsArr.reduce((a,k)=>a+fyS[k],0);
   const colTotal=c=>{ let q=0,s=0; rowsArr.forEach(k=>{ const v=val(k,c); q+=v.q; s+=v.s; }); return {q,s}; };
 
   const dimW=190;
   const cellHtml=v=>{ const has=v.q||v.s;
-    const frac = M==='qty' ? (maxQty?Math.min(1,v.q/maxQty):0) : (maxSale?Math.min(1,v.s/maxSale):0);
-    const style=has?`background:rgba(45,122,78,${(0.05+0.30*frac).toFixed(3)});`:'';
-    let inner;
-    if(M==='qty')        inner=`<div class="pt-sale">${has?fmt(v.q):'—'}</div>`;
-    else if(M==='value') inner=`<div class="pt-sale">${has?fmtV(v.s):'—'}</div>`;
-    else                 inner=`<div class="pt-sale">${has?fmtV(v.s):'—'}</div><div class="pt-qty">${has?fmt(v.q)+' qty':''}</div>`;
-    return `<td class="zcell" style="${style}"><div class="pt-cell">${inner}</div></td>`;
+    const style=has?`background:rgba(45,122,78,${(0.05+0.30*(maxSale?Math.min(1,v.s/maxSale):0)).toFixed(3)});`:'';
+    const inner = M==='qty' ? (has?fmt(v.q):'—') : M==='value' ? (has?fmtV(v.s):'—')
+      : `<div class="pt-cell"><div class="pt-sale">${has?fmtV(v.s):'—'}</div><div class="pt-qty">${has?fmt(v.q)+' qty':''}</div></div>`;
+    return `<td class="zcell" style="${style}">${inner}</td>`;
   };
   const rowFor=(k,isTotal)=>{
     const cells=cols.map(c=>cellHtml(isTotal?colTotal(c):val(k,c))).join('');
     const fq=isTotal?fyQ[TOTAL]:fyQ[k], fs=isTotal?fyS[TOTAL]:fyS[k];
-    let fyInner;
-    if(M==='qty')        fyInner=`<div class="pt-sale">${fmt(fq)}</div>`;
-    else if(M==='value') fyInner=`<div class="pt-sale">${fmtV(fs)}</div>`;
-    else                 fyInner=`<div class="pt-sale">${fmtV(fs)}</div><div class="pt-qty">${fmt(fq)} qty</div>`;
-    const fyCell=`<td class="fycol"><div class="pt-cell">${fyInner}</div></td>`;
+    const fyInner = M==='qty' ? fmt(fq) : M==='value' ? fmtV(fs)
+      : `<div class="pt-cell"><div class="pt-sale">${fmtV(fs)}</div><div class="pt-qty">${fmt(fq)} qty</div></div>`;
+    const fyCell=`<td class="fycol">${fyInner}</td>`;
     const dimCell=isTotal
       ? `<td class="zcol zlast" style="left:0;min-width:${dimW}px">TOTAL</td>`
       : `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(k)}">${escapeHtml(k)}</td>`;
     return `<tr class="${isTotal?'total-row':''}">${dimCell}${fyCell}${cells}</tr>`;
   };
   const headCells=cols.map(c=>`<th>${escapeHtml(c.label)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
-  const thead=`<thead><tr><th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th><th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">${colSub}</span></th>${headCells}</tr></thead>`;
+  const thead=`<thead><tr><th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th><th class="fycol">${zmomFyLabel(selFY)}<span class="th-sub">${escapeHtml(subLbl)}</span></th>${headCells}</tr></thead>`;
   const body=rowsArr.length
     ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
     : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
 
   const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
   const dimPills=C.dims.map(d=>`<button class="zmom-pill v-pill${d.k===C.getDim()?' active':''}" data-dim="${d.k}">${d.label}</button>`).join('');
-  const metricPills = C.getMetric ? SK_METRICS.map(m=>`<button class="zmom-pill mtr-pill${m.k===M?' active':''}" data-mtr="${m.k}">${m.label}</button>`).join('') : '';
-  const metricFG = metricPills ? `<div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${metricPills}</div></div>` : '';
+  const metricPills=C.getMetric?SK_METRICS.map(m=>`<button class="zmom-pill m-pill${m.k===M?' active':''}" data-metric="${m.k}">${m.label}</button>`).join(''):'';
+  const viewFg=C.getMetric?`<div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${metricPills}</div></div>`:'';
+  const noteMetric=M==='qty'?'Qty':M==='value'?'Sales value':'Sales &amp; Qty';
 
   host.innerHTML=`
     <div class="bt-bar">
@@ -1236,17 +1235,17 @@ function renderMatrix(C){
         <div class="kpi-search-wrap" style="max-width:210px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox mx-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(C.getSearch())}" autocomplete="off"></div></div>
       <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${fyPills}</div></div>
-      ${metricFG}
+      ${viewFg}
       <div class="bt-fg"><label class="bt-flabel">${escapeHtml(C.dimLabel)}</label><div class="bt-chips">${dimPills}</div></div>
       <button class="kpi-reset" id="mxReset" title="Clear search">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${zmomFyLabel(selFY)}</b> · Jan–Dec</span><span class="bt-period-tag">${escapeHtml(C.tag)}</span></div>
     </div>
     <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
-    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · each cell shows ${M==='qty'?'Qty':M==='value'?'Sales':'Sales &amp; Qty'} · independent of the global filters.</div>`;
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">Months Jan→Dec of ${zmomFyLabel(selFY)}, newest first · grouped by ${escapeHtml(dimCfg.label)} · each cell shows ${noteMetric} · independent of the global filters.</div>`;
 
   host.querySelectorAll('.fy-pill').forEach(b=>b.addEventListener('click',()=>{ C.setFY(+b.dataset.fy); C.rerender(); }));
   host.querySelectorAll('.v-pill').forEach(b=>b.addEventListener('click',()=>{ C.setDim(b.dataset.dim); C.setSearch(''); C.setSearchActive(false); C.rerender(); }));
-  host.querySelectorAll('.mtr-pill').forEach(b=>b.addEventListener('click',()=>{ C.setMetric(b.dataset.mtr); C.rerender(); }));
+  host.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ if(C.setMetric){ C.setMetric(b.dataset.metric); C.rerender(); } }));
   const si=host.querySelector('.mx-search');
   if(si){
     si.addEventListener('input',()=>{ C.setSearch(si.value); C.setSearchActive(true); C.rerender(); });
@@ -1273,32 +1272,27 @@ function renderProductMoM(){
     hostId:'secProductMoM', dims:PRODUCT_DIMS, dimLabel:'Dimension', tag:'Product Trends',
     getDim:()=>productDim, setDim:v=>{productDim=v;},
     getFY:()=>productFY, setFY:v=>{productFY=v;},
+    getMetric:()=>productMetric, setMetric:v=>{productMetric=v;},
     getSearch:()=>productSearch, setSearch:v=>{productSearch=v;},
     getSearchActive:()=>productSearchActive, setSearchActive:v=>{productSearchActive=v;},
-    getMetric:()=>productMetric, setMetric:v=>{productMetric=v;},
     rerender:renderProductMoM,
   });
 }
 
 // ═══════════════════════════════════════════════════════════════
 // WEEKLY & MONTHLY TRENDS  (SKU rows × period columns)
-// Rows = Product (Product Code / Name / Brand / Category / Sub Category).
+// Rows = SKU (Product Code / Name / Brand / Category / Sub Category).
 // Golden Total column, then period columns (weeks / days of month).
 // Local Location filters (Zone/State/City) — independent of global filters.
 // ═══════════════════════════════════════════════════════════════
-// FROZEN identifier + attribute columns (Product / Brand / Category / Sub Category) are all pinned;
-// the golden Total and the period columns scroll. The first column ("Product" = "Product Code -
-// Product Name") is the bold identifier; Brand/Category/Sub Category keep the lighter attribute look.
 const SKU_DESC = [
-  { label:'Product',      w:230, wrap:true,  frozen:true,  get:r=>(r.sku_code && r.sku_name) ? (r.sku_code + ' - ' + r.sku_name) : (r.sku_code || r.sku_name || '—') },
-  { label:'Brand',        w:120, wrap:false, frozen:true,  get:r=>r.brand_name   },
-  { label:'Category',     w:170, wrap:true,  frozen:true,  get:r=>r.category     },
-  { label:'Sub Category', w:190, wrap:true,  frozen:true,  get:r=>r.sub_category },
+  { label:'SKU',          w:240, wrap:true,  get:r => (r.sku_code && r.sku_name) ? (r.sku_code + ' - ' + r.sku_name) : (r.sku_code || r.sku_name || '') },
+  { label:'Brand',        w:120, wrap:false, get:r => r.brand_name   },
+  { label:'Category',     w:150, wrap:true,  get:r => r.category      },
+  { label:'Sub Category', w:160, wrap:true,  get:r => r.sub_category  },
 ];
+const SKU_LEFT = (() => { const a = []; let x = 0; for (const d of SKU_DESC) { a.push(x); x += d.w; } return a; })();
 const SKU_SPAN = SKU_DESC.reduce((a, d) => a + d.w, 0);
-// Index of the last frozen column (gets the freeze-edge shadow) + cumulative left offset per frozen column.
-const SKU_LAST_FROZEN = SKU_DESC.reduce((acc, d, i) => d.frozen ? i : acc, -1);
-const SKU_LEFTS = (() => { let fl = 0; return SKU_DESC.map(d => { if (!d.frozen) return null; const l = fl; fl += d.w; return l; }); })();
 const TOTW = 132;                                  // golden Total column width
 const SKLOC_FILTERS = [
   { key:'zone',  label:'Zone',  field:'zone_name'  },
@@ -1314,36 +1308,40 @@ let monthlyMonth = null, monthlyMetric = 'all', monthlySearch = '', monthlySearc
 const monthlyFilt = {}; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key] = new Set());
 
 // ── shared markup helpers ──
-// Build the class + inline style for one description column (shared by head / body / total rows).
-function skColAttrs(d, i) {
-  const wrap = d.wrap ? ' dzwrap' : '';
-  const wstyle = `min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px`;
-  if (d.frozen) {
-    const ident = (i === 0);                 // first column = bold Product identifier
-    const last  = (i === SKU_LAST_FROZEN);   // only the last frozen column gets the freeze-edge shadow
-    const cls = `dz${ident ? '' : ' dattr'}${last ? ' dzlast' : ''}${wrap}`;
-    return { cls, style: `left:${SKU_LEFTS[i]}px;${wstyle}` };
-  }
-  return { cls: `dattr${wrap}`, style: wstyle };
-}
 function skDescHead() {
-  return SKU_DESC.map((d, i) => {
-    const a = skColAttrs(d, i);
-    return `<th class="${a.cls}" style="${a.style}">${escapeHtml(d.label)}</th>`;
-  }).join('');
+  return SKU_DESC.map((d, i) =>
+    `<th class="dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`
+  ).join('');
 }
 function skDescCells(rowObj) {
   return SKU_DESC.map((d, i) => {
     const v = d.get(rowObj) || '—';
-    const a = skColAttrs(d, i);
-    return `<td class="${a.cls}" style="${a.style}" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
+    return `<td class="dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}${d.wrap ? ' dzwrap' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
   }).join('');
 }
 function skDescTotalCells(label) {
-  return SKU_DESC.map((d, i) => {
-    const a = skColAttrs(d, i);
-    return `<td class="${a.cls}" style="${a.style}">${i === 0 ? escapeHtml(label) : ''}</td>`;
-  }).join('');
+  return SKU_DESC.map((d, i) =>
+    `<td class="dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${i === 0 ? escapeHtml(label) : ''}</td>`
+  ).join('');
+}
+// Measure the real left edge of each frozen column and pin the sticky offset to it.
+// Robust against fonts/borders/width rounding so the Total column never drifts over the labels.
+function skSyncLefts(table) {
+  if (!table || !table.getBoundingClientRect) return;
+  const tl = table.getBoundingClientRect().left;
+  table.querySelectorAll('thead th.dz').forEach((th, i) => {
+    table.style.setProperty('--l' + i, (th.getBoundingClientRect().left - tl) + 'px');
+  });
+  const tc = table.querySelector('thead th.tcol');
+  if (tc) table.style.setProperty('--lt', (tc.getBoundingClientRect().left - tl) + 'px');
+}
+function skRender(hostId, tw, colg, thead, body) {
+  const t = document.getElementById(hostId);
+  if (!t) return;
+  t.innerHTML = `<div class="skx-wrap"><table class="skx" style="width:${tw}px">${colg}${thead}<tbody>${body}</tbody></table></div>`;
+  const tbl = t.querySelector('table.skx');
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => skSyncLefts(tbl));
+  skSyncLefts(tbl);
 }
 function skWowPct(cw, lw) { if (!lw) return null; return (cw - lw) / lw * 100; }
 function skPctHtml(p) {
@@ -1477,8 +1475,7 @@ function renderWeeklyTrends() {
 
     const tw = SKU_SPAN + TOTW + weeks.length * 92;
     const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:92px">`.repeat(weeks.length)}</colgroup>`;
-    const t = document.getElementById('wkTableHost');
-    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx" style="width:${tw}px">${colg}${thead}<tbody>${body}</tbody></table></div>`;
+    skRender('wkTableHost', tw, colg, thead, body);
   }
 
   const yearPills = yearList.map(y => `<button class="zmom-pill fy-pill${y === weeklyYear ? ' active' : ''}" data-wyear="${y}">${y}</button>`).join('');
@@ -1497,7 +1494,7 @@ function renderWeeklyTrends() {
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(fyLbl)}</b> · by week</span><span class="bt-period-tag">Weekly Trends</span></div>
     </div>
     <div id="wkTableHost"></div>
-    <div class="ddt-note">Rows = Product · golden <b>Total</b> = all weeks of ${escapeHtml(fyLbl)} · each week column (All view): top = <b>current week</b> Qty · Value, middle = <b>previous week</b>, bottom = <b>WoW%</b> · for <b>W1</b> the previous week is the <b>last week of ${weeklyYear - 1}</b> · Qty / Value views show the current-week figure only · independent of the global filters.</div>`;
+    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = all weeks of ${escapeHtml(fyLbl)} · each week column (All view): top = <b>current week</b> Qty · Value, middle = <b>previous week</b>, bottom = <b>WoW%</b> · for <b>W1</b> the previous week is the <b>last week of ${weeklyYear - 1}</b> · Qty / Value views show the current-week figure only · independent of the global filters.</div>`;
 
   host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { weeklyYear = +b.dataset.wyear; renderWeeklyTrends(); }));
   host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { weeklyMetric = b.dataset.wmetric; renderWeeklyTrends(); }));
@@ -1584,8 +1581,7 @@ function renderMonthlyTrends() {
 
     const tw = SKU_SPAN + TOTW + dayCols.length * 78;
     const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:78px">`.repeat(dayCols.length)}</colgroup>`;
-    const t = document.getElementById('mdTableHost');
-    if (t) t.innerHTML = `<div class="skx-wrap"><table class="skx" style="width:${tw}px">${colg}${thead}<tbody>${body}</tbody></table></div>`;
+    skRender('mdTableHost', tw, colg, thead, body);
   }
 
   const monthSel = `<select class="filter-select md-month" id="mdMonthSel" title="Select month">${ymList.map(m => `<option value="${m}"${m === monthlyMonth ? ' selected' : ''}>${escapeHtml(zmomMonLabel(m))}</option>`).join('')}</select>`;
@@ -1604,7 +1600,7 @@ function renderMonthlyTrends() {
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(monLbl)}</b> · by day</span><span class="bt-period-tag">Monthly Trends</span></div>
     </div>
     <div id="mdTableHost"></div>
-    <div class="ddt-note">Rows = Product · golden <b>Total</b> = full ${escapeHtml(monLbl)} · one column per calendar day (${daysInMonth} days) · All view shows Sales &amp; Qty, Qty / Value views show a single figure · pick a month above (defaults to the latest) · independent of the global filters.</div>`;
+    <div class="ddt-note">Rows = SKU · golden <b>Total</b> = full ${escapeHtml(monLbl)} · one column per calendar day (${daysInMonth} days) · All view shows Sales &amp; Qty, Qty / Value views show a single figure · pick a month above (defaults to the latest) · independent of the global filters.</div>`;
 
   const msel = host.querySelector('#mdMonthSel');
   if (msel) msel.addEventListener('change', () => { monthlyMonth = msel.value; renderMonthlyTrends(); });
