@@ -1833,9 +1833,9 @@ function finishLoading(state, main, sub) {
 
 // ═══════════════════════════════════════════════════════════════
 // DOH  (Product × City — DRR · Stock · DOH)
-// Lookback window is a fixed 30 days anchored to the latest sales
-// date. DRR = (window units) ÷ basis, where the view toggle picks the
-// basis: ÷30 (per-day run-rate) or ÷7 ("DRR30/7"). DOH = Stock ÷ DRR.
+// Lookback window follows the basis (view toggle): DRR30 = latest 30
+// days ÷ 30, DRR7 = latest 7 days ÷ 7. DRR = (window units) ÷ basis,
+// where window length == basis. DOH = Stock ÷ DRR.
 // Three golden product-level summary columns sit after Sub Category:
 //   Total Stock (all stock for the SKU, any/ no mapping city),
 //   DRR (all window sales for the SKU ÷ basis),
@@ -1855,7 +1855,7 @@ function renderDOH() {
   const isoMinus = (iso, days) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - days); return d.toISOString().slice(0, 10); };
   const niceDate = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  const WIN = 30;                                  // fixed lookback window (days)
+  const WIN = dohView === '7' ? 7 : 30;            // lookback window follows the basis: DRR7 → 7d, DRR30 → 30d
   const start = isoMinus(anchor, WIN - 1);
 
   // mapping cities present in SALES data, excluding NA / blanks
@@ -1920,7 +1920,7 @@ function renderDOH() {
       }).join('')).join('');
     const gsumHead =
       `<th class="gsum gsum0">TOTAL STOCK<span class="th-sub">all cities</span></th>` +
-      `<th class="gsum">DRR ${DIV}<span class="th-sub">30d ÷ ${DIV}</span></th>` +
+      `<th class="gsum">DRR ${DIV}<span class="th-sub">${WIN}d ÷ ${DIV}</span></th>` +
       `<th class="gsum">DOC<span class="th-sub">stock ÷ DRR</span></th>`;
     const thead = `<thead><tr>${skDescHead()}${gsumHead}${grp(`DRR ${DIV}`)}${grpStock}${grp('DOH')}</tr></thead>`;
 
@@ -1973,10 +1973,10 @@ function renderDOH() {
           <input type="text" class="kpi-searchbox doh-search" placeholder="Search product / brand / category…" value="${escapeHtml(dohSearch)}" autocomplete="off"></div></div>
       <div class="bt-fg"><label class="bt-flabel">DRR basis</label><div class="bt-chips">${viewPills}</div></div>
       <button class="kpi-reset" id="dohReset" title="Clear search">↺ Reset</button>
-      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(rangeLbl)}</b></span><span class="bt-period-tag">30-day window · DRR ÷ ${DIV0}</span></div>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(rangeLbl)}</b></span><span class="bt-period-tag">${WIN}-day window · DRR ÷ ${DIV0}</span></div>
     </div>
     <div id="dohTableHost"></div>
-    <div class="ddt-note">Lookback is a fixed <b>30-day window</b> (latest sales date back 30 days). <b>DRR</b> = window units ÷ basis (the toggle picks ÷30 or ÷7). Golden columns after <b>Sub Category</b> are product-level, ignoring mapping city: <b>Total Stock</b> (all facilities incl. NA), <b>DRR</b>, and <b>DOC</b> = Total Stock ÷ DRR. Per-city groups repeat across every <b>mapping city</b> (NA excluded): <b>DRR</b>, then <b>Stock</b> as <b>backend / frontend / stock</b>, then <b>DOH</b> = Stock ÷ DRR (rounded) · <b>∞</b> = stock on hand but no sales in window · <b class="sk-dn">red</b> ≤ 7 days · golden <b>TOTAL</b> row sums each column across the listed products · independent of the global filters.</div>`;
+    <div class="ddt-note">Lookback follows the basis: <b>DRR 30</b> = latest <b>30 days</b> ÷ 30, <b>DRR 7</b> = latest <b>7 days</b> ÷ 7. Golden columns after <b>Sub Category</b> are product-level, ignoring mapping city: <b>Total Stock</b> (all facilities incl. NA), <b>DRR</b>, and <b>DOC</b> = Total Stock ÷ DRR. Per-city groups repeat across every <b>mapping city</b> (NA excluded): <b>DRR</b>, then <b>Stock</b> as <b>backend / frontend / stock</b>, then <b>DOH</b> = Stock ÷ DRR (rounded) · <b>∞</b> = stock on hand but no sales in window · <b class="sk-dn">red</b> ≤ 7 days · golden <b>TOTAL</b> row sums each column across the listed products · independent of the global filters.</div>`;
 
   host.querySelectorAll('.doh-pill').forEach(b => b.addEventListener('click', () => { dohView = b.dataset.dview; renderDOH(); }));
   host.querySelector('#dohReset').addEventListener('click', () => { dohSearch = ''; dohSearchActive = false; renderDOH(); });
