@@ -333,6 +333,9 @@
   .sk-up{color:var(--green);} .sk-dn{color:var(--red);} .sk-flat{color:var(--text3);}
   /* DOH — thin separator between cities inside the 3-column Stock group */
   table.skx th.csep,table.skx td.csep{border-left:1px solid var(--border2);}
+  /* DOH — give repeating group columns room for full city names */
+  table.skx th.zcell,table.skx td.zcell,table.skx th.gsum,table.skx td.gsum{padding-left:7px;padding-right:7px;}
+  table.skx thead th.zcell,table.skx thead th.gsum{letter-spacing:.15px;}
   /* DOH — golden product-level summary columns (Total Stock · DRR · DOC) */
   table.skx th.gsum,table.skx td.gsum{background:var(--gold-light);text-align:right;}
   table.skx th.gsum.gsum0,table.skx td.gsum.gsum0{border-left:2px solid var(--border2);}
@@ -1822,7 +1825,9 @@ function renderDOH() {
     keys.sort((a, b) => ((salesAllMap[b] || 0) - (salesAllMap[a] || 0)) || ((stockAllMap[b] || 0) - (stockAllMap[a] || 0)));
 
     const num = v => v ? fmt(v) : '<span class="sk-flat">—</span>';
-    const drrFmt = v => v ? fmt(Math.round(v)) : '<span class="sk-flat">—</span>';
+    // per-city (sales-derived) DRR — 2 decimals; golden summary DRR — 1 decimal
+    const drrFmt = v => v ? (Math.round(v * 100) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '<span class="sk-flat">—</span>';
+    const drrSum = v => v ? (Math.round(v * 10) / 10).toLocaleString('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '<span class="sk-flat">—</span>';
     // DOH / DOC = Stock ÷ DRR = Stock × basis ÷ window-units
     const dohCell = (stk, winSales) => {
       if (!stk) return '<span class="sk-flat">—</span>';
@@ -1849,7 +1854,7 @@ function renderDOH() {
     const rowFor = k => {
       const sm = salesMap[k] || {}, km = stockMap[k] || {};
       const tStock = stockAllMap[k] || 0, tWin = salesAllMap[k] || 0;
-      const gsum = `<td class="gsum gsum0">${num(tStock)}</td><td class="gsum">${drrFmt(tWin / DIV)}</td><td class="gsum">${dohCell(tStock, tWin)}</td>`;
+      const gsum = `<td class="gsum gsum0">${num(tStock)}</td><td class="gsum">${drrSum(tWin / DIV)}</td><td class="gsum">${dohCell(tStock, tWin)}</td>`;
       const drr  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${drrFmt((sm[c] || 0) / DIV)}</td>`).join('');
       const stk  = cities.map((c, ci) => { const e = km[c] || {}; return ['b', 'f', 't'].map((f, si) => `<td class="zcell${ci === 0 && si === 0 ? ' gsep' : (si === 0 ? ' csep' : '')}">${num(e[f] || 0)}</td>`).join(''); }).join('');
       const doh  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell((km[c] && km[c].t) || 0, sm[c] || 0)}</td>`).join('');
@@ -1864,7 +1869,7 @@ function renderDOH() {
       const sm = salesMap[k] || {}, km = stockMap[k] || {};
       cities.forEach(c => { const e = km[c] || {}; gSales[c] = (gSales[c] || 0) + (sm[c] || 0); gB[c] = (gB[c] || 0) + (e.b || 0); gF[c] = (gF[c] || 0) + (e.f || 0); gT[c] = (gT[c] || 0) + (e.t || 0); });
     });
-    const tGsum = `<td class="gsum gsum0">${num(gStockAll)}</td><td class="gsum">${drrFmt(gWinAll / DIV)}</td><td class="gsum">${dohCell(gStockAll, gWinAll)}</td>`;
+    const tGsum = `<td class="gsum gsum0">${num(gStockAll)}</td><td class="gsum">${drrSum(gWinAll / DIV)}</td><td class="gsum">${dohCell(gStockAll, gWinAll)}</td>`;
     const tDrr  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${drrFmt((gSales[c] || 0) / DIV)}</td>`).join('');
     const tStk  = cities.map((c, ci) => [['b', gB], ['f', gF], ['t', gT]].map(([f, m], si) => `<td class="zcell${ci === 0 && si === 0 ? ' gsep' : (si === 0 ? ' csep' : '')}">${num(m[c] || 0)}</td>`).join('')).join('');
     const tDoh  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell(gT[c] || 0, gSales[c] || 0)}</td>`).join('');
@@ -1875,7 +1880,7 @@ function renderDOH() {
       ? keys.map(rowFor).join('') + totalRow
       : `<tr>${skDescTotalCells('—')}<td colspan="${Math.max(1, COLS)}" style="text-align:center;padding:18px;color:var(--text3)">No products match the search.</td></tr>`;
 
-    const GW1 = 124, GW = 92, CW = 96;   // golden TOTAL STOCK / other golden / per-city
+    const GW1 = 124, GW = 92, CW = 116;   // golden TOTAL STOCK / other golden / per-city
     const tw = SKU_SPAN + GW1 + GW * 2 + cities.length * 5 * CW;
     const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}` +
       `<col style="width:${GW1}px"><col style="width:${GW}px"><col style="width:${GW}px">` +
