@@ -331,6 +331,18 @@
   .sk-lw{font-size:11px;color:var(--text3);}
   .sk-wow{font-size:11px;font-weight:700;}
   .sk-up{color:var(--green);} .sk-dn{color:var(--red);} .sk-flat{color:var(--text3);}
+  /* DOH — full (wrapping) city names in the repeating group headers */
+  table.skx thead th.zcell{white-space:normal;word-break:break-word;line-height:1.15;overflow:visible;}
+  /* DOH — thin separator between cities inside the 3-column Stock group */
+  table.skx th.csep,table.skx td.csep{border-left:1px solid var(--border2);}
+  /* DOH — golden product-level summary columns (Total Stock · DRR · DOC) */
+  table.skx th.gsum,table.skx td.gsum{background:var(--gold-light);text-align:right;}
+  table.skx th.gsum.gsum0,table.skx td.gsum.gsum0{border-left:2px solid var(--border2);}
+  table.skx thead th.gsum{z-index:7;background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);}
+  table.skx thead th.gsum .th-sub{color:rgba(184,137,46,.7);}
+  table.skx tbody tr:hover td.gsum{background:#f7ecca;}
+  table.skx tr.total-row td.gsum{background:#f1e6c4;color:#5a4310;}
+  table.skx tr.total-row:hover td.gsum{background:#f1e6c4;}
 
   .ms-item.mc-opt{cursor:pointer;}
   .ms-item.mc-opt.sel{background:var(--accent-light);color:var(--accent);font-weight:700;}
@@ -564,7 +576,7 @@
       </button>
       <button class="tab-btn" data-tab="dohtrends">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
-        <span>Stock &amp; DOH</span>
+        <span>DOH</span>
       </button>
     </div>
     </div><!-- /tab-nav-sticky -->
@@ -599,7 +611,7 @@
     </div>
 
     <div class="tab-panel" id="tab-dohtrends">
-      <div class="sec-header"><div class="sec-title">Stock &amp; Days on Hand — Product × City <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Sales · Stock · DOH</span></div></div>
+      <div class="sec-header"><div class="sec-title">DOH — Product × City <span class="sec-badge" style="background:var(--red-light);color:var(--red)">DRR · Stock · DOH</span></div></div>
       <div id="secDOH"></div>
     </div>
   </div>
@@ -1746,10 +1758,16 @@ function finishLoading(state, main, sub) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// STOCK & DAYS ON HAND  (Product × City — Sales · Stock · DOH)
-// Sales = units sold in the trailing window (Last 30 / Last 7 days,
-// anchored to the latest sales date). Stock = total_stock summed per
-// mapping city from stock.json. DOH = Stock ÷ (units ÷ window days).
+// DOH  (Product × City — DRR · Stock · DOH)
+// Lookback window is a fixed 30 days anchored to the latest sales
+// date. DRR = (window units) ÷ basis, where the view toggle picks the
+// basis: ÷30 (per-day run-rate) or ÷7 ("DRR30/7"). DOH = Stock ÷ DRR.
+// Three golden product-level summary columns sit after Sub Category:
+//   Total Stock (all stock for the SKU, any/ no mapping city),
+//   DRR (all window sales for the SKU ÷ basis),
+//   DOC = Total Stock ÷ DRR.
+// Per-city groups (DRR · Stock[backend/frontend/stock] · DOH) repeat
+// across every mapping city present in the sales data (NA excluded).
 // Independent of the global filters; has its own search + view toggle.
 // ═══════════════════════════════════════════════════════════════
 let dohView = '30', dohSearch = '', dohSearchActive = false;
@@ -1763,29 +1781,37 @@ function renderDOH() {
   const isoMinus = (iso, days) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - days); return d.toISOString().slice(0, 10); };
   const niceDate = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
+  const WIN = 30;                                  // fixed lookback window (days)
+  const start = isoMinus(anchor, WIN - 1);
+
   // mapping cities present in SALES data, excluding NA / blanks
   const citySet = new Set();
   for (let i = 0; i < RAW.length; i++) { const c = RAW[i].maping_city; if (c && c !== 'NA') citySet.add(c); }
   const cities = [...citySet].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  // stock per (sku, city) — summed across facilities, NA excluded
+  // stock per (sku, city) — backend / frontend / total, summed across facilities (NA excluded)
   const stockMap = {};
+  // total stock per sku across EVERY facility (mapping city ignored, incl. NA)
+  const stockAllMap = {};
   for (let i = 0; i < STOCK.length; i++) {
-    const s = STOCK[i]; const c = s.mapping_city; if (!c || c === 'NA') continue;
-    const k = s.sku_code; (stockMap[k] || (stockMap[k] = {}));
-    stockMap[k][c] = (stockMap[k][c] || 0) + (s.total_stock || 0);
+    const s = STOCK[i]; const k = s.sku_code;
+    stockAllMap[k] = (stockAllMap[k] || 0) + (s.total_stock || 0);
+    const c = s.mapping_city; if (!c || c === 'NA') continue;
+    const km = stockMap[k] || (stockMap[k] = {});
+    const e = km[c] || (km[c] = { b: 0, f: 0, t: 0 });
+    e.b += s.backend || 0; e.f += s.frontend || 0; e.t += s.total_stock || 0;
   }
 
   function paint() {
-    const N = dohView === '7' ? 7 : 30;
-    const start = isoMinus(anchor, N - 1);
+    const DIV = dohView === '7' ? 7 : 30;          // DRR basis (÷7 or ÷30)
 
-    // window sales (qty) per (sku, city) + product descriptor for every sku in the sales data
-    const desc = {}; const salesMap = {};
+    // window sales (qty) per (sku, city) + per-sku window total (city ignored) + descriptors
+    const desc = {}; const salesMap = {}; const salesAllMap = {};
     for (let i = 0; i < RAW.length; i++) {
       const r = RAW[i]; const k = r.sku_code || r.sku_name || '—';
       if (!desc[k]) desc[k] = r;
       if (r.bill_date < start || r.bill_date > anchor) continue;
+      salesAllMap[k] = (salesAllMap[k] || 0) + (r.quantity || 0);
       const c = r.maping_city; if (!c || c === 'NA') continue;
       (salesMap[k] || (salesMap[k] = {}));
       salesMap[k][c] = (salesMap[k][c] || 0) + (r.quantity || 0);
@@ -1795,67 +1821,88 @@ function renderDOH() {
     let keys = Object.keys(desc);
     const sq = (dohSearch || '').trim().toLowerCase();
     if (sq) keys = keys.filter(k => skMatchesSearch(desc[k], sq));
-    const totSalesOf = k => { const m = salesMap[k]; let t = 0; if (m) for (const c of cities) t += m[c] || 0; return t; };
-    const totStockOf = k => { const m = stockMap[k]; let t = 0; if (m) for (const c of cities) t += m[c] || 0; return t; };
-    keys.sort((a, b) => (totSalesOf(b) - totSalesOf(a)) || (totStockOf(b) - totStockOf(a)));
+    keys.sort((a, b) => ((salesAllMap[b] || 0) - (salesAllMap[a] || 0)) || ((stockAllMap[b] || 0) - (stockAllMap[a] || 0)));
 
     const num = v => v ? fmt(v) : '<span class="sk-flat">—</span>';
-    const dohCell = (stk, sales) => {
+    const drrFmt = v => v ? (Math.round(v * 100) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '<span class="sk-flat">—</span>';
+    // DOH / DOC = Stock ÷ DRR = Stock × basis ÷ window-units
+    const dohCell = (stk, winSales) => {
       if (!stk) return '<span class="sk-flat">—</span>';
-      if (!sales) return '<span class="sk-up" title="Stock on hand, no sales in window">∞</span>';
-      const d = Math.round(stk * N / sales);
+      if (!winSales) return '<span class="sk-up" title="Stock on hand, no sales in window">∞</span>';
+      const d = Math.round(stk * DIV / winSales);
       const cls = d <= 7 ? 'sk-dn' : (d >= 90 ? 'sk-wm' : '');
       return `<span class="${cls}">${fmt(d)}</span>`;
     };
 
-    // header — single sticky row, cities repeated per metric group (Sales · Stock · DOH)
+    // ── header (single sticky row) ──
     const grp = label => cities.map((c, i) =>
       `<th class="zcell${i === 0 ? ' gsep' : ''}">${escapeHtml(c)}<span class="th-sub">${label}</span></th>`).join('');
-    const salesLbl = N === 7 ? 'L7 QTY' : 'L30 QTY';
-    const thead = `<thead><tr>${skDescHead()}${grp(salesLbl)}${grp('STOCK')}${grp('DOH')}</tr></thead>`;
+    const grpStock = cities.map((c, ci) =>
+      ['BACKEND', 'FRONTEND', 'STOCK'].map((lab, si) => {
+        const first = ci === 0 && si === 0;
+        return `<th class="zcell${first ? ' gsep' : (si === 0 ? ' csep' : '')}">${escapeHtml(c)}<span class="th-sub">${lab}</span></th>`;
+      }).join('')).join('');
+    const gsumHead =
+      `<th class="gsum gsum0">TOTAL STOCK<span class="th-sub">all cities</span></th>` +
+      `<th class="gsum">DRR ${DIV}<span class="th-sub">30d ÷ ${DIV}</span></th>` +
+      `<th class="gsum">DOC<span class="th-sub">stock ÷ DRR</span></th>`;
+    const thead = `<thead><tr>${skDescHead()}${gsumHead}${grp(`DRR ${DIV}`)}${grpStock}${grp('DOH')}</tr></thead>`;
 
     const rowFor = k => {
       const sm = salesMap[k] || {}, km = stockMap[k] || {};
-      const sales = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(sm[c] || 0)}</td>`).join('');
-      const stock = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(km[c] || 0)}</td>`).join('');
-      const doh   = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell(km[c] || 0, sm[c] || 0)}</td>`).join('');
-      return `<tr>${skDescCells(desc[k])}${sales}${stock}${doh}</tr>`;
+      const tStock = stockAllMap[k] || 0, tWin = salesAllMap[k] || 0;
+      const gsum = `<td class="gsum gsum0">${num(tStock)}</td><td class="gsum">${drrFmt(tWin / DIV)}</td><td class="gsum">${dohCell(tStock, tWin)}</td>`;
+      const drr  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${drrFmt((sm[c] || 0) / DIV)}</td>`).join('');
+      const stk  = cities.map((c, ci) => { const e = km[c] || {}; return ['b', 'f', 't'].map((f, si) => `<td class="zcell${ci === 0 && si === 0 ? ' gsep' : (si === 0 ? ' csep' : '')}">${num(e[f] || 0)}</td>`).join(''); }).join('');
+      const doh  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell((km[c] && km[c].t) || 0, sm[c] || 0)}</td>`).join('');
+      return `<tr>${skDescCells(desc[k])}${gsum}${drr}${stk}${doh}</tr>`;
     };
 
-    // grand-total row — per-city sums across the listed products
-    const gSales = {}, gStock = {};
-    keys.forEach(k => { const sm = salesMap[k] || {}, km = stockMap[k] || {}; cities.forEach(c => { gSales[c] = (gSales[c] || 0) + (sm[c] || 0); gStock[c] = (gStock[c] || 0) + (km[c] || 0); }); });
-    const tS = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(gSales[c] || 0)}</td>`).join('');
-    const tK = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${num(gStock[c] || 0)}</td>`).join('');
-    const tD = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell(gStock[c] || 0, gSales[c] || 0)}</td>`).join('');
-    const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL')}${tS}${tK}${tD}</tr>` : '';
+    // grand-total row
+    let gStockAll = 0, gWinAll = 0;
+    const gSales = {}, gB = {}, gF = {}, gT = {};
+    keys.forEach(k => {
+      gStockAll += stockAllMap[k] || 0; gWinAll += salesAllMap[k] || 0;
+      const sm = salesMap[k] || {}, km = stockMap[k] || {};
+      cities.forEach(c => { const e = km[c] || {}; gSales[c] = (gSales[c] || 0) + (sm[c] || 0); gB[c] = (gB[c] || 0) + (e.b || 0); gF[c] = (gF[c] || 0) + (e.f || 0); gT[c] = (gT[c] || 0) + (e.t || 0); });
+    });
+    const tGsum = `<td class="gsum gsum0">${num(gStockAll)}</td><td class="gsum">${drrFmt(gWinAll / DIV)}</td><td class="gsum">${dohCell(gStockAll, gWinAll)}</td>`;
+    const tDrr  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${drrFmt((gSales[c] || 0) / DIV)}</td>`).join('');
+    const tStk  = cities.map((c, ci) => [['b', gB], ['f', gF], ['t', gT]].map(([f, m], si) => `<td class="zcell${ci === 0 && si === 0 ? ' gsep' : (si === 0 ? ' csep' : '')}">${num(m[c] || 0)}</td>`).join('')).join('');
+    const tDoh  = cities.map((c, i) => `<td class="zcell${i === 0 ? ' gsep' : ''}">${dohCell(gT[c] || 0, gSales[c] || 0)}</td>`).join('');
+    const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL')}${tGsum}${tDrr}${tStk}${tDoh}</tr>` : '';
 
+    const COLS = 3 + cities.length * (1 + 3 + 1);   // golden 3 + per-city (DRR + 3 stock + DOH)
     const body = keys.length
       ? keys.map(rowFor).join('') + totalRow
-      : `<tr>${skDescTotalCells('—')}<td colspan="${Math.max(1, cities.length * 3)}" style="text-align:center;padding:18px;color:var(--text3)">No products match the search.</td></tr>`;
+      : `<tr>${skDescTotalCells('—')}<td colspan="${Math.max(1, COLS)}" style="text-align:center;padding:18px;color:var(--text3)">No products match the search.</td></tr>`;
 
-    const CW = 92;
-    const tw = SKU_SPAN + cities.length * 3 * CW;
-    const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}${`<col style="width:${CW}px">`.repeat(cities.length * 3)}</colgroup>`;
+    const GW = 100, CWd = 96, CWk = 74, CWh = 80;
+    const tw = SKU_SPAN + 3 * GW + cities.length * CWd + cities.length * 3 * CWk + cities.length * CWh;
+    const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}` +
+      `<col style="width:${GW}px"><col style="width:${GW}px"><col style="width:${GW}px">` +
+      `${`<col style="width:${CWd}px">`.repeat(cities.length)}` +
+      `${`<col style="width:${CWk}px">`.repeat(cities.length * 3)}` +
+      `${`<col style="width:${CWh}px">`.repeat(cities.length)}</colgroup>`;
     skRender('dohTableHost', tw, colg, thead, body);
   }
 
-  const viewPills = [['30', 'Last 30 Days'], ['7', 'Last 7 Days']]
+  const viewPills = [['30', 'DRR ÷ 30 (per day)'], ['7', 'DRR ÷ 7']]
     .map(([v, l]) => `<button class="zmom-pill doh-pill${v === dohView ? ' active' : ''}" data-dview="${v}">${l}</button>`).join('');
-  const N0 = dohView === '7' ? 7 : 30;
-  const rangeLbl = `${niceDate(isoMinus(anchor, N0 - 1))} – ${niceDate(anchor)}`;
+  const DIV0 = dohView === '7' ? 7 : 30;
+  const rangeLbl = `${niceDate(start)} – ${niceDate(anchor)}`;
 
   host.innerHTML = `
     <div class="bt-bar">
       <div class="bt-fg"><label class="bt-flabel">Search</label>
         <div class="kpi-search-wrap" style="max-width:230px"><span class="kpi-search-ic">⌕</span>
           <input type="text" class="kpi-searchbox doh-search" placeholder="Search product / brand / category…" value="${escapeHtml(dohSearch)}" autocomplete="off"></div></div>
-      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">DRR basis</label><div class="bt-chips">${viewPills}</div></div>
       <button class="kpi-reset" id="dohReset" title="Clear search">↺ Reset</button>
-      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(rangeLbl)}</b></span><span class="bt-period-tag">${N0}-day window</span></div>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(rangeLbl)}</b></span><span class="bt-period-tag">30-day window · DRR ÷ ${DIV0}</span></div>
     </div>
     <div id="dohTableHost"></div>
-    <div class="ddt-note">Columns repeat across every <b>mapping city</b> (from the sales data, excluding NA): first <b>Sales</b> (units sold in the window), then <b>Stock</b> (total_stock summed per city from stock.json), then <b>DOH</b> = Stock ÷ (units ÷ ${N0} days), rounded · <b>∞</b> = stock on hand but no sales in window · <b class="sk-dn">red</b> DOH ≤ 7 (stock-out risk) · golden <b>TOTAL</b> sums each city across the listed products · independent of the global filters.</div>`;
+    <div class="ddt-note">Lookback is a fixed <b>30-day window</b> (latest sales date back 30 days). <b>DRR</b> = window units ÷ basis (the toggle picks ÷30 or ÷7). Golden columns after <b>Sub Category</b> are product-level, ignoring mapping city: <b>Total Stock</b> (all facilities incl. NA), <b>DRR</b>, and <b>DOC</b> = Total Stock ÷ DRR. Per-city groups repeat across every <b>mapping city</b> (NA excluded): <b>DRR</b>, then <b>Stock</b> as <b>backend / frontend / stock</b>, then <b>DOH</b> = Stock ÷ DRR (rounded) · <b>∞</b> = stock on hand but no sales in window · <b class="sk-dn">red</b> ≤ 7 days · golden <b>TOTAL</b> row sums each column across the listed products · independent of the global filters.</div>`;
 
   host.querySelectorAll('.doh-pill').forEach(b => b.addEventListener('click', () => { dohView = b.dataset.dview; renderDOH(); }));
   host.querySelector('#dohReset').addEventListener('click', () => { dohSearch = ''; dohSearchActive = false; renderDOH(); });
