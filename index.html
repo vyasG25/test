@@ -331,8 +331,6 @@
   .sk-lw{font-size:11px;color:var(--text3);}
   .sk-wow{font-size:11px;font-weight:700;}
   .sk-up{color:var(--green);} .sk-dn{color:var(--red);} .sk-flat{color:var(--text3);}
-  /* DOH — full (wrapping) city names in the repeating group headers */
-  table.skx thead th.zcell{white-space:normal;word-break:break-word;line-height:1.15;overflow:visible;}
   /* DOH — thin separator between cities inside the 3-column Stock group */
   table.skx th.csep,table.skx td.csep{border-left:1px solid var(--border2);}
   /* DOH — golden product-level summary columns (Total Stock · DRR · DOC) */
@@ -575,7 +573,7 @@
         <span>Monthly Trends</span>
       </button>
       <button class="tab-btn" data-tab="dohtrends">
-        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
         <span>DOH</span>
       </button>
     </div>
@@ -1824,7 +1822,7 @@ function renderDOH() {
     keys.sort((a, b) => ((salesAllMap[b] || 0) - (salesAllMap[a] || 0)) || ((stockAllMap[b] || 0) - (stockAllMap[a] || 0)));
 
     const num = v => v ? fmt(v) : '<span class="sk-flat">—</span>';
-    const drrFmt = v => v ? (Math.round(v * 100) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '<span class="sk-flat">—</span>';
+    const drrFmt = v => v ? fmt(Math.round(v)) : '<span class="sk-flat">—</span>';
     // DOH / DOC = Stock ÷ DRR = Stock × basis ÷ window-units
     const dohCell = (stk, winSales) => {
       if (!stk) return '<span class="sk-flat">—</span>';
@@ -1877,17 +1875,15 @@ function renderDOH() {
       ? keys.map(rowFor).join('') + totalRow
       : `<tr>${skDescTotalCells('—')}<td colspan="${Math.max(1, COLS)}" style="text-align:center;padding:18px;color:var(--text3)">No products match the search.</td></tr>`;
 
-    const GW = 100, CWd = 96, CWk = 74, CWh = 80;
-    const tw = SKU_SPAN + 3 * GW + cities.length * CWd + cities.length * 3 * CWk + cities.length * CWh;
+    const GW1 = 124, GW = 92, CW = 96;   // golden TOTAL STOCK / other golden / per-city
+    const tw = SKU_SPAN + GW1 + GW * 2 + cities.length * 5 * CW;
     const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}` +
-      `<col style="width:${GW}px"><col style="width:${GW}px"><col style="width:${GW}px">` +
-      `${`<col style="width:${CWd}px">`.repeat(cities.length)}` +
-      `${`<col style="width:${CWk}px">`.repeat(cities.length * 3)}` +
-      `${`<col style="width:${CWh}px">`.repeat(cities.length)}</colgroup>`;
+      `<col style="width:${GW1}px"><col style="width:${GW}px"><col style="width:${GW}px">` +
+      `${`<col style="width:${CW}px">`.repeat(cities.length * 5)}</colgroup>`;
     skRender('dohTableHost', tw, colg, thead, body);
   }
 
-  const viewPills = [['30', 'DRR ÷ 30 (per day)'], ['7', 'DRR ÷ 7']]
+  const viewPills = [['30', 'DRR 30'], ['7', 'DRR 7']]
     .map(([v, l]) => `<button class="zmom-pill doh-pill${v === dohView ? ' active' : ''}" data-dview="${v}">${l}</button>`).join('');
   const DIV0 = dohView === '7' ? 7 : 30;
   const rangeLbl = `${niceDate(start)} – ${niceDate(anchor)}`;
