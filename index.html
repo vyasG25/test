@@ -249,10 +249,15 @@
   table.zmom thead th .th-sub{display:block;font-size:10px;font-weight:600;color:rgba(43,90,126,.70);letter-spacing:.2px;margin-top:4px;text-transform:none;}
   /* ── sortable column headers (shared across all trend tables) ── */
   thead th.th-sortable{cursor:pointer;user-select:none;-webkit-user-select:none;transition:background .12s,color .12s;}
-  thead th.th-sortable:hover{filter:brightness(.97);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;}
-  thead th.th-sortable .sort-ar{display:inline-block;min-width:9px;margin-left:3px;font-size:9px;line-height:1;vertical-align:middle;opacity:.9;}
+  thead th.th-sortable:hover .th-hd{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;}
+  /* keep the label and sort caret together on the FIRST line; the th-sub still drops below */
+  thead th.th-sortable .th-hd{display:inline-flex;align-items:center;gap:3px;line-height:1.15;}
+  thead th.th-sortable .sort-ar{flex:none;min-width:8px;font-size:9px;line-height:1;vertical-align:middle;opacity:.32;transition:opacity .12s,color .12s;}
+  thead th.th-sortable:hover .sort-ar{opacity:.6;}
   thead th.th-sortable.sorted{box-shadow:inset 0 -3px 0 var(--accent)!important;}
-  thead th.th-sortable.sorted .sort-ar{color:var(--accent);font-weight:900;}
+  thead th.th-sortable.sorted .sort-ar{color:var(--accent);opacity:1;font-weight:900;}
+  /* generic sub fallback so day-of-week headers keep a styled second line in the ddt table */
+  table.ddt thead th .th-sub{display:block;font-size:9.5px;font-weight:600;color:rgba(43,90,126,.7);letter-spacing:.2px;margin-top:3px;text-transform:none;}
   table.zmom th.zcol,table.zmom td.zcol{position:sticky;left:0;z-index:5;background:var(--surface);text-align:left;font-weight:600;color:var(--text);min-width:96px;}
   table.zmom th.zcol.zlast,table.zmom td.zcol.zlast{box-shadow:1px 0 0 var(--border);}
   table.zmom th.zcol.zwrap,table.zmom td.zcol.zwrap{white-space:normal;word-break:break-word;line-height:1.3;padding:9px 11px;font-size:12px;}
@@ -1161,9 +1166,9 @@ function sortToggle(key, col, defDir) {
 function sortTh(key, col, inner, sub, extraClass, extraAttr) {
   const s = SORT[key];
   const on = s && s.col === col;
-  const car = on ? (s.dir === 'desc' ? '▼' : '▲') : '';
+  const ar = on ? (s.dir === 'desc' ? '▼' : '▲') : '⇅';   // active: solid caret · idle: faded unfold
   const subHtml = sub ? `<span class="th-sub">${sub}</span>` : '';
-  return `<th class="th-sortable${on ? ' sorted' : ''}${extraClass ? ' ' + extraClass : ''}" data-sc="${escapeHtml(String(col))}"${extraAttr ? ' ' + extraAttr : ''}>${inner}${subHtml}<span class="sort-ar">${car}</span></th>`;
+  return `<th class="th-sortable${on ? ' sorted' : ''}${extraClass ? ' ' + extraClass : ''}" data-sc="${escapeHtml(String(col))}"${extraAttr ? ' ' + extraAttr : ''}><span class="th-hd">${inner}<span class="sort-ar">${ar}</span></span>${subHtml}</th>`;
 }
 // Stable sort of `arr` by a value-getter; numbers numeric, else locale/numeric string.
 function sortApply(arr, dir, getVal) {
@@ -1275,7 +1280,7 @@ function renderDailyTrends(){
     const gQ = totDays.reduce((a,c)=>a+c.q,0), gS = totDays.reduce((a,c)=>a+c.s,0);
     const totDayCells = totDays.map((c,di)=>`<td class="${di===0?'grp-start':''}">${cellInner(c)}</td>`).join('');
     const totalRow = `<tr class="total-row"><td class="dcol">Total</td><td class="dcol2">${fyLbl} · all weeks</td>${totDayCells}<td class="totcell">${cellInner({q:gQ,s:gS})}</td></tr>`;
-    const dayHead = DOW_FULL.map((d,di)=>sortTh('daily','dow'+di, d+'<span class="ddt-sub">Qty · Value · ASP</span>', '', di===0?'grp-start':'')).join('');
+    const dayHead = DOW_FULL.map((d,di)=>sortTh('daily','dow'+di, d, 'Qty · Value · ASP', di===0?'grp-start':'')).join('');
     const thead = `<thead><tr class="single">${sortTh('daily','wk','Week','','dcol')}${sortTh('daily','range','Date Range','','dcol2')}${dayHead}${sortTh('daily','tot','Total','','grp-tot grp-start')}</tr></thead>`;
     const colCount = 2 + 7 + 1;
     const body = weeks.length ? weeks.map(rowFor).join('') + totalRow
