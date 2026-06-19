@@ -2251,6 +2251,7 @@ function renderCM2(){
       case 'mk': return e.mk; case 'br': return e.br; case 'cm2': return e.cm2;
       case 'cm2p': return e.gmv ? e.cm2 / e.gmv : 0;
       case 'agmv': return e.agmv; case 'im': return e.im; case 'cl': return e.cl; case 'ord': return e.ord;
+      case 'orgsh': return e.gmv - e.agmv;
       case 'cpm': return e.im ? e.mk / e.im * 1000 : 0; case 'ctr': return e.im ? e.cl / e.im : 0; case 'conv': return e.im ? e.ord / e.im : 0;
       case 'roas': return e.mk ? e.agmv / e.mk : 0;
       case 'dod': return e.dod == null ? -Infinity : e.dod; case 'wow': return e.wow == null ? -Infinity : e.wow;
@@ -2265,7 +2266,7 @@ function renderCM2(){
   const numHead =
     sortTh('cm2','gmv','GMV Sales')+sortTh('cm2','cog','Cogs')+sortTh('cm2','logi','Logistics')+sortTh('cm2','qty','Total Qty')+sortTh('cm2','asp','ASP')+
     sortTh('cm2','mk','Marketing')+sortTh('cm2','br','Branding')+sortTh('cm2','cm2','CM2','','cm2hl cmpsep')+sortTh('cm2','cm2p','CM2%','','cm2hl')+
-    sortTh('cm2','agmv','Ads GMV','','cmpsep')+sortTh('cm2','im','Impr.')+sortTh('cm2','cl','Clicks')+sortTh('cm2','ord','Ads Orders')+sortTh('cm2','cpm','CPM')+sortTh('cm2','ctr','CTR')+sortTh('cm2','conv','Conv %');
+    sortTh('cm2','agmv','Ads GMV','','cmpsep')+sortTh('cm2','im','Impr.')+sortTh('cm2','cl','Clicks')+sortTh('cm2','ord','Ads Orders')+sortTh('cm2','orgsh','Organic Share')+sortTh('cm2','cpm','CPM')+sortTh('cm2','ctr','CTR')+sortTh('cm2','conv','Conv %');
   const numCells = e => {
     const cpm  = e.im ? e.mk/e.im*1000 : 0;
     const ctr  = e.im ? e.cl/e.im : null;
@@ -2275,7 +2276,7 @@ function renderCM2(){
     return `<td>${money(e.gmv)}</td><td>${money(e.cog)}</td><td>${money(e.logi)}</td><td>${fmt(e.qty)}</td><td>${money(asp)}</td>`+
       `<td>${money(e.mk)}</td><td>${money(e.br)}</td>`+
       `<td class="cm2hl cmpsep${e.cm2<0?' neg':''}">${money(e.cm2)}</td><td class="cm2hl">${pct1(cm2p)}</td>`+
-      `<td class="cmpsep">${money(e.agmv)}</td><td>${fmt(e.im)}</td><td>${fmt(e.cl)}</td><td>${fmt(e.ord)}</td>`+
+      `<td class="cmpsep">${money(e.agmv)}</td><td>${fmt(e.im)}</td><td>${fmt(e.cl)}</td><td>${fmt(e.ord)}</td><td>${money(e.gmv - e.agmv)}</td>`+
       `<td>${money(cpm)}</td><td>${pct2(ctr)}</td><td>${pct2(conv)}</td>`;
   };
   const roasCell = e => `<td>${roas(e.mk ? e.agmv/e.mk : null)}</td>`;
@@ -2318,7 +2319,7 @@ function renderCM2(){
     if (_cs) rows = sortApply(rows, _cs.dir, e => cmVal(e, _cs.col));
 
     const thead = `<thead><tr>${g.lblHead}${numHead}${g.cmpHead}${sortTh('cm2','roas','ROAS')}</tr></thead>`;
-    const colCount = g.labels + 16 + (cm2Gran==='daily'?3:2) + 1;
+    const colCount = g.labels + 17 + (cm2Gran==='daily'?3:2) + 1;
 
     let body;
     if (!rows.length){
