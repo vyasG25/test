@@ -327,6 +327,20 @@
   table.skx thead th.tcol{z-index:8;background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);border-right:1px solid var(--border2);}
   table.skx thead th.tcol .th-sub{color:rgba(184,137,46,.7);}
   table.skx tbody tr:hover td{background:var(--bg);}
+  /* Product CM2 — alternating rows + golden CM2/CM2% columns, matching the CM2 tab */
+  #pcm2TableHost table.skx tbody tr:nth-child(even) td{background:#f6f4ef;}
+  #pcm2TableHost table.skx tbody tr:hover td{background:rgba(43,90,126,.06);}
+  #pcm2TableHost table.skx tbody tr:hover td.dz{background:#f2f5f7;}
+  #pcm2TableHost table.skx tbody tr:nth-child(even):hover td.dz{background:#eef1f3;}
+  #pcm2TableHost table.skx td.cm2hl,#pcm2TableHost table.skx th.cm2hl{background:var(--gold-light);}
+  #pcm2TableHost table.skx thead th.cm2hl{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);}
+  #pcm2TableHost table.skx td.cm2hl{font-weight:700;color:#6b5212;}
+  #pcm2TableHost table.skx tbody tr:nth-child(even) td.cm2hl{background:#f6edd4;}
+  #pcm2TableHost table.skx tbody tr:hover td.cm2hl{background:#f3e7c4;}
+  #pcm2TableHost table.skx td.neg{color:var(--red);}
+  #pcm2TableHost table.skx .cmpsep{border-left:1px solid rgba(43,90,126,.18);}
+  #pcm2TableHost table.skx tr.total-row td{background:var(--blue-light);}
+  #pcm2TableHost table.skx tr.total-row td.cm2hl{background:var(--blue-light);}
   table.skx tbody tr:hover td.dz{background:var(--surface2);}
   table.skx tbody tr:hover td.tcol{background:#f7ecca;}
   table.skx tr.total-row td{font-weight:700;background:var(--blue-light);border-top:2px solid var(--blue-dark);}
@@ -2431,9 +2445,9 @@ function renderProductCM2(){
     { id:'qty',  label:'Quantity',       w:88,  f:e=>fmt(e.qty) },
     { id:'asp',  label:'ASP',            w:88,  f:e=>money(e.qty ? e.gmv/e.qty : 0) },
     { id:'mk',   label:'Marketing Cost', w:124, f:e=>money(e.mk) },
-    { id:'cm2',  label:'CM2',            w:108, f:e=>`<span class="${e.cm2<0?'neg':''}">${money(e.cm2)}</span>` },
-    { id:'cm2p', label:'CM2%',           w:84,  f:e=>{ const v=e.gmv?e.cm2/e.gmv:null; return `<span class="${(v!=null&&v<0)?'neg':''}">${pct1(v)}</span>`; } },
-    { id:'agmv', label:'Ads GMV',        w:112, f:e=>money(e.agmv) },
+    { id:'cm2',  label:'CM2',            w:108, cls:'cm2hl cmpsep', neg:e=>e.cm2<0, f:e=>money(e.cm2) },
+    { id:'cm2p', label:'CM2%',           w:84,  cls:'cm2hl', neg:e=>{ const v=e.gmv?e.cm2/e.gmv:null; return v!=null&&v<0; }, f:e=>{ const v=e.gmv?e.cm2/e.gmv:null; return pct1(v); } },
+    { id:'agmv', label:'Ads GMV',        w:112, cls:'cmpsep', f:e=>money(e.agmv) },
     { id:'im',   label:'Impression',     w:104, f:e=>fmt(e.im) },
     { id:'cl',   label:'Clicks',         w:88,  f:e=>fmt(e.cl) },
     { id:'ord',  label:'Orders',         w:88,  f:e=>fmt(e.ord) },
@@ -2442,6 +2456,7 @@ function renderProductCM2(){
     { id:'conv', label:'Conv %',         w:90,  f:e=>pct2(e.im ? e.ord/e.im : null) },
     { id:'roas', label:'ROAS',           w:88,  f:e=>roas(e.mk ? e.agmv/e.mk : null) },
   ];
+  const numTd = (c, e) => `<td class="zcell${c.cls?' '+c.cls:''}${c.neg&&c.neg(e)?' neg':''}">${c.f(e)}</td>`;
 
   // Sort value getter: descriptor cols are d0..dN, metric cols by id.
   const getVal = (e, col) => {
@@ -2469,7 +2484,7 @@ function renderProductCM2(){
     if (sq) view = allRows.filter(e => skMatchesSearch(e, sq) || (e.iso && e.iso.toLowerCase().includes(sq)));
     const sorted = sortApply(view, s.dir, e => getVal(e, s.col));
 
-    const thead = `<thead><tr>${skDescHead('pcm2', descCols)}${NUMCOLS.map(c => sortTh('pcm2', c.id, c.label)).join('')}</tr></thead>`;
+    const thead = `<thead><tr>${skDescHead('pcm2', descCols)}${NUMCOLS.map(c => sortTh('pcm2', c.id, c.label, '', c.cls||'')).join('')}</tr></thead>`;
     const tw  = descCols.reduce((a,d)=>a+d.w,0) + NUMCOLS.reduce((a,c)=>a+c.w,0);
     const colg = `<colgroup>${descCols.map(d=>`<col style="width:${d.w}px">`).join('')}${NUMCOLS.map(c=>`<col style="width:${c.w}px">`).join('')}</colgroup>`;
 
@@ -2477,11 +2492,11 @@ function renderProductCM2(){
     if (!sorted.length){
       body = `<tr>${skDescTotalCells('—', descCols)}<td colspan="${NUMCOLS.length}" style="text-align:center;padding:18px;color:var(--text3)">No products match your search for ${escapeHtml(pcm2MonthLabel(pcm2Month))}.</td></tr>`;
     } else {
-      body = sorted.map(e => `<tr>${skDescCells(e, descCols)}${NUMCOLS.map(c=>`<td class="zcell">${c.f(e)}</td>`).join('')}</tr>`).join('');
+      body = sorted.map(e => `<tr>${skDescCells(e, descCols)}${NUMCOLS.map(c=>numTd(c, e)).join('')}</tr>`).join('');
       const T = sorted.reduce((a,e)=>{ a.gmv+=e.gmv;a.cog+=e.cog;a.logi+=e.logi;a.qty+=e.qty;a.mk+=e.mk;a.cm2+=e.cm2;a.agmv+=e.agmv;a.im+=e.im;a.cl+=e.cl;a.ord+=e.ord;return a; },
         {gmv:0,cog:0,logi:0,qty:0,mk:0,cm2:0,agmv:0,im:0,cl:0,ord:0});
       const totLbl = `TOTAL · ${view.length.toLocaleString('en-IN')} ${isDaily?'rows':'products'}`;
-      body += `<tr class="total-row">${skDescTotalCells(totLbl, descCols)}${NUMCOLS.map(c=>`<td class="zcell">${c.f(T)}</td>`).join('')}</tr>`;
+      body += `<tr class="total-row">${skDescTotalCells(totLbl, descCols)}${NUMCOLS.map(c=>numTd(c, T)).join('')}</tr>`;
     }
 
     skRender('pcm2TableHost', tw, colg, thead, body);
