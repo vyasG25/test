@@ -361,6 +361,13 @@
   table.cm2{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;}
   table.cm2 th,table.cm2 td{padding:8px 11px;white-space:nowrap;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;}
   table.cm2 thead th{position:sticky;top:0;z-index:6;background:var(--blue-light);color:var(--blue-dark);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;box-shadow:inset 0 -2px 0 rgba(43,90,126,.2);}
+  /* CM2 frozen left columns (horizontal-scroll pinning) */
+  .cm2 td.cstick{position:sticky;z-index:5;background:var(--surface);}
+  .cm2 thead th.cstick{z-index:9;background:var(--blue-light);}
+  .cm2 tr.total-row td.cstick{background:var(--blue-light);}
+  .cm2 .cstick0{left:var(--cl0,0px);} .cm2 .cstick1{left:var(--cl1,0px);} .cm2 .cstick2{left:var(--cl2,0px);}
+  .cm2 .cstick3{left:var(--cl3,0px);} .cm2 .cstick4{left:var(--cl4,0px);} .cm2 .cstick5{left:var(--cl5,0px);}
+  .cm2 .cstick6{left:var(--cl6,0px);} .cm2 .cstick7{left:var(--cl7,0px);}
   table.cm2 th.lbl,table.cm2 td.lbl{text-align:left;}
   table.cm2 td.lbl{font-weight:600;color:var(--text);}
   table.cm2 td.lbl.dim{color:var(--text2);font-weight:500;}
@@ -2410,7 +2417,7 @@ function renderProductCM2(){
 
   // Frozen descriptor columns — reuse the Monthly Trends widths & the merged
   // "Product" column (Product Code - Product Name). Daily adds a leading Date.
-  const DATE_COL = { label:'Date', w:96, wrap:false, get:r => r.iso || '' };
+  const DATE_COL = { label:'Date', w:116, wrap:false, get:r => r.iso || '' };
   const descCols = isDaily ? [DATE_COL, ...SKU_DESC] : SKU_DESC.slice();
 
   // Scrolling metric columns (exact set requested, minus the merged Product cols).
@@ -2549,6 +2556,27 @@ function renderProductCM2(){
 }
 
 
+// Freezes the first `nLabels` columns of the CM2 table so they stay pinned
+// during horizontal scroll (mirrors the skx sticky-left mechanism). Offsets are
+// measured from the live layout so variable column widths line up exactly.
+function cm2FreezeLeft(hostEl, nLabels){
+  const table = hostEl && hostEl.querySelector('table.cm2');
+  if (!table || !nLabels) return;
+  const headThs = [...table.querySelectorAll('thead th')].slice(0, nLabels);
+  headThs.forEach((th, i) => th.classList.add('cstick', 'cstick' + i));
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    const first = tr.children[0];
+    if (first && first.colSpan > 1){ first.classList.add('cstick', 'cstick0'); return; }  // colspan label (total / empty)
+    [...tr.children].slice(0, nLabels).forEach((td, i) => td.classList.add('cstick', 'cstick' + i));
+  });
+  const sync = () => {
+    const tl = table.getBoundingClientRect().left;
+    headThs.forEach((th, i) => table.style.setProperty('--cl' + i, (th.getBoundingClientRect().left - tl) + 'px'));
+  };
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(sync);
+  sync();
+}
+
 function renderCM2(){
   const host = document.getElementById('secCM2'); if (!host) return;
   if (!RAW || !RAW.length){ host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
@@ -2660,7 +2688,7 @@ function renderCM2(){
       body += `<tr class="total-row">${totLbl}${numCells(t)}${g.cmpBlank}${roasCell(t)}</tr>`;
     }
     const tHost = document.getElementById('cm2TableHost');
-    if (tHost) { tHost.innerHTML = `<div class="cm2-wrap"><table class="cm2">${thead}<tbody>${body}</tbody></table></div>`; sortWire(tHost, 'cm2', renderCM2, 'desc'); }
+    if (tHost) { tHost.innerHTML = `<div class="cm2-wrap"><table class="cm2">${thead}<tbody>${body}</tbody></table></div>`; sortWire(tHost, 'cm2', renderCM2, 'desc'); cm2FreezeLeft(tHost, g.labels); }
   }
 
   const yearPills = [`<button class="zmom-pill fy-pill${cm2Year==='all'?' active':''}" data-cyear="all">All</button>`]
