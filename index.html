@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skillmatics Swiggy Sales Dashboard</title>
+<title>Skillmatics Blinkit Sales Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700&family=Nunito:ital,wght@1,700;1,800;1,900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 <!-- Data is fetched from JSON files in the same folder (pure client-side JSON.parse) -->
 <style>
@@ -482,7 +482,7 @@
         <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" style="height:40px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
         <span class="brand-wordmark-text" style="display:none;font-size:26px;">Skillmatics</span>
       </div>
-      <div class="lp-badge"><b></b>Skillmatics Swiggy Sales Dashboard</div>
+      <div class="lp-badge"><b></b>Skillmatics Blinkit Sales Dashboard</div>
       <div class="lp-heading">Welcome back</div>
       <div class="lp-sub">Sign in to access your live sales workspace.</div>
       <div class="lp-field">
@@ -581,7 +581,7 @@
         <span class="brand-wordmark-text" style="display:none">Skillmatics</span>
       </div>
     <div class="brand-divider"></div>
-    <div class="brand-title">Skillmatics Swiggy Sales Dashboard</div>
+    <div class="brand-title">Skillmatics Blinkit Sales Dashboard</div>
   </div>
   <div class="header-right">
     <div class="hdr-status">
@@ -696,7 +696,7 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// SKILLMATICS SWIGGY — Sales Dashboard
+// SKILLMATICS BLINKIT — Sales Dashboard
 // Login/logout, loading, animations, colours, live indicator, refresh = GT.
 // Data fetched from JSON (GT pipeline). Reports: Daily / Region / Product Trends.
 // Dashboard tab reports & other logics come in a later phase.
@@ -716,11 +716,11 @@ let filtered = [];
 let dataMinDate = '', dataMaxDate = '';
 
 const API_SOURCES = [
-  //{ url: "./2023.json", isTarget: false },   // Swiggy sales — 2023
-  //{ url: "./2024.json", isTarget: false },   // Swiggy sales — 2024
-  //{ url: "./2025.json", isTarget: false },   // Swiggy sales — 2025
-  //{ url: "./2026.json", isTarget: false },   // Swiggy sales — 2026
-  { url: "./sale.json", isTarget: false },   // Swiggy sales — 2026
+  //{ url: "./2023.json", isTarget: false },   // Blinkit sales — 2023
+  //{ url: "./2024.json", isTarget: false },   // Blinkit sales — 2024
+  //{ url: "./2025.json", isTarget: false },   // Blinkit sales — 2025
+  //{ url: "./2026.json", isTarget: false },   // Blinkit sales — 2026
+    { url: "./sale.json", isTarget: false },   // Blinkit sales — 2026
 ];
 
 // ── LOGIN ──────────────────────────────────────────────────────
@@ -823,12 +823,12 @@ async function loadDashboardData() {
       const sample = json[0] || {};
       const hasDate = Object.prototype.hasOwnProperty.call(sample, 'date');
       const hasSales = Object.prototype.hasOwnProperty.call(sample, 'value') || Object.prototype.hasOwnProperty.call(sample, 'sku_code');
-      if (!hasDate || !hasSales) { console.warn(`No Swiggy sales fields in ${url}, skipping`); continue; }
+      if (!hasDate || !hasSales) { console.warn(`No Blinkit sales fields in ${url}, skipping`); continue; }
       totalEstimate += json.length;
       parsedFiles.push({ records: json, name: url.split('/').pop() });
       console.log(`Fetched ${url}: ~${json.length.toLocaleString()} rows`);
     }
-    if (parsedFiles.length === 0) throw Object.assign(new Error('No compatible Swiggy sales data was found.'), { kind: 'incompatible' });
+    if (parsedFiles.length === 0) throw Object.assign(new Error('No compatible Blinkit sales data was found.'), { kind: 'incompatible' });
 
     RAW = new Array(totalEstimate);
     let writeIdx = 0; const YIELD_INTERVAL = 80000; let sinceLastYield = 0;
@@ -979,7 +979,7 @@ async function loadDashboardData() {
   } catch (error) {
     console.error('Dashboard Load Error:', error);
     setRefreshState(false);
-    if (error && error.kind === 'incompatible') finishLoading('error', 'Data not compatible', "We couldn't find Swiggy sales data. Please check your JSON sources.");
+    if (error && error.kind === 'incompatible') finishLoading('error', 'Data not compatible', "We couldn't find Blinkit sales data. Please check your JSON sources.");
     else finishLoading('error', 'Something went wrong', "We couldn't load your dashboard. Please check your connection and try again.");
     setTimeout(() => { const loadOv = document.getElementById('loadingOverlay'); loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 4000);
     throw error;
