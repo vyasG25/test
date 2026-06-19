@@ -618,7 +618,7 @@
         <span>CM2</span>
       </button>
       <button class="tab-btn" data-tab="productcm2">
-        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="7"/><rect x="12" y="7" width="3" height="11"/><rect x="17" y="13" width="3" height="5"/></svg>
+        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="9" width="3" height="8"/><rect x="13" y="5" width="3" height="12"/></svg>
         <span>Product CM2</span>
       </button>
     </div>
@@ -664,7 +664,7 @@
     </div>
 
     <div class="tab-panel" id="tab-productcm2">
-      <div class="sec-header"><div class="sec-title">Product CM2 — Per-Product Contribution Margin <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Daily · Monthly · Ads</span></div></div>
+      <div class="sec-header"><div class="sec-title">Product CM2 — Contribution Margin by Product <span class="sec-badge" style="background:var(--red-light);color:var(--red)">Daily · Monthly</span></div></div>
       <div id="secProductCM2"></div>
     </div>
   </div>
@@ -683,7 +683,11 @@ let RAW = [];
 let STOCK = [];                 // stock snapshot (DOH tab) — [{sku_code, mapping_city, total_stock, backend, frontend}]
 let ADS = {};                   // ads.json keyed by ISO date → {mk, br, agmv, im, cl, ord} (powers the CM2 tab)
 let COGS = {};                  // cogs.json keyed by sku_code → cost of product (per-unit)
-let PRODADS = { d:Object.create(null), m:Object.create(null) };  // product_ads.json → per (sku|ISO-date) and (sku|MONTH) {mk, agmv, im, cl, ord} (powers the Product CM2 tab)
+let PADS = [];                  // product_ads.json normalized → [{sku, iso, ym, mk, im, ord, agmv, cl, cm}] (powers the Product CM2 tab)
+let pcm2Gran = 'daily';         // Product CM2 view: 'daily' | 'monthly'
+let pcm2Month = null;           // Product CM2 selected month key 'YYYY-MM' (defaults to latest)
+let pcm2Search = '', pcm2SearchActive = false;
+let pcm2MenuOpen = false;       // month dropdown open state
 let filtered = [];
 let dataMinDate = '', dataMaxDate = '';
 
@@ -900,34 +904,31 @@ async function loadDashboardData() {
     } catch (e) { console.warn('cogs.json not loaded:', e); COGS = {}; }
 
     // ── PRODUCT ADS source (powers the Product CM2 tab) ──────────
-    // product_ads.json is per-product/per-day: {date, spends, impressions,
-    // orders, ad_revenue, clicks, sku_code, cm_calculation}. Dates arrive as
-    // DD-MM-YYYY. Summed into two maps keyed by sku_code (uppercased to match
-    // RAW): "sku|ISO-date" for the daily view and "sku|MONTH" for the monthly.
+    // Per-SKU ads. Date may arrive as DD-MM-YYYY (product_ads.json),
+    // ISO YYYY-MM-DD, or an Excel serial — all normalised to ISO here.
     try {
       const pres = await fetch('./product_ads.json?_=' + Date.now());
       const pjson = parseJsonText(await pres.text());
-      PRODADS = { d:Object.create(null), m:Object.create(null) };
+      PADS = [];
       if (Array.isArray(pjson)) {
         for (const a of pjson) {
-          const sku = up(a['sku_code']); if (!sku) continue;
-          const iso = padsDateToISO(a['date']); if (!iso) continue;
-          const dk = sku + '|' + iso, mk = sku + '|' + isoToSalesMonth(iso);
-          for (const key of [dk, mk]) {
-            let e = (key === dk ? PRODADS.d : PRODADS.m)[key];
-            if (!e) e = (key === dk ? PRODADS.d : PRODADS.m)[key] = { mk:0, agmv:0, im:0, cl:0, ord:0 };
-            e.mk   += +a['spends']      || 0;
-            e.agmv += +a['ad_revenue']  || 0;
-            e.im   += +a['impressions'] || 0;
-            e.cl   += +a['clicks']      || 0;
-            e.ord  += +a['orders']      || 0;
-          }
+          const iso = pcm2DateToISO(a['date']); if (!iso) continue;
+          PADS.push({
+            sku:  up(a['sku_code']),
+            iso:  iso,
+            ym:   iso.slice(0, 7),
+            mk:   +a['spends']        || 0,
+            im:   +a['impressions']   || 0,
+            ord:  +a['orders']        || 0,
+            agmv: +a['ad_revenue']    || 0,
+            cl:   +a['clicks']        || 0,
+            cm:  (a['cm_calculation'] != null && a['cm_calculation'] !== '') ? +a['cm_calculation'] : null,
+          });
         }
       }
-      console.log('Product-ads daily keys:', Object.keys(PRODADS.d).length, '· monthly keys:', Object.keys(PRODADS.m).length);
-    } catch (e) { console.warn('product_ads.json not loaded:', e); PRODADS = { d:Object.create(null), m:Object.create(null) }; }
+      console.log('Product ads rows:', PADS.length);
+    } catch (e) { console.warn('product_ads.json not loaded:', e); PADS = []; }
     _cm2Data = null;                // CM2 recomputes from the fresh sources on next view
-    _pcm2Data = null;               // Product CM2 likewise
 
     // Reveal the dashboard shell and (re)build filters + reset report state.
     document.getElementById('dashboardContent').style.display = 'block';
@@ -984,19 +985,6 @@ function excelDateToISO(serial) {
   cached = y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
   _dateCache.set(serial, cached); return cached;
 }
-// product_ads dates arrive as DD-MM-YYYY → normalise to ISO (falls back to the Excel-serial path)
-function padsDateToISO(s) {
-  if (s == null) return '';
-  const t = String(s).trim(); if (t === '') return '';
-  const m = t.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if (m) return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
-  return excelDateToISO(t);
-}
-// ISO date → sales-style month label ("2026-05-01" → "MAY-26") to match RAW.month
-const _MON_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-function isoToSalesMonth(iso) { const mi = +iso.slice(5, 7); return (_MON_ABBR[mi - 1] || '') + '-' + iso.slice(2, 4); }
-// sales month label → first-of-month ISO ("MAY-26" → "2026-05-01"), for the margin-switch test
-function pcm2MonthFirstISO(label) { const k = monthSortKey(label); if (k == null) return ''; const y = Math.floor(k / 12), mi = k % 12; return y + '-' + String(mi + 1).padStart(2, '0') + '-01'; }
 function parseJsonText(text) {
   if (text && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   text = (text || '').trim(); if (!text) return null;
@@ -2309,6 +2297,260 @@ function cm2Compute(){
   return _cm2Data;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// PRODUCT CM2 — Contribution Margin by Product (Daily / Monthly)
+// Built independently from sale.json + product_ads.json + cogs.json,
+// mirroring the CM2 tab conventions (search · view toggle · sortable
+// table · total row). No Year toggle; a single-select Month filter
+// (latest by default, with its own internal search) scopes the view.
+//   GMV       = Σ value (sales)          ASP       = GMV ÷ Qty
+//   Cogs      = unit cost × Qty          Logistics = 4% × GMV
+//   Marketing = Σ spends (ads)           Ads GMV   = Σ ad_revenue
+//   CM2       = margin × GMV − Cogs − Logistics − Marketing
+//   CM2%      = CM2 ÷ GMV                CPM       = Marketing ÷ Impr × 1000
+//   CTR       = Clicks ÷ Impr            Conv %    = Orders ÷ Impr
+//   ROAS      = Ads GMV ÷ Marketing
+//   margin    = 56.25% before 22-Sep-2025 else 60.32% (per-month
+//               cm_calculation from product_ads when present).
+// ═══════════════════════════════════════════════════════════════
+
+// DD-MM-YYYY | YYYY-MM-DD | Excel serial → ISO YYYY-MM-DD
+function pcm2DateToISO(v){
+  if (v == null || v === '') return '';
+  if (typeof v === 'number') return excelDateToISO(v);
+  const t = String(v).trim();
+  let m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);              // ISO
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = t.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);     // DD-MM-YYYY
+  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  if (/^\d+(\.\d+)?$/.test(t)) return excelDateToISO(+t);   // serial as string
+  return excelDateToISO(t);
+}
+function pcm2MonthLabel(ym){
+  const [y, m] = ym.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month:'short', year:'2-digit' }).replace(' ', '-');
+}
+// Margin applicable to an ISO date (mirrors the CM2 tab switch).
+function pcm2DateMargin(iso){ return (iso <= CM2_MARGIN_SWITCH) ? CM2_MARGIN_PRE : CM2_MARGIN_POST; }
+
+// Build the product rows for one month at the requested granularity.
+function productCM2Compute(ym, gran){
+  const skuDesc = {};           // first sales row per sku → labels (name/brand/category/sub)
+  const agg = {};               // daily: sku|iso · monthly: sku
+  for (let i = 0; i < RAW.length; i++){
+    const r = RAW[i];
+    const iso = r.bill_date; if (!iso || iso.slice(0,7) !== ym) continue;
+    const sku = r.sku_code || r.sku_name || '—';
+    if (!skuDesc[sku]) skuDesc[sku] = r;
+    const key = (gran === 'daily') ? (sku + '|' + iso) : sku;
+    let e = agg[key]; if (!e) e = agg[key] = { sku, iso:(gran==='daily'?iso:''), gmv:0, qty:0 };
+    e.gmv += r.amount || 0;
+    e.qty += r.quantity || 0;
+  }
+  const adsIdx = {};            // matching ads totals
+  let monthMargin = null;
+  for (let i = 0; i < PADS.length; i++){
+    const a = PADS[i]; if (a.ym !== ym) continue;
+    if (a.cm != null) monthMargin = a.cm;     // per-month cm_calculation
+    const key = (gran === 'daily') ? (a.sku + '|' + a.iso) : a.sku;
+    let e = adsIdx[key]; if (!e) e = adsIdx[key] = { mk:0, im:0, ord:0, agmv:0, cl:0 };
+    e.mk += a.mk; e.im += a.im; e.ord += a.ord; e.agmv += a.agmv; e.cl += a.cl;
+  }
+  if (monthMargin == null) monthMargin = pcm2DateMargin(ym + '-01');
+
+  const rows = Object.keys(agg).map(key => {
+    const e = agg[key], d = skuDesc[e.sku] || {};
+    const ad = adsIdx[key] || { mk:0, im:0, ord:0, agmv:0, cl:0 };
+    const cog  = (COGS[e.sku] || 0) * e.qty;
+    const logi = e.gmv * 0.04;
+    const margin = (gran === 'daily') ? pcm2DateMargin(e.iso) : monthMargin;
+    const cm2 = margin * e.gmv - cog - logi - ad.mk;
+    return {
+      iso:e.iso, sku:e.sku, name:d.sku_name||'', brand:d.brand_name||'',
+      cat:d.category||'', subcat:d.sub_category||'',
+      gmv:e.gmv, cog, logi, qty:e.qty,
+      mk:ad.mk, cm2, agmv:ad.agmv, im:ad.im, cl:ad.cl, ord:ad.ord,
+    };
+  });
+  return { rows, monthMargin };
+}
+
+// Sort-value getter for the Product CM2 table.
+function pcmVal(e, col){
+  switch (col){
+    case 'date': return e.iso || ''; case 'code': return e.sku || '';
+    case 'name': return e.name || ''; case 'brand': return e.brand || '';
+    case 'cat': return e.cat || ''; case 'subcat': return e.subcat || '';
+    case 'gmv': return e.gmv; case 'cog': return e.cog; case 'logi': return e.logi;
+    case 'qty': return e.qty; case 'asp': return e.qty ? e.gmv/e.qty : 0;
+    case 'mk': return e.mk; case 'cm2': return e.cm2;
+    case 'cm2p': return e.gmv ? e.cm2/e.gmv : 0;
+    case 'agmv': return e.agmv; case 'im': return e.im; case 'cl': return e.cl; case 'ord': return e.ord;
+    case 'cpm': return e.im ? e.mk/e.im*1000 : 0; case 'ctr': return e.im ? e.cl/e.im : 0;
+    case 'conv': return e.im ? e.ord/e.im : 0; case 'roas': return e.mk ? e.agmv/e.mk : 0;
+    default: return 0;
+  }
+}
+
+// One-time outside-click handler to close the month dropdown.
+function pcm2OutsideClose(ev){
+  const panel = document.getElementById('pcm2MonthPanel');
+  const btn = document.getElementById('pcm2MonthBtn');
+  if (!panel || !btn) return;
+  if (panel.classList.contains('open') && !panel.contains(ev.target) && !btn.contains(ev.target)){
+    panel.classList.remove('open'); btn.classList.remove('open'); pcm2MenuOpen = false;
+  }
+}
+
+function renderProductCM2(){
+  const host = document.getElementById('secProductCM2'); if (!host) return;
+  if (!RAW || !RAW.length){ host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+
+  // Months available (driven by sales).
+  const ymSet = new Set();
+  for (let i = 0; i < RAW.length; i++){ const m = RAW[i].bill_date; if (m && m.length >= 7) ymSet.add(m.slice(0,7)); }
+  const ymList = [...ymSet].sort().reverse();
+  if (!ymList.length){ host.innerHTML = '<div class="no-data">No dated sales rows found.</div>'; return; }
+  if (pcm2Month == null || !ymSet.has(pcm2Month)) pcm2Month = ymList[0];
+
+  // Formatters (shared with the CM2 tab style).
+  const money = n => fmtRs(n);
+  const pct1  = r => (r==null||!isFinite(r)) ? '<span class="muted">—</span>' : (r*100).toFixed(1)+'%';
+  const pct2  = r => (r==null||!isFinite(r)) ? '<span class="muted">—</span>' : (r*100).toFixed(2)+'%';
+  const roas  = n => (n==null||!isFinite(n)) ? '<span class="muted">—</span>' : n.toFixed(2)+'x';
+
+  const { rows: allRows, monthMargin } = productCM2Compute(pcm2Month, pcm2Gran);
+  const isDaily = (pcm2Gran === 'daily');
+  const labelCols = isDaily ? 6 : 5;
+
+  // Headers.
+  const labelHead = isDaily
+    ? sortTh('pcm2','date','Date','','lbl')+sortTh('pcm2','code','Product Code','','lbl')+sortTh('pcm2','name','Product Name','','lbl')+sortTh('pcm2','brand','Brand','','lbl')+sortTh('pcm2','cat','Category','','lbl')+sortTh('pcm2','subcat','Sub category','','lbl lblend')
+    : sortTh('pcm2','code','Product Code','','lbl')+sortTh('pcm2','name','Product Name','','lbl')+sortTh('pcm2','brand','Brand','','lbl')+sortTh('pcm2','cat','Category','','lbl')+sortTh('pcm2','subcat','Sub category','','lbl lblend');
+  const numHead =
+    sortTh('pcm2','gmv','GMV Sales')+sortTh('pcm2','cog','Cogs')+sortTh('pcm2','logi','Logistics')+sortTh('pcm2','qty','Quantity')+sortTh('pcm2','asp','ASP')+
+    sortTh('pcm2','mk','Marketing Cost')+sortTh('pcm2','cm2','CM2','','cm2hl cmpsep')+sortTh('pcm2','cm2p','CM2%','','cm2hl')+
+    sortTh('pcm2','agmv','Ads GMV','','cmpsep')+sortTh('pcm2','im','Impression')+sortTh('pcm2','cl','Clicks')+sortTh('pcm2','ord','Orders')+
+    sortTh('pcm2','cpm','CPM')+sortTh('pcm2','ctr','CTR')+sortTh('pcm2','conv','Conv %')+sortTh('pcm2','roas','ROAS');
+
+  const lblCells = e => isDaily
+    ? `<td class="lbl">${escapeHtml(e.iso)}</td><td class="lbl">${escapeHtml(e.sku)}</td><td class="lbl dim">${escapeHtml(e.name)}</td><td class="lbl dim">${escapeHtml(e.brand)}</td><td class="lbl dim">${escapeHtml(e.cat)}</td><td class="lbl dim lblend">${escapeHtml(e.subcat)}</td>`
+    : `<td class="lbl">${escapeHtml(e.sku)}</td><td class="lbl dim">${escapeHtml(e.name)}</td><td class="lbl dim">${escapeHtml(e.brand)}</td><td class="lbl dim">${escapeHtml(e.cat)}</td><td class="lbl dim lblend">${escapeHtml(e.subcat)}</td>`;
+  const numCells = e => {
+    const asp  = e.qty ? e.gmv/e.qty : 0;
+    const cm2p = e.gmv ? e.cm2/e.gmv : null;
+    const cpm  = e.im ? e.mk/e.im*1000 : 0;
+    const ctr  = e.im ? e.cl/e.im : null;
+    const conv = e.im ? e.ord/e.im : null;
+    const r    = e.mk ? e.agmv/e.mk : null;
+    return `<td>${money(e.gmv)}</td><td>${money(e.cog)}</td><td>${money(e.logi)}</td><td>${fmt(e.qty)}</td><td>${money(asp)}</td>`+
+      `<td>${money(e.mk)}</td>`+
+      `<td class="cm2hl cmpsep${e.cm2<0?' neg':''}">${money(e.cm2)}</td><td class="cm2hl">${pct1(cm2p)}</td>`+
+      `<td class="cmpsep">${money(e.agmv)}</td><td>${fmt(e.im)}</td><td>${fmt(e.cl)}</td><td>${fmt(e.ord)}</td>`+
+      `<td>${money(cpm)}</td><td>${pct2(ctr)}</td><td>${pct2(conv)}</td><td>${roas(r)}</td>`;
+  };
+
+  // Default sort: daily → chronological (Date asc); monthly → GMV desc.
+  const defCol = isDaily ? 'date' : 'gmv';
+  const defDir = isDaily ? 'asc'  : 'desc';
+
+  function paint(){
+    const s = sortGet('pcm2', defCol, defDir);
+    const sq = (pcm2Search || '').trim().toLowerCase();
+    let view = allRows;
+    if (sq) view = allRows.filter(e => [e.sku, e.name, e.brand, e.cat, e.subcat, e.iso].some(x => x && String(x).toLowerCase().includes(sq)));
+    const sorted = sortApply(view, s.dir, e => pcmVal(e, s.col));
+
+    const thead = `<thead><tr>${labelHead}${numHead}</tr></thead>`;
+    const colCount = labelCols + 16;
+    let body;
+    if (!sorted.length){
+      body = `<tr><td class="lbl" colspan="${colCount}" style="text-align:center;padding:20px;color:var(--text3)">No products match your search for ${escapeHtml(pcm2MonthLabel(pcm2Month))}.</td></tr>`;
+    } else {
+      body = sorted.map(e => `<tr>${lblCells(e)}${numCells(e)}</tr>`).join('');
+      const t = sorted.reduce((a,e)=>{ a.gmv+=e.gmv;a.cog+=e.cog;a.logi+=e.logi;a.qty+=e.qty;a.mk+=e.mk;a.cm2+=e.cm2;a.agmv+=e.agmv;a.im+=e.im;a.cl+=e.cl;a.ord+=e.ord;return a; },
+        {gmv:0,cog:0,logi:0,qty:0,mk:0,cm2:0,agmv:0,im:0,cl:0,ord:0});
+      const aspT=t.qty?t.gmv/t.qty:0, cm2pT=t.gmv?t.cm2/t.gmv:null, cpmT=t.im?t.mk/t.im*1000:0, ctrT=t.im?t.cl/t.im:null, convT=t.im?t.ord/t.im:null, roasT=t.mk?t.agmv/t.mk:null;
+      const totLbl = `<td class="lbl lblend" colspan="${labelCols}">TOTAL · ${view.length.toLocaleString('en-IN')} ${isDaily?'rows':'products'}</td>`;
+      body += `<tr class="total-row">${totLbl}`+
+        `<td>${money(t.gmv)}</td><td>${money(t.cog)}</td><td>${money(t.logi)}</td><td>${fmt(t.qty)}</td><td>${money(aspT)}</td>`+
+        `<td>${money(t.mk)}</td>`+
+        `<td class="cm2hl cmpsep${t.cm2<0?' neg':''}">${money(t.cm2)}</td><td class="cm2hl">${pct1(cm2pT)}</td>`+
+        `<td class="cmpsep">${money(t.agmv)}</td><td>${fmt(t.im)}</td><td>${fmt(t.cl)}</td><td>${fmt(t.ord)}</td>`+
+        `<td>${money(cpmT)}</td><td>${pct2(ctrT)}</td><td>${pct2(convT)}</td><td>${roas(roasT)}</td></tr>`;
+    }
+    const tHost = document.getElementById('pcm2TableHost');
+    if (tHost){ tHost.innerHTML = `<div class="cm2-wrap"><table class="cm2">${thead}<tbody>${body}</tbody></table></div>`; sortWire(tHost, 'pcm2', renderProductCM2, defDir); }
+  }
+
+  const monthOpts = ymList.map(ym => `<label class="ms-item pcm2-mopt" data-ym="${ym}"><input type="radio" name="pcm2month" ${ym===pcm2Month?'checked':''}><span>${escapeHtml(pcm2MonthLabel(ym))}</span></label>`).join('');
+  const granPills = [['daily','Daily'],['monthly','Monthly']]
+    .map(([k,l]) => `<button class="zmom-pill m-pill${k===pcm2Gran?' active':''}" data-pgran="${k}">${l}</button>`).join('');
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:240px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox pcm2-search" placeholder="Search product / brand / category…" value="${escapeHtml(pcm2Search)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Month</label>
+        <div class="mc-wrap" style="position:relative;">
+          <button class="mc-btn active" id="pcm2MonthBtn" type="button">📅 ${escapeHtml(pcm2MonthLabel(pcm2Month))} <span style="opacity:.6;">▾</span></button>
+          <div class="mc-panel${pcm2MenuOpen?' open':''}" id="pcm2MonthPanel">
+            <div style="padding:8px 9px;border-bottom:1px solid var(--border);">
+              <div class="kpi-search-wrap"><span class="kpi-search-ic">⌕</span>
+                <input type="text" class="kpi-searchbox pcm2-msearch" placeholder="Search month…" autocomplete="off"></div></div>
+            <div class="ms-list" id="pcm2MonthList">${monthOpts}</div>
+          </div>
+        </div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${granPills}</div></div>
+      <button class="kpi-reset" id="pcm2Reset" title="Clear search &amp; reset month">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(pcm2MonthLabel(pcm2Month))}</b> · ${isDaily?'daily':'monthly'}</span><span class="bt-period-tag">Product CM2</span></div>
+    </div>
+    <div id="pcm2TableHost"></div>
+    <div class="ddt-note">Product-level Contribution Margin from <b>sale.json</b>, <b>product_ads.json</b> &amp; <b>cogs.json</b> · CM2 = <b>${(monthMargin*100).toFixed(2)}%</b> × GMV − Cogs − Logistics − Marketing · Logistics = 4% of GMV · ASP = GMV ÷ Qty · CPM = Marketing ÷ Impressions × 1000 · CTR = Clicks ÷ Impressions · Conv % = Orders ÷ Impressions · ROAS = Ads GMV ÷ Marketing · independent of the global filters.</div>`;
+
+  // ── View toggle (Daily / Monthly): reset sort to the view's default ──
+  host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { pcm2Gran = b.dataset.pgran; SORT['pcm2'] = null; pcm2MenuOpen = false; renderProductCM2(); }));
+
+  // ── Reset ──
+  host.querySelector('#pcm2Reset').addEventListener('click', () => { pcm2Search=''; pcm2SearchActive=false; pcm2Month=ymList[0]; SORT['pcm2']=null; pcm2MenuOpen=false; renderProductCM2(); });
+
+  // ── Month dropdown ──
+  const mBtn = host.querySelector('#pcm2MonthBtn');
+  const mPanel = host.querySelector('#pcm2MonthPanel');
+  mBtn.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const open = mPanel.classList.toggle('open');
+    mBtn.classList.toggle('open', open); pcm2MenuOpen = open;
+    if (open){ const sb = host.querySelector('.pcm2-msearch'); if (sb) setTimeout(()=>sb.focus(), 0); }
+  });
+  host.querySelectorAll('.pcm2-mopt').forEach(opt => opt.addEventListener('click', () => {
+    const ym = opt.dataset.ym; if (!ym) return;
+    pcm2Month = ym; pcm2MenuOpen = false; SORT['pcm2'] = SORT['pcm2'] || null; renderProductCM2();
+  }));
+  const mSearch = host.querySelector('.pcm2-msearch');
+  if (mSearch) mSearch.addEventListener('input', () => {
+    const q = mSearch.value.trim().toLowerCase();
+    host.querySelectorAll('.pcm2-mopt').forEach(opt => {
+      const lbl = pcm2MonthLabel(opt.dataset.ym).toLowerCase();
+      opt.style.display = (!q || lbl.includes(q)) ? '' : 'none';
+    });
+  });
+  document.removeEventListener('click', pcm2OutsideClose);
+  document.addEventListener('click', pcm2OutsideClose);
+
+  // ── Search (repaints table only, keeps focus) ──
+  const si = host.querySelector('.pcm2-search');
+  if (si){
+    si.addEventListener('input', () => { pcm2Search = si.value; pcm2SearchActive = true; paint(); });
+    si.addEventListener('focus', () => { pcm2SearchActive = true; });
+    si.addEventListener('blur',  () => { pcm2SearchActive = false; });
+    if (pcm2SearchActive){ si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
+  }
+
+  paint();
+}
+
 function renderCM2(){
   const host = document.getElementById('secCM2'); if (!host) return;
   if (!RAW || !RAW.length){ host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
@@ -2451,179 +2693,6 @@ function renderCM2(){
     si.addEventListener('focus', () => { cm2SearchActive = true; });
     si.addEventListener('blur', () => { cm2SearchActive = false; });
     if (cm2SearchActive){ si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
-  }
-  paint();
-}
-
-// ═══════════════════════════════════════════════════════════════
-// PRODUCT CM2 — per-product Contribution Margin (Daily / Monthly)
-// One row per product (per day in Daily view) for the selected month.
-// Built from the sales data (RAW), product_ads.json (PRODADS, per sku×date
-// and sku×month) and cogs.json (COGS, per-unit by sku_code):
-//   GMV       = Σ value                         (per product, scoped to month)
-//   Cogs      = Σ qty × unit-cost(sku)          (cogs.json, 0 if unmatched)
-//   Logistics = GMV × 4%   ·   ASP = GMV ÷ Qty
-//   Marketing / Ads GMV / Impr / Clicks / Orders = Σ product_ads (sku-matched)
-//                Daily matches on sku+date · Monthly on sku+month
-//   CM2       = margin×GMV − Cogs − Logistics − Marketing
-//               margin = 56.25% up to 22-Sep-2025, 60.32% after
-//   CM2%=CM2÷GMV · CPM=Mktg÷Impr×1000 · CTR=Clicks÷Impr · Conv%=Orders÷Impr · ROAS=AdsGMV÷Mktg
-// Daily / Monthly columns are identical (Daily shows a date, Monthly the month).
-// No Year toggle · month picker defaults to the latest month · independent of the global filters.
-// ═══════════════════════════════════════════════════════════════
-let pcm2Gran = 'daily', pcm2Month = null, pcm2Search = '', pcm2SearchActive = false;
-let _pcm2Data = null;
-
-function pcm2Compute(){
-  const dMap = new Map(), mMap = new Map();
-  const mkEntry = r => ({ sku_code:r.sku_code, sku_name:r.sku_name, brand:r.brand_name, category:r.category, subcat:r.sub_category, date:'', month:r.month, gmv:0, qty:0, cog:0 });
-  for (let i=0;i<RAW.length;i++){
-    const r = RAW[i]; const sku = r.sku_code; if (!sku) continue;
-    const unit = COGS[sku] || 0;
-    if (r.bill_date && r.bill_date.length >= 10){
-      const k = r.bill_date+'|'+sku; let e = dMap.get(k);
-      if (!e){ e = mkEntry(r); e.date = r.bill_date; dMap.set(k, e); }
-      e.gmv += r.amount || 0; e.qty += r.quantity || 0; e.cog += (r.quantity || 0) * unit;
-    }
-    if (r.month){
-      const k = r.month+'|'+sku; let e = mMap.get(k);
-      if (!e){ e = mkEntry(r); mMap.set(k, e); }
-      e.gmv += r.amount || 0; e.qty += r.quantity || 0; e.cog += (r.quantity || 0) * unit;
-    }
-  }
-  const finalize = (e, key, adsMap, marginISO) => {
-    const ad = adsMap[key] || { mk:0, agmv:0, im:0, cl:0, ord:0 };
-    e.mk = ad.mk; e.agmv = ad.agmv; e.im = ad.im; e.cl = ad.cl; e.ord = ad.ord;
-    e.logi = e.gmv * 0.04;
-    const margin = (marginISO && marginISO <= CM2_MARGIN_SWITCH) ? CM2_MARGIN_PRE : CM2_MARGIN_POST;
-    e.cm2 = margin * e.gmv - e.cog - e.logi - e.mk;
-    return e;
-  };
-  const daily   = [...dMap.values()].map(e => finalize(e, e.sku_code+'|'+e.date,  PRODADS.d, e.date));
-  const monthly = [...mMap.values()].map(e => finalize(e, e.sku_code+'|'+e.month, PRODADS.m, pcm2MonthFirstISO(e.month)));
-  _pcm2Data = { daily, monthly };
-  return _pcm2Data;
-}
-
-function renderProductCM2(){
-  const host = document.getElementById('secProductCM2'); if (!host) return;
-  if (!RAW || !RAW.length){ host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
-  const D = _pcm2Data || pcm2Compute();
-  const months = [...new Set(RAW.map(r=>r.month).filter(Boolean))].sort((a,b)=>(monthSortKey(b)??-1)-(monthSortKey(a)??-1));
-  if (!months.length){ host.innerHTML = '<div class="no-data">No month-tagged sales rows found for Product CM2.</div>'; return; }
-  if (pcm2Month == null || !months.includes(pcm2Month)) pcm2Month = months[0];
-  sortGet('pcm2','gmv','desc');   // default sort so the header arrow shows on first paint
-
-  // ── formatters ──
-  const money = n => fmtRs(n);
-  const cnt   = n => (n==null || !isFinite(n)) ? '—' : fmt(Math.round(n));
-  const pct1  = r => (r==null || !isFinite(r)) ? '<span class="muted">—</span>' : (r*100).toFixed(1)+'%';
-  const pct2  = r => (r==null || !isFinite(r)) ? '<span class="muted">—</span>' : (r*100).toFixed(2)+'%';
-  const roas  = n => (n==null || !isFinite(n)) ? '<span class="muted">—</span>' : n.toFixed(2)+'x';
-
-  // ── sort value getter ──
-  const pv = (e, col) => {
-    switch (col) {
-      case 'date':  return pcm2Gran==='daily' ? (e.date || '') : (monthSortKey(e.month) ?? -Infinity);
-      case 'code':  return e.sku_code || ''; case 'name': return e.sku_name || '';
-      case 'brand': return e.brand || ''; case 'cat': return e.category || ''; case 'subcat': return e.subcat || '';
-      case 'gmv':   return e.gmv; case 'cog': return e.cog; case 'logi': return e.logi; case 'qty': return e.qty;
-      case 'asp':   return e.qty ? e.gmv/e.qty : 0; case 'mk': return e.mk; case 'cm2': return e.cm2;
-      case 'cm2p':  return e.gmv ? e.cm2/e.gmv : 0; case 'agmv': return e.agmv; case 'im': return e.im;
-      case 'cl':    return e.cl; case 'ord': return e.ord;
-      case 'cpm':   return e.im ? e.mk/e.im*1000 : 0; case 'ctr': return e.im ? e.cl/e.im : 0;
-      case 'conv':  return e.im ? e.ord/e.im : 0; case 'roas': return e.mk ? e.agmv/e.mk : 0;
-      default: return 0;
-    }
-  };
-
-  // ── headers ──
-  const lblHead =
-    sortTh('pcm2','date', pcm2Gran==='daily'?'Date':'Month','','lbl')+
-    sortTh('pcm2','code','Product Code','','lbl')+sortTh('pcm2','name','Product Name','','lbl')+
-    sortTh('pcm2','brand','Brand','','lbl')+sortTh('pcm2','cat','Category','','lbl')+sortTh('pcm2','subcat','Sub Category','','lbl lblend');
-  const numHead =
-    sortTh('pcm2','gmv','GMV Sales')+sortTh('pcm2','cog','Cogs')+sortTh('pcm2','logi','Logistics')+sortTh('pcm2','qty','Quantity')+sortTh('pcm2','asp','ASP')+
-    sortTh('pcm2','mk','Marketing Cost')+sortTh('pcm2','cm2','CM2','','cm2hl cmpsep')+sortTh('pcm2','cm2p','CM2%','','cm2hl')+
-    sortTh('pcm2','agmv','Ads GMV','','cmpsep')+sortTh('pcm2','im','Impression')+sortTh('pcm2','cl','Clicks')+sortTh('pcm2','ord','Orders')+
-    sortTh('pcm2','cpm','CPM')+sortTh('pcm2','ctr','CTR')+sortTh('pcm2','conv','Conv %')+sortTh('pcm2','roas','ROAS');
-
-  const lblCells = e => {
-    const dCell = pcm2Gran==='daily' ? escapeHtml(cm2DMY(e.date)) : escapeHtml(e.month || '');
-    return `<td class="lbl">${dCell}</td>`+
-      `<td class="lbl">${escapeHtml(e.sku_code || '')}</td><td class="lbl dim">${escapeHtml(e.sku_name || '')}</td>`+
-      `<td class="lbl dim">${escapeHtml(e.brand || '')}</td><td class="lbl dim">${escapeHtml(e.category || '')}</td><td class="lbl dim lblend">${escapeHtml(e.subcat || '')}</td>`;
-  };
-  const numCells = e => {
-    const asp = e.qty ? e.gmv/e.qty : 0, cm2p = e.gmv ? e.cm2/e.gmv : null;
-    const cpm = e.im ? e.mk/e.im*1000 : 0, ctr = e.im ? e.cl/e.im : null, conv = e.im ? e.ord/e.im : null;
-    return `<td>${money(e.gmv)}</td><td>${money(e.cog)}</td><td>${money(e.logi)}</td><td>${fmt(e.qty)}</td><td>${money(asp)}</td>`+
-      `<td>${money(e.mk)}</td>`+
-      `<td class="cm2hl cmpsep${e.cm2<0?' neg':''}">${money(e.cm2)}</td><td class="cm2hl">${pct1(cm2p)}</td>`+
-      `<td class="cmpsep">${money(e.agmv)}</td><td>${cnt(e.im)}</td><td>${cnt(e.cl)}</td><td>${cnt(e.ord)}</td>`+
-      `<td>${money(cpm)}</td><td>${pct2(ctr)}</td><td>${pct2(conv)}</td><td>${roas(e.mk ? e.agmv/e.mk : null)}</td>`;
-  };
-
-  function paint(){
-    const all = pcm2Gran==='monthly' ? D.monthly : D.daily;
-    let rows = all.filter(r => r.month === pcm2Month);
-    const sq = (pcm2Search||'').trim().toLowerCase();
-    if (sq) rows = rows.filter(r => [r.date, r.month, r.sku_code, r.sku_name, r.brand, r.category, r.subcat].join(' ').toLowerCase().includes(sq));
-    const cs = sortGet('pcm2','gmv','desc');
-    rows = sortApply(rows, cs.dir, e => pv(e, cs.col));
-
-    const thead = `<thead><tr>${lblHead}${numHead}</tr></thead>`;
-    let body;
-    if (!rows.length){
-      body = `<tr><td class="lbl" colspan="22" style="text-align:center;padding:20px;color:var(--text3)">No products match the current month / search.</td></tr>`;
-    } else {
-      body = rows.map(e => `<tr>${lblCells(e)}${numCells(e)}</tr>`).join('');
-      const t = rows.reduce((a,e)=>{ a.gmv+=e.gmv;a.cog+=e.cog;a.logi+=e.logi;a.qty+=e.qty;a.mk+=e.mk;a.cm2+=e.cm2;a.agmv+=e.agmv;a.im+=e.im;a.cl+=e.cl;a.ord+=e.ord;return a; },
-        {gmv:0,cog:0,logi:0,qty:0,mk:0,cm2:0,agmv:0,im:0,cl:0,ord:0});
-      body += `<tr class="total-row"><td class="lbl lblend" colspan="6">TOTAL · ${rows.length} product${rows.length===1?'':'s'}</td>${numCells(t)}</tr>`;
-    }
-    const tHost = document.getElementById('pcm2TableHost');
-    if (tHost){ tHost.innerHTML = `<div class="cm2-wrap"><table class="cm2">${thead}<tbody>${body}</tbody></table></div>`; sortWire(tHost, 'pcm2', renderProductCM2, 'desc'); }
-  }
-
-  const monthSel = `<div class="mc"><button class="mc-btn active" id="pcm2MonthBtn" type="button"><span id="pcm2MonthLbl">${escapeHtml(pcm2Month)}</span><span class="mc-chev">▾</span></button><div class="mc-panel" id="pcm2MonthPanel"><input type="text" class="ms-search" id="pcm2MonthSearch" placeholder="Search month…"><div class="ms-list" id="pcm2MonthList"></div></div></div>`;
-  const granPills = [['daily','Daily'],['monthly','Monthly']].map(([k,l])=>`<button class="zmom-pill m-pill${k===pcm2Gran?' active':''}" data-pgran="${k}">${l}</button>`).join('');
-
-  host.innerHTML = `
-    <div class="bt-bar">
-      <div class="bt-fg"><label class="bt-flabel">Search</label>
-        <div class="kpi-search-wrap" style="max-width:240px"><span class="kpi-search-ic">⌕</span>
-          <input type="text" class="kpi-searchbox pcm2-search" placeholder="Search product / brand / category…" value="${escapeHtml(pcm2Search)}" autocomplete="off"></div></div>
-      <div class="bt-fg"><label class="bt-flabel">Month</label><div class="bt-chips">${monthSel}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${granPills}</div></div>
-      <button class="kpi-reset" id="pcm2Reset" title="Clear search &amp; reset month">↺ Reset</button>
-      <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(pcm2Month)}</b> · ${pcm2Gran==='daily'?'by day':'by month'}</span><span class="bt-period-tag">Product CM2</span></div>
-    </div>
-    <div id="pcm2TableHost"></div>
-    <div class="ddt-note">Per-product Contribution Margin from sales, <b>product_ads.json</b> &amp; <b>cogs.json</b> · one row per product${pcm2Gran==='daily'?' per day':''} for the selected month · CM2 = <b>${(CM2_MARGIN_POST*100).toFixed(2)}%</b> × GMV − Cogs − Logistics − Marketing (margin is <b>${(CM2_MARGIN_PRE*100).toFixed(2)}%</b> up to 22-Sep-2025) · Cogs = Qty × unit cost · Logistics = 4% of GMV · ASP = GMV ÷ Qty · CPM = Marketing ÷ Impr × 1000 · CTR = Clicks ÷ Impr · Conv % = Orders ÷ Impr · ROAS = Ads GMV ÷ Marketing · independent of the global filters.</div>`;
-
-  const mBtn = host.querySelector('#pcm2MonthBtn'), mPanel = host.querySelector('#pcm2MonthPanel'), mSearch = host.querySelector('#pcm2MonthSearch'), mList = host.querySelector('#pcm2MonthList');
-  function renderMonthList(q){
-    if (!mList) return;
-    const s2 = (q||'').trim().toLowerCase();
-    const items = months.filter(m => m.toLowerCase().includes(s2));
-    mList.innerHTML = items.length
-      ? items.map(m=>`<div class="ms-item mc-opt${m===pcm2Month?' sel':''}" data-m="${escapeHtml(m)}"><span>${escapeHtml(m)}</span></div>`).join('')
-      : '<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
-    mList.querySelectorAll('.mc-opt').forEach(it=>it.addEventListener('click',()=>{ pcm2Month = it.dataset.m; renderProductCM2(); }));
-  }
-  if (mBtn){
-    mBtn.addEventListener('click',()=>{ const open = mPanel.classList.contains('open'); closeAllPanels(); if(!open){ mPanel.classList.add('open'); mBtn.classList.add('open'); if(mSearch) mSearch.value=''; renderMonthList(''); if(mSearch) setTimeout(()=>mSearch.focus(),0); } });
-    if (mSearch) mSearch.addEventListener('input',()=>renderMonthList(mSearch.value));
-  }
-  host.querySelectorAll('.m-pill').forEach(b=>b.addEventListener('click',()=>{ pcm2Gran = b.dataset.pgran; renderProductCM2(); }));
-  host.querySelector('#pcm2Reset').addEventListener('click',()=>{ pcm2Search=''; pcm2SearchActive=false; pcm2Month=months[0]; renderProductCM2(); });
-  const si = host.querySelector('.pcm2-search');
-  if (si){
-    si.addEventListener('input',()=>{ pcm2Search = si.value; pcm2SearchActive=true; paint(); });
-    si.addEventListener('focus',()=>{ pcm2SearchActive=true; });
-    si.addEventListener('blur',()=>{ pcm2SearchActive=false; });
-    if (pcm2SearchActive){ si.focus(); const L=si.value.length; si.setSelectionRange(L,L); }
   }
   paint();
 }
