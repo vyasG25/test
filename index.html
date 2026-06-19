@@ -1531,6 +1531,7 @@ function fmtLaunchMonth(iso) {
   const mi = +iso.slice(5, 7); if (!(mi >= 1 && mi <= 12)) return '—';
   return WK_LAUNCH_MONTHS[mi - 1] + '-' + iso.slice(2, 4);   // "Mar-24"
 }
+function wkLaunchLabel(desc) { return fmtLaunchMonth(wkLaunchMap()[desc.sku_code || desc.sku_name || '—']); }
 // Weekly Trends descriptor columns = shared SKU columns + a Launch Month column after Sub Category.
 const WK_DESC = SKU_DESC.concat([
   { label:'Launch Month', w:120, wrap:false,
@@ -1675,7 +1676,7 @@ function renderWeeklyTrends() {
     const weeks = [...weeksSet].sort((a, b) => a - b);
     let keys = Object.keys(rows).filter(k => rows[k].tot.q || rows[k].tot.s);
     const sq = (weeklySearch || '').trim().toLowerCase();
-    if (sq) keys = keys.filter(k => skMatchesSearch(rows[k].desc, sq));
+    if (sq) keys = keys.filter(k => skMatchesSearch(rows[k].desc, sq) || wkLaunchLabel(rows[k].desc).toLowerCase().includes(sq));
     const _wk='weekly';
     const _ws=sortGet(_wk,'tot','desc');
     const _wval=(k,col)=>{
