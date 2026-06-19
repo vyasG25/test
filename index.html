@@ -2351,7 +2351,7 @@ function productCM2Compute(ym, gran){
   let monthMargin = null;
   for (let i = 0; i < PADS.length; i++){
     const a = PADS[i]; if (a.ym !== ym) continue;
-    if (a.cm != null) monthMargin = a.cm;     // per-month cm_calculation
+    if (a.cm != null && monthMargin == null) monthMargin = a.cm;   // per-month cm_calculation (first match, mirrors XLOOKUP)
     const key = (gran === 'daily') ? (a.sku + '|' + a.iso) : a.sku;
     let e = adsIdx[key]; if (!e) e = adsIdx[key] = { mk:0, im:0, ord:0, agmv:0, cl:0 };
     e.mk += a.mk; e.im += a.im; e.ord += a.ord; e.agmv += a.agmv; e.cl += a.cl;
