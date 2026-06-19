@@ -1510,6 +1510,35 @@ const SKLOC_FILTERS = [
 ];
 const SK_METRICS = [{k:'all',label:'All'},{k:'qty',label:'Qty'},{k:'value',label:'Value'}];
 
+// ── Launch Month (Weekly Trends only) ──
+// Launch month = the first (earliest) sale date recorded for a product across ALL
+// loaded rows — a fixed attribute of the product, independent of the year/location filters.
+const WK_LAUNCH_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let _wkLaunchCache = null, _wkLaunchCacheLen = -1;
+function wkLaunchMap() {
+  if (_wkLaunchCache && _wkLaunchCacheLen === RAW.length) return _wkLaunchCache;
+  const m = Object.create(null);
+  for (let i = 0; i < RAW.length; i++) {
+    const r = RAW[i]; const d = r.bill_date; if (!d) continue;
+    const key = r.sku_code || r.sku_name || '—';
+    const cur = m[key]; if (cur === undefined || d < cur) m[key] = d;   // ISO YYYY-MM-DD sorts chronologically
+  }
+  _wkLaunchCache = m; _wkLaunchCacheLen = RAW.length;
+  return m;
+}
+function fmtLaunchMonth(iso) {
+  if (!iso || iso.length < 7) return '—';
+  const mi = +iso.slice(5, 7); if (!(mi >= 1 && mi <= 12)) return '—';
+  return WK_LAUNCH_MONTHS[mi - 1] + '-' + iso.slice(2, 4);   // "Mar-24"
+}
+// Weekly Trends descriptor columns = shared SKU columns + a Launch Month column after Sub Category.
+const WK_DESC = SKU_DESC.concat([
+  { label:'Launch Month', w:120, wrap:false,
+    get:     r => fmtLaunchMonth(wkLaunchMap()[r.sku_code || r.sku_name || '—']),
+    sortVal: r => wkLaunchMap()[r.sku_code || r.sku_name || '—'] || '' },
+]);
+const WK_SPAN = WK_DESC.reduce((a, d) => a + d.w, 0);
+
 // state
 let weeklyYear = null, weeklyMetric = 'all', weeklySearch = '', weeklySearchActive = false;
 const weeklyFilt = {}; SKLOC_FILTERS.forEach(f => weeklyFilt[f.key] = new Set());
@@ -1519,24 +1548,27 @@ const monthlyFilt = {}; SKLOC_FILTERS.forEach(f => monthlyFilt[f.key] = new Set(
 // ── shared markup helpers ──
 // When `sortKey` is supplied, the descriptor columns become sortable
 // (col ids "d0".."d3"); otherwise they render as plain headers.
-function skDescHead(sortKey) {
-  return SKU_DESC.map((d, i) => {
-    const cls = `dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}`;
+function skDescHead(sortKey, cols) {
+  cols = cols || SKU_DESC;
+  return cols.map((d, i) => {
+    const cls = `dz dz${i}${i === cols.length - 1 ? ' dzlast' : ''}`;
     const attr = `style='min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px'`;
     return sortKey
       ? sortTh(sortKey, 'd' + i, escapeHtml(d.label), '', cls, attr)
       : `<th class="${cls}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${escapeHtml(d.label)}</th>`;
   }).join('');
 }
-function skDescCells(rowObj) {
-  return SKU_DESC.map((d, i) => {
+function skDescCells(rowObj, cols) {
+  cols = cols || SKU_DESC;
+  return cols.map((d, i) => {
     const v = d.get(rowObj) || '—';
-    return `<td class="dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}${d.wrap ? ' dzwrap' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
+    return `<td class="dz dz${i}${i === cols.length - 1 ? ' dzlast' : ''}${d.wrap ? ' dzwrap' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
   }).join('');
 }
-function skDescTotalCells(label) {
-  return SKU_DESC.map((d, i) =>
-    `<td class="dz dz${i}${i === SKU_DESC.length - 1 ? ' dzlast' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${i === 0 ? escapeHtml(label) : ''}</td>`
+function skDescTotalCells(label, cols) {
+  cols = cols || SKU_DESC;
+  return cols.map((d, i) =>
+    `<td class="dz dz${i}${i === cols.length - 1 ? ' dzlast' : ''}" style="min-width:${d.w}px;max-width:${d.w}px;width:${d.w}px">${i === 0 ? escapeHtml(label) : ''}</td>`
   ).join('');
 }
 // Measure the real left edge of each frozen column and pin the sticky offset to it.
@@ -1648,7 +1680,7 @@ function renderWeeklyTrends() {
     const _ws=sortGet(_wk,'tot','desc');
     const _wval=(k,col)=>{
       const e=rows[k];
-      if(col.charAt(0)==='d') return SKU_DESC[+col.slice(1)].get(e.desc)||'';
+      if(col.charAt(0)==='d'){ const dc = WK_DESC[+col.slice(1)]; return (dc.sortVal ? dc.sortVal(e.desc) : dc.get(e.desc)) || ''; }
       const v = col==='tot' ? e.tot : (e.wk[+col.slice(1)]||{q:0,s:0});
       return M==='qty'? v.q : v.s;
     };
@@ -1672,12 +1704,12 @@ function renderWeeklyTrends() {
     };
 
     const headWeeks = weeks.map(w => sortTh(_wk,'w'+w,'W'+w,'CW·LW·WoW')).join('');
-    const thead = `<thead><tr>${skDescHead(_wk)}${sortTh(_wk,'tot','Total',escapeHtml(fyLbl),'tcol')}${headWeeks}</tr></thead>`;
+    const thead = `<thead><tr>${skDescHead(_wk, WK_DESC)}${sortTh(_wk,'tot','Total',escapeHtml(fyLbl),'tcol')}${headWeeks}</tr></thead>`;
 
     const rowFor = k => {
       const e = rows[k];
       const cells = weeks.map(w => `<td class="zcell">${cellHtml(at(e, w), lwAt(e, w))}</td>`).join('');
-      return `<tr>${skDescCells(e.desc)}<td class="tcol">${totHtml(e.tot)}</td>${cells}</tr>`;
+      return `<tr>${skDescCells(e.desc, WK_DESC)}<td class="tcol">${totHtml(e.tot)}</td>${cells}</tr>`;
     };
     // grand total row
     const gWk = {}; let gQ = 0, gS = 0; const gPrev = { q: 0, s: 0 };
@@ -1690,14 +1722,14 @@ function renderWeeklyTrends() {
     const gAt = w => gWk[w] || { q: 0, s: 0 };
     const gLwAt = w => w > 1 ? gAt(w - 1) : gPrev;
     const totCells = weeks.map(w => `<td class="zcell">${cellHtml(gAt(w), gLwAt(w))}</td>`).join('');
-    const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL')}<td class="tcol">${totHtml({ q: gQ, s: gS })}</td>${totCells}</tr>` : '';
+    const totalRow = keys.length ? `<tr class="total-row">${skDescTotalCells('TOTAL', WK_DESC)}<td class="tcol">${totHtml({ q: gQ, s: gS })}</td>${totCells}</tr>` : '';
 
     const body = keys.length
       ? keys.map(rowFor).join('') + totalRow
-      : `<tr>${skDescTotalCells('—')}<td class="tcol">—</td><td colspan="${Math.max(1, weeks.length)}" style="text-align:center;padding:18px;color:var(--text3)">No products match the current filters for ${escapeHtml(fyLbl)}.</td></tr>`;
+      : `<tr>${skDescTotalCells('—', WK_DESC)}<td class="tcol">—</td><td colspan="${Math.max(1, weeks.length)}" style="text-align:center;padding:18px;color:var(--text3)">No products match the current filters for ${escapeHtml(fyLbl)}.</td></tr>`;
 
-    const tw = SKU_SPAN + TOTW + weeks.length * 92;
-    const colg = `<colgroup>${SKU_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:92px">`.repeat(weeks.length)}</colgroup>`;
+    const tw = WK_SPAN + TOTW + weeks.length * 92;
+    const colg = `<colgroup>${WK_DESC.map(d => `<col style="width:${d.w}px">`).join('')}<col style="width:${TOTW}px">${`<col style="width:92px">`.repeat(weeks.length)}</colgroup>`;
     skRender('wkTableHost', tw, colg, thead, body);
     const _th = document.getElementById('wkTableHost');
     if (_th) sortWire(_th, _wk, renderWeeklyTrends, 'desc');
