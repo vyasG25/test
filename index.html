@@ -365,6 +365,9 @@
   .cm2 td.cstick{position:sticky;z-index:5;background:var(--surface);}
   .cm2 thead th.cstick{z-index:9;background:var(--blue-light);}
   .cm2 tr.total-row td.cstick{background:var(--blue-light);}
+  /* Frozen cells need an OPAQUE hover background (the row-hover tint is translucent and would let scrolled columns show through). */
+  .cm2 tbody tr:hover td.cstick{background:#f2f5f7;}
+  .cm2 tbody tr:nth-child(even):hover td.cstick{background:#eef1f3;}
   .cm2 .cstick0{left:var(--cl0,0px);} .cm2 .cstick1{left:var(--cl1,0px);} .cm2 .cstick2{left:var(--cl2,0px);}
   .cm2 .cstick3{left:var(--cl3,0px);} .cm2 .cstick4{left:var(--cl4,0px);} .cm2 .cstick5{left:var(--cl5,0px);}
   .cm2 .cstick6{left:var(--cl6,0px);} .cm2 .cstick7{left:var(--cl7,0px);}
