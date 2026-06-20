@@ -2357,13 +2357,43 @@ function pcm2MonthLabel(ym){
 // Margin applicable to an ISO date (mirrors the CM2 tab switch).
 function pcm2DateMargin(iso){ return (iso <= CM2_MARGIN_SWITCH) ? CM2_MARGIN_PRE : CM2_MARGIN_POST; }
 
+// ── Month indexes (built once, cached by source length) ──────────────
+// Avoid re-scanning the full RAW (200k+) / PADS arrays on every Product CM2
+// render. Compute then touches only the selected month's slice, so load time
+// depends on one month's rows, not the whole dataset, and scales with growth.
+let _pcm2RawIdx = null, _pcm2RawIdxLen = -1;
+function pcm2RawByMonth(){
+  if (_pcm2RawIdx && _pcm2RawIdxLen === RAW.length) return _pcm2RawIdx;
+  const idx = {};
+  for (let i = 0; i < RAW.length; i++){
+    const r = RAW[i], d = r.bill_date;
+    if (!d || d.length < 7) continue;
+    const ym = d.slice(0, 7);
+    (idx[ym] || (idx[ym] = [])).push(r);
+  }
+  _pcm2RawIdx = idx; _pcm2RawIdxLen = RAW.length;
+  return idx;
+}
+let _pcm2AdsIdx = null, _pcm2AdsIdxLen = -1;
+function pcm2AdsByMonth(){
+  if (_pcm2AdsIdx && _pcm2AdsIdxLen === PADS.length) return _pcm2AdsIdx;
+  const idx = {};
+  for (let i = 0; i < PADS.length; i++){
+    const a = PADS[i];
+    (idx[a.ym] || (idx[a.ym] = [])).push(a);
+  }
+  _pcm2AdsIdx = idx; _pcm2AdsIdxLen = PADS.length;
+  return idx;
+}
+
 // Build the product rows for one month at the requested granularity.
 function productCM2Compute(ym, gran){
   const skuDesc = {};           // first sales row per sku → labels (name/brand/category/sub)
   const agg = {};               // daily: sku|iso · monthly: sku
-  for (let i = 0; i < RAW.length; i++){
-    const r = RAW[i];
-    const iso = r.bill_date; if (!iso || iso.slice(0,7) !== ym) continue;
+  const monthRows = pcm2RawByMonth()[ym] || [];
+  for (let i = 0; i < monthRows.length; i++){
+    const r = monthRows[i];
+    const iso = r.bill_date;
     const sku = r.sku_code || r.sku_name || '—';
     if (!skuDesc[sku]) skuDesc[sku] = r;
     const key = (gran === 'daily') ? (sku + '|' + iso) : sku;
@@ -2373,8 +2403,9 @@ function productCM2Compute(ym, gran){
   }
   const adsIdx = {};            // matching ads totals
   let monthMargin = null;
-  for (let i = 0; i < PADS.length; i++){
-    const a = PADS[i]; if (a.ym !== ym) continue;
+  const monthAds = pcm2AdsByMonth()[ym] || [];
+  for (let i = 0; i < monthAds.length; i++){
+    const a = monthAds[i];
     if (a.cm != null && monthMargin == null) monthMargin = a.cm;   // per-month cm_calculation (first match, mirrors XLOOKUP)
     const key = (gran === 'daily') ? (a.sku + '|' + a.iso) : a.sku;
     let e = adsIdx[key]; if (!e) e = adsIdx[key] = { mk:0, im:0, ord:0, agmv:0, cl:0 };
@@ -2416,10 +2447,9 @@ function renderProductCM2(){
   const host = document.getElementById('secProductCM2'); if (!host) return;
   if (!RAW || !RAW.length){ host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
 
-  // Months available (driven by sales).
-  const ymSet = new Set();
-  for (let i = 0; i < RAW.length; i++){ const m = RAW[i].bill_date; if (m && m.length >= 7) ymSet.add(m.slice(0,7)); }
-  const ymList = [...ymSet].sort().reverse();
+  // Months available (driven by sales) — from the cached month index.
+  const ymList = Object.keys(pcm2RawByMonth()).sort().reverse();
+  const ymSet = new Set(ymList);
   if (!ymList.length){ host.innerHTML = '<div class="no-data">No dated sales rows found.</div>'; return; }
   if (pcm2Month == null || !ymSet.has(pcm2Month)) pcm2Month = ymList[0];
 
@@ -2481,7 +2511,9 @@ function renderProductCM2(){
     const s = sortGet('pcm2', defCol, defDir);
     const sq = (pcm2Search || '').trim().toLowerCase();
     let view = allRows;
-    if (sq) view = allRows.filter(e => skMatchesSearch(e, sq) || (e.iso && e.iso.toLowerCase().includes(sq)));
+    if (sq) view = allRows.filter(e =>
+      (e.sku_code && e.sku_code.toLowerCase().includes(sq)) ||
+      (e.sku_name && e.sku_name.toLowerCase().includes(sq)));
     const sorted = sortApply(view, s.dir, e => getVal(e, s.col));
 
     const thead = `<thead><tr>${skDescHead('pcm2', descCols)}${NUMCOLS.map(c => sortTh('pcm2', c.id, c.label, '', c.cls||'')).join('')}</tr></thead>`;
@@ -2564,7 +2596,11 @@ function renderProductCM2(){
   // Search (repaints table only, keeps focus).
   const si = host.querySelector('.pcm2-search');
   if (si){
-    si.addEventListener('input', () => { pcm2Search = si.value; pcm2SearchActive = true; paint(); });
+    let _pcm2Deb;
+    si.addEventListener('input', () => {
+      pcm2Search = si.value; pcm2SearchActive = true;
+      clearTimeout(_pcm2Deb); _pcm2Deb = setTimeout(paint, 180);
+    });
     si.addEventListener('focus', () => { pcm2SearchActive = true; });
     si.addEventListener('blur',  () => { pcm2SearchActive = false; });
     if (pcm2SearchActive){ si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
