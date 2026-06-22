@@ -1407,15 +1407,15 @@ function renderDailyTrends(){
 // every cell shows Sales (big) + Qty together.
 // ═══════════════════════════════════════════════════════════════
 const REGION_DIMS = [
-  { k:'zone',  label:'Zone',  field:'zone_name'  },
-  { k:'state', label:'State', field:'state_name' },
-  { k:'city',  label:'City',  field:'city_name'  },
+  { k:'zone',  label:'Zone',  field:'zone_name',  parents:[] },
+  { k:'state', label:'State', field:'state_name', parents:[{label:'Zone', field:'zone_name'}] },
+  { k:'city',  label:'City',  field:'city_name',  parents:[{label:'Zone', field:'zone_name'},{label:'State', field:'state_name'}] },
 ];
 const PRODUCT_DIMS = [
-  { k:'brand',  label:'Brand',        field:'brand_name'   },
-  { k:'category',label:'Category',     field:'category'     },
-  { k:'subcat', label:'Sub Category', field:'sub_category' },
-  { k:'sku',    label:'Product',      field:'product_code' },
+  { k:'brand',  label:'Brand',        field:'brand_name',   parents:[] },
+  { k:'category',label:'Category',     field:'category',     parents:[{label:'Brand', field:'brand_name'}] },
+  { k:'subcat', label:'Sub Category', field:'sub_category', parents:[{label:'Brand', field:'brand_name'},{label:'Category', field:'category'}] },
+  { k:'sku',    label:'Product',      field:'product_code', parents:[{label:'Brand', field:'brand_name'},{label:'Category', field:'category'},{label:'Sub Category', field:'sub_category'}] },
 ];
 let regionDim='zone', regionFY=null, regionSearch='', regionSearchActive=false, regionMetric='all';
 let productDim='brand', productFY=null, productSearch='', productSearchActive=false, productMetric='all';
@@ -1427,15 +1427,17 @@ function renderMatrix(C){
   if(!RAW || !RAW.length){ host.innerHTML='<div class="no-data">No data loaded.</div>'; return; }
   const dimCfg=C.dims.find(d=>d.k===C.getDim())||C.dims[0];
   const field=dimCfg.field;
+  const parents=dimCfg.parents||[];
   const M = C.getMetric ? C.getMetric() : 'all';
   const subLbl = M==='qty' ? 'Qty' : M==='value' ? 'Sales' : 'Sales · Qty';
   const mkOf=r=>(r.month&&/^\d{4}-\d{2}$/.test(r.month))?r.month:(r.bill_date?r.bill_date.slice(0,7):'');
 
-  const qty={}, sale={}, monthsSet=new Set(), keysSet=new Set();
+  const qty={}, sale={}, monthsSet=new Set(), keysSet=new Set(), pvals={};
   for(let i=0;i<RAW.length;i++){
     const r=RAW[i]; const mk=mkOf(r); if(!mk) continue;
     const k=(r[field]==null||r[field]==='')?'—':String(r[field]);
     keysSet.add(k); monthsSet.add(mk);
+    if(parents.length){ let pv=pvals[k]||(pvals[k]=new Array(parents.length)); for(let j=0;j<parents.length;j++){ if(pv[j]==null){ const x=r[parents[j].field]; if(x!=null && x!=='') pv[j]=String(x); } } }
     (qty[k]||(qty[k]={}))[mk]=(qty[k][mk]||0)+(r.quantity||0);
     (sale[k]||(sale[k]={}))[mk]=(sale[k][mk]||0)+(r.amount||0);
   }
@@ -1460,6 +1462,7 @@ function renderMatrix(C){
   const _ss=sortGet(_sk,'fy','desc');
   const _mxVal=(k,col)=>{
     if(col==='dim') return String(k);
+    if(/^p\d+$/.test(col)){ const pi=+col.slice(1); return (pvals[k]&&pvals[k][pi])||''; }
     if(col==='fy')  return M==='qty'?fyQ[k]:fyS[k];
     return M==='qty'?qAt(k,col):sAt(k,col);   // col === month id
   };
@@ -1472,6 +1475,14 @@ function renderMatrix(C){
   const colTotal=c=>{ let q=0,s=0; rowsArr.forEach(k=>{ const v=val(k,c); q+=v.q; s+=v.s; }); return {q,s}; };
 
   const dimW=190;
+  const pW=140;                                    // sticky parent-column width
+  // sticky left offsets — parent columns first, then the dimension column
+  const pLeft=[]; let _lacc=0; for(let i=0;i<parents.length;i++){ pLeft.push(_lacc); _lacc+=pW; }
+  const dimLeft=_lacc;
+  const parentTds=(k,isTotal)=>parents.map((p,i)=>{
+    const v=isTotal?'':((pvals[k]&&pvals[k][i])||'—');
+    return `<td class="zcol zwrap" style="left:${pLeft[i]}px;min-width:${pW}px;max-width:${pW}px;width:${pW}px" title="${escapeHtml(v)}">${escapeHtml(v)}</td>`;
+  }).join('');
   const cellHtml=v=>{ const has=v.q||v.s;
     const style=has?`background:rgba(45,122,78,${(0.05+0.30*(maxSale?Math.min(1,v.s/maxSale):0)).toFixed(3)});`:'';
     const inner = M==='qty' ? (has?fmt(v.q):'—') : M==='value' ? (has?fmtV(v.s):'—')
@@ -1485,16 +1496,18 @@ function renderMatrix(C){
       : `<div class="pt-cell"><div class="pt-sale">${fmtV(fs)}</div><div class="pt-qty">${fmt(fq)} qty</div></div>`;
     const fyCell=`<td class="fycol">${fyInner}</td>`;
     const dimCell=isTotal
-      ? `<td class="zcol zlast" style="left:0;min-width:${dimW}px">TOTAL</td>`
-      : `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(k)}">${escapeHtml(k)}</td>`;
-    return `<tr class="${isTotal?'total-row':''}">${dimCell}${fyCell}${cells}</tr>`;
+      ? `<td class="zcol zlast" style="left:${dimLeft}px;min-width:${dimW}px">TOTAL</td>`
+      : `<td class="zcol zlast zwrap" style="left:${dimLeft}px;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(k)}">${escapeHtml(k)}</td>`;
+    return `<tr class="${isTotal?'total-row':''}">${parentTds(k,isTotal)}${dimCell}${fyCell}${cells}</tr>`;
   };
-  const dimAttr=`style='left:0;min-width:${dimW}px'`;
+  const parentHead=parents.map((p,i)=>sortTh(_sk,'p'+i,escapeHtml(p.label),'','zcol',`style='left:${pLeft[i]}px;min-width:${pW}px;max-width:${pW}px'`)).join('');
+  const dimAttr=`style='left:${dimLeft}px;min-width:${dimW}px'`;
   const headCells=cols.map(c=>sortTh(_sk,c.id,escapeHtml(c.label),escapeHtml(c.sub))).join('');
-  const thead=`<thead><tr>${sortTh(_sk,'dim',escapeHtml(dimCfg.label),'','zcol zlast',dimAttr)}${sortTh(_sk,'fy',zmomFyLabel(selFY),escapeHtml(subLbl),'fycol')}${headCells}</tr></thead>`;
+  const thead=`<thead><tr>${parentHead}${sortTh(_sk,'dim',escapeHtml(dimCfg.label),'','zcol zlast',dimAttr)}${sortTh(_sk,'fy',zmomFyLabel(selFY),escapeHtml(subLbl),'fycol')}${headCells}</tr></thead>`;
+  const emptyLead=parents.map((p,i)=>`<td class="zcol" style="left:${pLeft[i]}px;min-width:${pW}px"></td>`).join('')+`<td class="zcol zlast" style="left:${dimLeft}px;min-width:${dimW}px">—</td>`;
   const body=rowsArr.length
     ? rowsArr.map(k=>rowFor(k,false)).join('')+rowFor(TOTAL,true)
-    : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
+    : `<tr>${emptyLead}<td colspan="${cols.length+1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
 
   const fyPills=fyList.map(f=>`<button class="zmom-pill fy-pill${f===selFY?' active':''}" data-fy="${f}">${zmomFyLabel(f)}</button>`).join('');
   const dimPills=C.dims.map(d=>`<button class="zmom-pill v-pill${d.k===C.getDim()?' active':''}" data-dim="${d.k}">${d.label}</button>`).join('');
@@ -2133,8 +2146,8 @@ function renderDOH() {
       if (!stk) return '<span class="sk-flat">—</span>';
       if (!winSales) return '<span class="sk-up" title="Stock on hand, no sales in window">∞</span>';
       const d = Math.round(stk * DIV / winSales);
-      const cls = d <= 7 ? 'sk-dn' : (d >= 90 ? 'sk-wm' : '');
-      return `<span class="${cls}">${fmt(d)}</span>`;
+      const color = d < 31 ? '#b8892e' : (d > 100 ? '#c0444a' : '#1e1c18');
+      return `<span style="color:${color}">${fmt(d)}</span>`;
     };
 
     // ── header (single sticky row) ──
@@ -2207,7 +2220,7 @@ function renderDOH() {
       <div class="bt-period" style="margin-left:auto;"><span class="bt-period-rng"><b>${escapeHtml(rangeLbl)}</b></span><span class="bt-period-tag">${WIN}-day window · DRR ÷ ${DIV0}</span></div>
     </div>
     <div id="dohTableHost"></div>
-    <div class="ddt-note">Lookback follows the basis: <b>DRR 30</b> = latest <b>30 days</b> ÷ 30, <b>DRR 7</b> = latest <b>7 days</b> ÷ 7. Golden columns after <b>Sub Category</b> are product-level, ignoring mapping city: <b>Total Stock</b> (all facilities incl. NA), <b>DRR</b>, and <b>DOC</b> = Total Stock ÷ DRR. Per-city groups repeat across every <b>mapping city</b> (NA excluded): <b>DRR</b>, then <b>Stock</b> as <b>backend / frontend / stock</b>, then <b>DOH</b> = Stock ÷ DRR (rounded) · <b>∞</b> = stock on hand but no sales in window · <b class="sk-dn">red</b> ≤ 7 days · golden <b>TOTAL</b> row sums each column across the listed products · independent of the global filters.</div>`;
+    <div class="ddt-note">Lookback follows the basis: <b>DRR 30</b> = latest <b>30 days</b> ÷ 30, <b>DRR 7</b> = latest <b>7 days</b> ÷ 7. Golden columns after <b>Sub Category</b> are product-level, ignoring mapping city: <b>Total Stock</b> (all facilities incl. NA), <b>DRR</b>, and <b>DOC</b> = Total Stock ÷ DRR. Per-city groups repeat across every <b>mapping city</b> (NA excluded): <b>DRR</b>, then <b>Stock</b> as <b>backend / frontend / stock</b>, then <b>DOH</b> = Stock ÷ DRR (rounded) · <b>∞</b> = stock on hand but no sales in window · DOC &amp; DOH coloured <span style="color:#b8892e;font-weight:700">gold</span> if &lt; 31, <span style="color:#c0444a;font-weight:700">red</span> if &gt; 100, else black · golden <b>TOTAL</b> row sums each column across the listed products · independent of the global filters.</div>`;
 
   host.querySelectorAll('.doh-pill').forEach(b => b.addEventListener('click', () => { dohView = b.dataset.dview; renderDOH(); }));
   host.querySelector('#dohReset').addEventListener('click', () => { dohSearch = ''; dohSearchActive = false; renderDOH(); });
