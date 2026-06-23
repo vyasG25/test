@@ -467,6 +467,68 @@
   .lp-foot{margin-top:18px;text-align:center;font-size:11.5px;color:#7c93a6;letter-spacing:.2px;}
   @keyframes lpRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
   @media (prefers-reduced-motion:reduce){.lp-track,.lp-aura span,.lp-orbit,.lp-card::before,.lp-btn::after{animation:none!important;}}
+
+  /* ===== DASHBOARD (landing) tab ===== */
+  .dash{display:flex;flex-direction:column;gap:6px;}
+  .dash-sub{font-size:11.5px;color:var(--text2);margin:-4px 0 2px;}
+  .scope-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);}
+  .scope-chip.warn{background:var(--gold-light);border-color:#e8d6a6;color:var(--gold);}
+  .scope-chip.ok{background:var(--green-light);border-color:#bfe6cf;color:var(--green);}
+  /* KPI grid */
+  .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .kgrid.k3{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:1100px){.kgrid,.kgrid.k3{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.kgrid,.kgrid.k3{grid-template-columns:1fr;}}
+  .kpi{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px;box-shadow:var(--shadow);overflow:hidden;}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.85;}
+  .kpi.k-blue::before{background:var(--blue);}.kpi.k-purple::before{background:var(--accent2);}.kpi.k-warm::before{background:var(--warm);}
+  .kpi.k-gold::before{background:var(--gold);}.kpi.k-teal::before{background:var(--teal);}.kpi.k-red::before{background:var(--red);}
+  .kpi-lbl{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .kpi-val{font-family:'Playfair Display',serif;font-size:24px;line-height:1.1;color:var(--text);margin-top:7px;}
+  .kpi-val.neg{color:var(--red);}
+  .kpi-sub{font-size:11px;color:var(--text2);margin-top:5px;}
+  .kpi-sub b{color:var(--text);font-weight:700;}
+  .pill-up{color:var(--green);font-weight:700;}.pill-dn{color:var(--red);font-weight:700;}.pill-flat{color:var(--text3);font-weight:700;}
+  /* Two-column board */
+  .dash-2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start;}
+  @media(max-width:980px){.dash-2{grid-template-columns:1fr;}}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 17px;}
+  .panel-h{font-family:'Playfair Display',serif;font-size:14.5px;color:var(--text);margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .panel-h .scope-chip{font-size:9.5px;}
+  /* Waterfall P&L */
+  .wf{display:flex;flex-direction:column;gap:8px;}
+  .wf-row{display:grid;grid-template-columns:118px 1fr 92px;align-items:center;gap:10px;font-size:12px;}
+  .wf-row .wf-lab{color:var(--text2);font-weight:600;}
+  .wf-row .wf-amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:var(--text);}
+  .wf-track{position:relative;height:16px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+  .wf-fill{position:absolute;top:0;bottom:0;border-radius:4px;}
+  .wf-fill.pos{background:linear-gradient(90deg,#2d7a4e,#3a9a64);}
+  .wf-fill.cost{background:linear-gradient(90deg,#c97a3c,#d98e52);}
+  .wf-fill.cm{background:linear-gradient(90deg,#3a6f96,#4a86b3);}
+  .wf-fill.cm2{background:linear-gradient(90deg,#6b4fa0,#866bbd);}
+  .wf-row.tot .wf-lab{color:var(--text);font-weight:800;}
+  .wf-row.tot{border-top:1px dashed var(--border2);padding-top:9px;margin-top:1px;}
+  .wf-note{margin-top:11px;font-size:10.5px;color:var(--text3);line-height:1.5;}
+  /* mini tables */
+  .mtbl{width:100%;border-collapse:collapse;font-size:12px;}
+  .mtbl th{text-align:right;font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--text3);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  .mtbl th:first-child{text-align:left;}
+  .mtbl td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--surface2);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;}
+  .mtbl td:first-child{text-align:left;color:var(--text2);font-weight:600;max-width:230px;overflow:hidden;text-overflow:ellipsis;}
+  .mtbl tr:last-child td{border-bottom:none;}
+  .mtbl tr:hover td{background:var(--surface2);}
+  .mtbl .neg{color:var(--red);}
+  .bar-cell{position:relative;}
+  .bar-mini{display:inline-block;height:8px;border-radius:3px;background:linear-gradient(90deg,var(--accent),#3a9a64);vertical-align:middle;margin-right:7px;}
+  .recon{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--rs);padding:11px 13px;margin-top:11px;}
+  .recon .r-num{font-family:'Playfair Display',serif;font-size:17px;color:var(--text);}
+  .recon .r-lab{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);font-weight:700;}
+  .alert-li{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--surface2);font-size:12px;color:var(--text2);}
+  .alert-li:last-child{border-bottom:none;}
+  .alert-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:4px;background:var(--gold);}
+  .alert-dot.red{background:var(--red);}.alert-dot.green{background:var(--green);}
+  .alert-li b{color:var(--text);font-weight:700;}
+  .dash-empty{padding:40px;text-align:center;color:var(--text3);font-size:13px;}
 </style>
 </head>
 <body>
@@ -649,7 +711,8 @@
     </div><!-- /tab-nav-sticky -->
 
     <div class="tab-panel active" id="tab-dashboard">
-      <div class="tab-empty">Dashboard reports come in the next phase. Use the global filters above — they already drive the loaded data set.</div>
+      <div class="sec-header"><div class="sec-title">Channel Overview <span class="sec-badge" style="background:var(--accent-light);color:var(--accent)">Sales · Margin · Media · Stock</span></div></div>
+      <div id="secDashboard"><div class="dash-empty">Loading channel overview…</div></div>
     </div>
 
     <div class="tab-panel" id="tab-dailytrends">
@@ -1189,8 +1252,284 @@ function resetFilters() {
   if (dataMaxDate) document.getElementById('dateTo').value = dataMaxDate;
   applyFilters();
 }
-// Dashboard-tab reports come in a later phase; the global filters still build `filtered`.
-function renderAll() { /* no dashboard reports yet */ }
+// Dashboard (landing) tab — rebuilds whenever the global filters change.
+function renderAll() { renderDashboard(); }
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD (landing) — single-pane channel overview
+// Source of truth = the JSON (sale · cogs · ads · product_ads · stock).
+// Sales & margin cards respect ALL global filters (read from `filtered`).
+// The CM2 / media P&L is channel-level (ads are reported per-day, not per
+// SKU/zone), so it follows the DATE range and is labelled accordingly.
+//   GMV (=MRP)  Cogs = Σ qty×unit-cost   Logistics = GMV × LOGISTICS_RATE
+//   CM   = GMV − Cogs − Logistics
+//   CM2  = margin×GMV − Cogs − Logistics − Marketing − Branding   (channel, ads.json)
+//          margin = 56.25% up to 22-Sep-2025 else 60.32% (per-day)
+//   Product CM2 = margin×GMV − Cogs − Logistics − Marketing       (GobbleCube, no branding)
+//   ROAS = AdsGMV ÷ Marketing   TACOS = Marketing ÷ GMV
+// ═══════════════════════════════════════════════════════════════
+function dashScopeDates(){
+  const df = document.getElementById('dateFrom'), dt = document.getElementById('dateTo');
+  const from = (df && df.value) ? df.value : dataMinDate;
+  const to   = (dt && dt.value) ? dt.value : dataMaxDate;
+  const narrowed = ['zone','state','city','brand','category','subcat','product']
+    .some(k => selected[k] && selected[k].size > 0);
+  return { from, to, narrowed };
+}
+
+function renderDashboard(){
+  const host = document.getElementById('secDashboard'); if (!host) return;
+  if (!RAW || !RAW.length){ host.innerHTML = '<div class="dash-empty">No data loaded yet.</div>'; return; }
+
+  const { from, to, narrowed } = dashScopeDates();
+  const money = n => fmtV(n);                       // compact ₹ Cr/L/K for hero cards
+  const moneyR = n => fmtRs(n);                     // exact ₹ for tables
+  const pct = (n,d=1) => (n==null||!isFinite(n)) ? '—' : (n*100).toFixed(d)+'%';
+  const xroas = n => (n==null||!isFinite(n)) ? '—' : n.toFixed(2)+'x';
+  const dlabel = iso => { if(!iso) return '—'; const d=new Date(iso+'T00:00:00Z'); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}); };
+
+  // ── A) Sales & margin from `filtered` (respects every global filter) ──
+  let gmv=0, qty=0, cogs=0;
+  const skuSet=new Set(), citySet=new Set(), daySet=new Set();
+  for (let i=0;i<filtered.length;i++){
+    const r=filtered[i];
+    gmv  += r.amount   || 0;
+    qty  += r.quantity || 0;
+    cogs += (r.quantity||0) * (COGS[r.sku_code] || 0);
+    if (r.sku_code)  skuSet.add(r.sku_code);
+    if (r.city_name) citySet.add(r.city_name);
+    if (r.bill_date) daySet.add(r.bill_date);
+  }
+  const logi = gmv * LOGISTICS_RATE;
+  const gm   = gmv - cogs;                 // gross margin
+  const cm   = gmv - cogs - logi;          // CM (CM1)
+  const asp  = qty ? gmv/qty : 0;
+  const days = daySet.size || 1;
+
+  // ── B) Channel P&L (CM2) — reuse cm2Compute daily rows, sliced to date range ──
+  const D = (_cm2Data || cm2Compute());
+  const ch = { gmv:0, cog:0, logi:0, mk:0, br:0, cm2:0, agmv:0, im:0, ord:0 };
+  for (const d of D.daily){
+    if (d.date < from || d.date > to) continue;
+    ch.gmv+=d.gmv; ch.cog+=d.cog; ch.logi+=d.logi; ch.mk+=d.mk; ch.br+=d.br;
+    ch.cm2+=d.cm2; ch.agmv+=d.agmv; ch.im+=d.im; ch.ord+=d.ord;
+  }
+  const ch_cm   = ch.gmv - ch.cog - ch.logi;
+  const cm2p    = ch.gmv ? ch.cm2/ch.gmv : null;
+  const roas    = ch.mk  ? ch.agmv/ch.mk : null;
+  const tacos   = ch.gmv ? ch.mk/ch.gmv  : null;
+  const cpm     = ch.im  ? ch.mk/ch.im*1000 : null;
+  const paidShr = ch.gmv ? ch.agmv/ch.gmv : null;
+
+  // ── C) GobbleCube spend (product_ads) in range — reconciliation + per-SKU ──
+  const gob = { mk:0, agmv:0, ord:0, im:0 };
+  const gobBySku = new Map();              // sku → {mk, agmv, cm(rate)}
+  let gobMin='', gobMax='';                // GobbleCube data coverage within range
+  for (let i=0;i<PADS.length;i++){
+    const p=PADS[i]; if (p.iso < from || p.iso > to) continue;
+    gob.mk+=p.mk; gob.agmv+=p.agmv; gob.ord+=p.ord; gob.im+=p.im;
+    if(!gobMin||p.iso<gobMin) gobMin=p.iso; if(!gobMax||p.iso>gobMax) gobMax=p.iso;
+    let e=gobBySku.get(p.sku); if(!e){ e={mk:0,agmv:0,cm:null}; gobBySku.set(p.sku,e); }
+    e.mk+=p.mk; e.agmv+=p.agmv; if(e.cm==null && p.cm!=null) e.cm=p.cm;
+  }
+  // reconcile like-for-like: Blinkit spend only over GobbleCube's coverage window
+  let blinkOverlap=0;
+  if(gobMin) for (const d of D.daily){ if(d.date>=gobMin && d.date<=gobMax) blinkOverlap+=d.mk; }
+  const reconVar = blinkOverlap ? (gob.mk-blinkOverlap)/blinkOverlap : null;
+
+  // ── D) Per-SKU leaderboard from `filtered` (+ product CM2 from GobbleCube) ──
+  const bySku = new Map();
+  for (let i=0;i<filtered.length;i++){
+    const r=filtered[i]; const k=r.sku_code || r.sku_name || '—';
+    let e=bySku.get(k); if(!e){ e={sku:k, name:r.sku_name||'', gmv:0, qty:0, cog:0}; bySku.set(k,e); }
+    e.gmv+=r.amount||0; e.qty+=r.quantity||0; e.cog+=(r.quantity||0)*(COGS[r.sku_code]||0);
+  }
+  const skuRows=[...bySku.values()].map(e=>{
+    const li=e.gmv*LOGISTICS_RATE;
+    const g=gobBySku.get(e.sku);
+    const margin = (g && g.cm!=null) ? g.cm : ((to<=CM2_MARGIN_SWITCH)?CM2_MARGIN_PRE:CM2_MARGIN_POST);
+    const pmk=g?g.mk:0;
+    const pcm2 = margin*e.gmv - e.cog - li - pmk;     // product CM2 (no branding)
+    return { ...e, gm:e.gmv-e.cog, gmpct:e.gmv?(e.gmv-e.cog)/e.gmv:null, pcm2, pcm2p:e.gmv?pcm2/e.gmv:null };
+  }).sort((a,b)=>b.gmv-a.gmv);
+  const topSku = skuRows.slice(0,10);
+  const maxSkuGmv = topSku.length ? topSku[0].gmv : 1;
+
+  // ── E) Category mix from `filtered` ──
+  const byCat=new Map();
+  for (let i=0;i<filtered.length;i++){
+    const r=filtered[i]; const k=r.category||'—';
+    let e=byCat.get(k); if(!e){ e={cat:k,gmv:0,cog:0}; byCat.set(k,e); }
+    e.gmv+=r.amount||0; e.cog+=(r.quantity||0)*(COGS[r.sku_code]||0);
+  }
+  const catRows=[...byCat.values()].sort((a,b)=>b.gmv-a.gmv).slice(0,8);
+  const maxCatGmv = catRows.length ? catRows[0].gmv : 1;
+
+  // ── F) Inventory (stock snapshot) + velocity-based risk ──
+  let stkTot=0, stkBe=0, stkFe=0; const feBySku=new Map();
+  const filteredSkus = skuSet;             // SKUs present after filters
+  for (let i=0;i<STOCK.length;i++){
+    const s=STOCK[i];
+    if (narrowed && !filteredSkus.has(s.sku_code)) continue;   // respect product/location narrowing
+    stkTot+=s.total_stock; stkBe+=s.backend; stkFe+=s.frontend;
+    feBySku.set(s.sku_code,(feBySku.get(s.sku_code)||0)+s.frontend);
+  }
+  const feShare = stkTot ? stkFe/stkTot : null;
+  // daily run-rate per SKU over the filtered window
+  const drrBySku=new Map();
+  for (const e of bySku.values()) drrBySku.set(e.sku, e.qty/days);
+  // risk: selling fast but low frontend cover (< ~10 days)
+  const riskRows=[];
+  for (const [sku,drr] of drrBySku){
+    if (drr<=0) continue;
+    const fe=feBySku.get(sku)||0;
+    const cover=fe/drr;
+    if (cover < 10) riskRows.push({ sku, name:(bySku.get(sku)||{}).name||'', drr, fe, cover });
+  }
+  riskRows.sort((a,b)=>a.cover-b.cover);
+  // ad spend without stock: GobbleCube spend>0 in range but frontend ~0
+  const spendNoStock=[];
+  for (const [sku,g] of gobBySku){
+    if (g.mk>0 && (feBySku.get(sku)||0)===0) spendNoStock.push({ sku, name:(bySku.get(sku)||{}).name||'', mk:g.mk });
+  }
+  spendNoStock.sort((a,b)=>b.mk-a.mk);
+
+  // ── waterfall helper (channel P&L) ──
+  const wfBase = ch.gmv || 1;
+  const wfRow = (lab, amt, cls) => {
+    const w = Math.max(1, Math.min(100, Math.abs(amt)/wfBase*100));
+    return `<div class="wf-row${cls==='tot'||cls==='cm'?' tot':''}">
+      <span class="wf-lab">${lab}</span>
+      <span class="wf-track"><span class="wf-fill ${cls==='tot'?'cm2':cls}" style="width:${w}%"></span></span>
+      <span class="wf-amt${amt<0?' neg':''}">${moneyR(amt)}</span></div>`;
+  };
+
+  const scopeNote = `${dlabel(from)} – ${dlabel(to)}`;
+  const filterChip = narrowed
+    ? `<span class="scope-chip warn" title="Location / product filters are active">▾ filtered view</span>`
+    : `<span class="scope-chip ok">all India</span>`;
+
+  // ─────────────────────────── render ───────────────────────────
+  host.innerHTML = `
+  <div class="dash">
+    <div class="dash-sub">Period <b>${scopeNote}</b> · ${fmt(days)} selling days · ${fmt(skuSet.size)} active SKUs · ${fmt(citySet.size)} cities ${filterChip}</div>
+
+    <!-- A · Sales & margin (respects all filters) -->
+    <div class="sec-header"><div class="sec-title" style="font-size:14px">Sales &amp; Margin <span class="sec-badge" style="background:var(--accent-light);color:var(--accent)">all filters</span></div></div>
+    <div class="kgrid">
+      <div class="kpi"><div class="kpi-lbl">GMV (MRP)</div><div class="kpi-val">${money(gmv)}</div><div class="kpi-sub"><b>${fmt(qty)}</b> units · ASP <b>${moneyR(asp)}</b></div></div>
+      <div class="kpi k-warm"><div class="kpi-lbl">Cogs</div><div class="kpi-val">${money(cogs)}</div><div class="kpi-sub">${pct(gmv?cogs/gmv:null)} of GMV</div></div>
+      <div class="kpi k-blue"><div class="kpi-lbl">Gross Margin</div><div class="kpi-val">${money(gm)}</div><div class="kpi-sub">GM <b>${pct(gmv?gm/gmv:null)}</b></div></div>
+      <div class="kpi k-teal"><div class="kpi-lbl">CM <span class="scope-chip" style="padding:1px 6px;font-size:8.5px">GMV − Cogs − Logi</span></div><div class="kpi-val">${money(cm)}</div><div class="kpi-sub">CM <b>${pct(gmv?cm/gmv:null)}</b> · Logi ${money(logi)}</div></div>
+    </div>
+
+    <!-- B+C · Channel P&L + Media -->
+    <div class="dash-2" style="margin-top:18px">
+      <div class="panel">
+        <div class="panel-h">Contribution Margin (CM2) — channel P&amp;L <span class="scope-chip warn">channel · ${dlabel(from)}–${dlabel(to)}</span></div>
+        <div class="wf">
+          ${wfRow('GMV', ch.gmv, 'pos')}
+          ${wfRow('− Cogs', -ch.cog, 'cost')}
+          ${wfRow('− Logistics', -ch.logi, 'cost')}
+          ${wfRow('CM', ch_cm, 'cm')}
+          ${wfRow('− Marketing', -ch.mk, 'cost')}
+          ${wfRow('− Branding', -ch.br, 'cost')}
+          ${wfRow('CM2', ch.cm2, 'tot')}
+        </div>
+        <div class="recon">
+          <div><div class="r-lab">CM2 %</div><div class="r-num">${pct(cm2p)}</div></div>
+          <div><div class="r-lab">CM2 ₹</div><div class="r-num${ch.cm2<0?' neg':''}">${money(ch.cm2)}</div></div>
+          <div><div class="r-lab">ROAS</div><div class="r-num">${xroas(roas)}</div></div>
+          <div><div class="r-lab">TACOS</div><div class="r-num">${pct(tacos)}</div></div>
+        </div>
+        <div class="wf-note">CM2 = margin × GMV − Cogs − Logistics − Marketing − Branding · margin ${(CM2_MARGIN_PRE*100).toFixed(2)}% to 22-Sep-2025, ${(CM2_MARGIN_POST*100).toFixed(2)}% after · Logistics = ${(LOGISTICS_RATE*100).toFixed(0)}% of GMV · channel-level (ads.json is reported per day, not per SKU/zone), so this block follows the date range only.</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">Media efficiency <span class="scope-chip">date range</span></div>
+        <div class="kgrid k3" style="gap:10px">
+          <div class="kpi k-purple"><div class="kpi-lbl">Marketing</div><div class="kpi-val" style="font-size:19px">${money(ch.mk)}</div><div class="kpi-sub">Blinkit</div></div>
+          <div class="kpi k-purple"><div class="kpi-lbl">Branding</div><div class="kpi-val" style="font-size:19px">${money(ch.br)}</div><div class="kpi-sub">Blinkit</div></div>
+          <div class="kpi k-gold"><div class="kpi-lbl">Ads GMV</div><div class="kpi-val" style="font-size:19px">${money(ch.agmv)}</div><div class="kpi-sub">paid share <b>${pct(paidShr)}</b></div></div>
+          <div class="kpi k-blue"><div class="kpi-lbl">ROAS</div><div class="kpi-val" style="font-size:19px">${xroas(roas)}</div><div class="kpi-sub">AdsGMV ÷ Mktg</div></div>
+          <div class="kpi"><div class="kpi-lbl">TACOS</div><div class="kpi-val" style="font-size:19px">${pct(tacos)}</div><div class="kpi-sub">Mktg ÷ GMV</div></div>
+          <div class="kpi k-teal"><div class="kpi-lbl">CPM</div><div class="kpi-val" style="font-size:19px">${moneyR(cpm)}</div><div class="kpi-sub">${fmt(ch.ord)} ad orders</div></div>
+        </div>
+        <div class="recon">
+          <div class="alert-dot ${reconVar==null?'':Math.abs(reconVar)<=0.05?'green':'red'}" style="margin-top:0"></div>
+          <div><div class="r-lab">Source reconciliation${gobMin?` · ${dlabel(gobMin)}–${dlabel(gobMax)}`:''}</div>
+            <div style="font-size:11.5px;color:var(--text2);margin-top:3px">Blinkit <b style="color:var(--text)">${money(blinkOverlap)}</b> vs GobbleCube <b style="color:var(--text)">${money(gob.mk)}</b> · variance <b style="color:${reconVar!=null&&Math.abs(reconVar)<=0.05?'var(--green)':'var(--red)'}">${reconVar==null?'—':(reconVar>0?'+':'')+(reconVar*100).toFixed(1)+'%'}</b></div></div>
+        </div>
+        <div class="wf-note">Two independent sources: <b>ads.json</b> (Blinkit, channel) &amp; <b>product_ads.json</b> (GobbleCube, per-SKU). They measure the same spend — shown side by side, never summed. Clicks are unpopulated in both, so CTR/CPC are omitted.</div>
+      </div>
+    </div>
+
+    <!-- D+E · Top products + category mix -->
+    <div class="dash-2" style="margin-top:18px">
+      <div class="panel">
+        <div class="panel-h">Top products <span class="scope-chip">${narrowed?'filtered':'all'} · by GMV</span></div>
+        <table class="mtbl">
+          <thead><tr><th>SKU</th><th>GMV</th><th>Units</th><th>GM %</th><th>Prod. CM2</th><th>CM2 %</th></tr></thead>
+          <tbody>
+          ${topSku.map(s=>`<tr>
+            <td title="${escapeHtml(s.sku)} ${escapeHtml(s.name)}"><span class="bar-mini" style="width:${Math.max(4,s.gmv/maxSkuGmv*46)}px"></span>${escapeHtml(s.name||s.sku)}</td>
+            <td>${moneyR(s.gmv)}</td><td>${fmt(s.qty)}</td><td>${pct(s.gmpct)}</td>
+            <td class="${s.pcm2<0?'neg':''}">${moneyR(s.pcm2)}</td><td class="${s.pcm2p<0?'neg':''}">${pct(s.pcm2p)}</td>
+          </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:18px">No products in range.</td></tr>`}
+          </tbody>
+        </table>
+        <div class="wf-note">Product CM2 = margin × GMV − Cogs − Logistics − Marketing (GobbleCube spend; branding is channel-only). Margin uses each SKU's cm_calculation when present.</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">Category mix <span class="scope-chip">${narrowed?'filtered':'all'}</span></div>
+        <table class="mtbl">
+          <thead><tr><th>Category</th><th>GMV</th><th>Share</th><th>GM %</th></tr></thead>
+          <tbody>
+          ${catRows.map(c=>`<tr>
+            <td title="${escapeHtml(c.cat)}"><span class="bar-mini" style="width:${Math.max(4,c.gmv/maxCatGmv*46)}px"></span>${escapeHtml(c.cat)}</td>
+            <td>${moneyR(c.gmv)}</td><td>${pct(gmv?c.gmv/gmv:null)}</td><td>${pct(c.gmv?(c.gmv-c.cog)/c.gmv:null)}</td>
+          </tr>`).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:18px">No categories in range.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- F · Inventory health -->
+    <div class="sec-header" style="margin-top:20px"><div class="sec-title" style="font-size:14px">Inventory health <span class="sec-badge" style="background:var(--blue-light);color:var(--blue-dark)">stock snapshot</span></div></div>
+    <div class="kgrid">
+      <div class="kpi k-blue"><div class="kpi-lbl">Total stock</div><div class="kpi-val">${fmt(stkTot)}</div><div class="kpi-sub">units on hand</div></div>
+      <div class="kpi"><div class="kpi-lbl">Backend</div><div class="kpi-val">${fmt(stkBe)}</div><div class="kpi-sub">${pct(stkTot?stkBe/stkTot:null)} of stock</div></div>
+      <div class="kpi k-teal"><div class="kpi-lbl">Frontend</div><div class="kpi-val">${fmt(stkFe)}</div><div class="kpi-sub">customer-visible</div></div>
+      <div class="kpi ${feShare!=null&&feShare<0.35?'k-red':'k-gold'}"><div class="kpi-lbl">Frontend availability</div><div class="kpi-val ${feShare!=null&&feShare<0.35?'neg':''}">${pct(feShare)}</div><div class="kpi-sub">share in frontend</div></div>
+    </div>
+    <div class="dash-2" style="margin-top:14px">
+      <div class="panel">
+        <div class="panel-h">Stockout risk <span class="scope-chip warn">&lt; 10 days frontend cover</span></div>
+        <table class="mtbl">
+          <thead><tr><th>SKU</th><th>Units/day</th><th>Frontend</th><th>Days cover</th></tr></thead>
+          <tbody>
+          ${riskRows.slice(0,8).map(r=>`<tr>
+            <td title="${escapeHtml(r.sku)} ${escapeHtml(r.name)}">${escapeHtml(r.name||r.sku)}</td>
+            <td>${r.drr.toFixed(1)}</td><td>${fmt(r.fe)}</td><td class="${r.cover<3?'neg':''}">${r.cover.toFixed(1)}</td>
+          </tr>`).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:18px">No at-risk SKUs — frontend cover looks healthy.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-h">Alerts <span class="scope-chip">${dlabel(from)}–${dlabel(to)}</span></div>
+        <div>
+          ${spendNoStock.slice(0,5).map(s=>`<div class="alert-li"><span class="alert-dot red"></span><div><b>${escapeHtml(s.name||s.sku)}</b> — ${moneyR(s.mk)} ad spend with <b>0 frontend stock</b>. Pause ads or replenish.</div></div>`).join('')}
+          ${ch.cm2<0?`<div class="alert-li"><span class="alert-dot red"></span><div>Channel <b>CM2 is negative</b> (${money(ch.cm2)}) for this period — marketing + branding exceed contribution.</div></div>`:''}
+          ${reconVar!=null&&Math.abs(reconVar)>0.05?`<div class="alert-li"><span class="alert-dot"></span><div>Blinkit vs GobbleCube spend differ by <b>${(reconVar*100).toFixed(1)}%</b> — beyond the 5% tracking tolerance.</div></div>`:''}
+          ${feShare!=null&&feShare<0.35?`<div class="alert-li"><span class="alert-dot"></span><div>Only <b>${pct(feShare)}</b> of stock is in frontend — most inventory isn't customer-visible.</div></div>`:''}
+          ${(spendNoStock.length===0 && ch.cm2>=0 && (reconVar==null||Math.abs(reconVar)<=0.05) && (feShare==null||feShare>=0.35))?`<div class="alert-li"><span class="alert-dot green"></span><div>No flags for this period — spend is reconciling, CM2 is positive, and stock is visible.</div></div>`:''}
+        </div>
+        <div class="wf-note">Stock is a current snapshot (no date); run-rate uses the selected period. Risk = frontend units ÷ units-per-day.</div>
+      </div>
+    </div>
+  </div>`;
+}
 
 // ═══════════════════════════════════════════════════════════════
 // INDEPENDENT TREND TABS (render lazily, re-arm after each data load)
@@ -2255,6 +2594,7 @@ function renderDOH() {
 // ═══════════════════════════════════════════════════════════════
 const CM2_MARGIN_SWITCH = '2025-09-22';
 const CM2_MARGIN_PRE = 0.5625, CM2_MARGIN_POST = 0.6032;
+const LOGISTICS_RATE = 0.04;   // logistics = 4% of GMV (only P&L input not present in the JSON; single source for every tab)
 let cm2Gran = 'daily', cm2Year = null, cm2Search = '', cm2SearchActive = false;
 let _cm2Data = null;
 
@@ -2278,7 +2618,7 @@ function cm2Compute(){
   const daily = dates.map(d => {
     const e = byDate.get(d);
     const ad = ADS[d] || { mk:0, br:0, agmv:0, im:0, cl:0, ord:0 };
-    const logi = e.gmv * 0.04;
+    const logi = e.gmv * LOGISTICS_RATE;
     const margin = (d <= CM2_MARGIN_SWITCH) ? CM2_MARGIN_PRE : CM2_MARGIN_POST;
     const cm2 = margin*e.gmv - e.cog - logi - ad.mk - ad.br;
     return { date:d, year:(+e.year || +d.slice(0,4)), wk:cm2WeekNum(e.week), week:e.week,
@@ -2399,7 +2739,7 @@ function productCM2Compute(ym, gran){
     const e = agg[key], d = skuDesc[e.sku] || {};
     const ad = adsIdx[key] || { mk:0, im:0, ord:0, agmv:0, cl:0 };
     const cog  = (COGS[e.sku] || 0) * e.qty;
-    const logi = e.gmv * 0.04;
+    const logi = e.gmv * LOGISTICS_RATE;
     const margin = (gran === 'daily') ? pcm2DateMargin(e.iso) : monthMargin;
     const cm2 = margin * e.gmv - cog - logi - ad.mk;
     return {
