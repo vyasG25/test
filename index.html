@@ -468,33 +468,40 @@
   @keyframes lpRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
   @media (prefers-reduced-motion:reduce){.lp-track,.lp-aura span,.lp-orbit,.lp-card::before,.lp-btn::after{animation:none!important;}}
 
-  /* ===== DASHBOARD (landing) tab ===== */
-  .dash{display:flex;flex-direction:column;gap:6px;}
-  .dash-sub{font-size:11.5px;color:var(--text2);margin:-4px 0 2px;}
-  .scope-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);}
+  /* ===== DASHBOARD (landing) tab — modern, on-theme ===== */
+  .dash{display:flex;flex-direction:column;gap:7px;}
+  .dash-sub{font-size:11.5px;color:var(--text2);margin:-2px 0 4px;}
+  .scope-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);}
   .scope-chip.warn{background:var(--gold-light);border-color:#e8d6a6;color:var(--gold);}
   .scope-chip.ok{background:var(--green-light);border-color:#bfe6cf;color:var(--green);}
-  /* KPI grid */
-  .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  /* KPI grid — six up, dense */
+  .kgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;}
   .kgrid.k3{grid-template-columns:repeat(3,1fr);}
-  @media(max-width:1100px){.kgrid,.kgrid.k3{grid-template-columns:repeat(2,1fr);}}
-  @media(max-width:560px){.kgrid,.kgrid.k3{grid-template-columns:1fr;}}
-  .kpi{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px;box-shadow:var(--shadow);overflow:hidden;}
-  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.85;}
-  .kpi.k-blue::before{background:var(--blue);}.kpi.k-purple::before{background:var(--accent2);}.kpi.k-warm::before{background:var(--warm);}
-  .kpi.k-gold::before{background:var(--gold);}.kpi.k-teal::before{background:var(--teal);}.kpi.k-red::before{background:var(--red);}
-  .kpi-lbl{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:6px;}
-  .kpi-val{font-family:'Playfair Display',serif;font-size:24px;line-height:1.1;color:var(--text);margin-top:7px;}
+  @media(max-width:1500px){.kgrid{grid-template-columns:repeat(4,1fr);}}
+  @media(max-width:1100px){.kgrid{grid-template-columns:repeat(3,1fr);}.kgrid.k3{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:720px){.kgrid{grid-template-columns:repeat(2,1fr);}.kgrid.k3{grid-template-columns:1fr;}}
+  @media(max-width:460px){.kgrid{grid-template-columns:1fr;}}
+  .kpi{position:relative;background:linear-gradient(180deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:var(--r);padding:13px 13px 12px;box-shadow:var(--shadow);overflow:hidden;transition:transform .14s ease,box-shadow .18s ease,border-color .18s ease;}
+  .kpi::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent);opacity:.9;}
+  .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--border2);}
+  .kpi.k-blue::after{background:var(--blue);}.kpi.k-purple::after{background:var(--accent2);}.kpi.k-warm::after{background:var(--warm);}
+  .kpi.k-gold::after{background:var(--gold);}.kpi.k-teal::after{background:var(--teal);}.kpi.k-red::after{background:var(--red);}
+  .kpi-lbl{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .kpi-val{font-family:'DM Sans',sans-serif;font-weight:800;font-size:21px;line-height:1.05;letter-spacing:-.5px;color:var(--text);margin-top:8px;font-variant-numeric:tabular-nums;}
   .kpi-val.neg{color:var(--red);}
-  .kpi-sub{font-size:11px;color:var(--text2);margin-top:5px;}
+  .kpi-sub{font-size:10.5px;color:var(--text2);margin-top:6px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
   .kpi-sub b{color:var(--text);font-weight:700;}
-  .pill-up{color:var(--green);font-weight:700;}.pill-dn{color:var(--red);font-weight:700;}.pill-flat{color:var(--text3);font-weight:700;}
+  .pill-up,.pill-dn,.pill-flat{font-weight:800;font-size:10.5px;padding:1px 6px;border-radius:6px;}
+  .pill-up{color:var(--green);background:var(--green-light);}
+  .pill-dn{color:var(--red);background:var(--red-light);}
+  .pill-flat{color:var(--text3);background:var(--surface2);}
   /* Two-column board */
   .dash-2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start;}
   @media(max-width:980px){.dash-2{grid-template-columns:1fr;}}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 17px;}
-  .panel-h{font-family:'Playfair Display',serif;font-size:14.5px;color:var(--text);margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .panel-h .scope-chip{font-size:9.5px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:15px 16px;transition:box-shadow .18s ease;}
+  .panel:hover{box-shadow:var(--shadow-md);}
+  .panel-h{font-family:'Playfair Display',serif;font-size:14px;color:var(--text);margin:0 0 13px;padding-bottom:9px;border-bottom:1px solid var(--surface2);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .panel-h .scope-chip{font-size:9px;}
   /* Waterfall P&L */
   .wf{display:flex;flex-direction:column;gap:8px;}
   .wf-row{display:grid;grid-template-columns:118px 1fr 92px;align-items:center;gap:10px;font-size:12px;}
@@ -511,24 +518,35 @@
   .wf-note{margin-top:11px;font-size:10.5px;color:var(--text3);line-height:1.5;}
   /* mini tables */
   .mtbl{width:100%;border-collapse:collapse;font-size:12px;}
-  .mtbl th{text-align:right;font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--text3);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  .mtbl th{text-align:right;font-size:9px;letter-spacing:.4px;text-transform:uppercase;color:var(--text3);font-weight:800;padding:5px 8px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
   .mtbl th:first-child{text-align:left;}
-  .mtbl td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--surface2);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;}
+  .mtbl td{text-align:right;padding:8px;border-bottom:1px solid var(--surface2);font-variant-numeric:tabular-nums;font-weight:600;color:var(--text);white-space:nowrap;}
   .mtbl td:first-child{text-align:left;color:var(--text2);font-weight:600;max-width:230px;overflow:hidden;text-overflow:ellipsis;}
   .mtbl tr:last-child td{border-bottom:none;}
-  .mtbl tr:hover td{background:var(--surface2);}
+  .mtbl tbody tr{transition:background .12s;}
+  .mtbl tbody tr:hover td{background:var(--accent-light);}
   .mtbl .neg{color:var(--red);}
-  .bar-cell{position:relative;}
+  .rk{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);font-size:9.5px;font-weight:800;color:var(--text3);margin-right:8px;vertical-align:middle;font-variant-numeric:tabular-nums;}
+  .rk.top{background:var(--accent);color:#fff;border-color:transparent;}
   .bar-mini{display:inline-block;height:8px;border-radius:3px;background:linear-gradient(90deg,var(--accent),#3a9a64);vertical-align:middle;margin-right:7px;}
-  .recon{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--rs);padding:11px 13px;margin-top:11px;}
-  .recon .r-num{font-family:'Playfair Display',serif;font-size:17px;color:var(--text);}
-  .recon .r-lab{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);font-weight:700;}
-  .alert-li{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--surface2);font-size:12px;color:var(--text2);}
+  .recon{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(120deg,var(--surface2),var(--accent-light));border:1px solid var(--border);border-radius:var(--rs);padding:11px 14px;margin-top:12px;}
+  .recon .r-num{font-family:'DM Sans',sans-serif;font-weight:800;font-size:16px;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+  .recon .r-num.neg{color:var(--red);}
+  .recon .r-lab{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);font-weight:800;}
+  .alert-li{display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-bottom:1px solid var(--surface2);font-size:12px;color:var(--text2);}
   .alert-li:last-child{border-bottom:none;}
-  .alert-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:4px;background:var(--gold);}
-  .alert-dot.red{background:var(--red);}.alert-dot.green{background:var(--green);}
+  .alert-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:4px;background:var(--gold);box-shadow:0 0 0 3px var(--gold-light);}
+  .alert-dot.red{background:var(--red);box-shadow:0 0 0 3px var(--red-light);}
+  .alert-dot.green{background:var(--green);box-shadow:0 0 0 3px var(--green-light);}
   .alert-li b{color:var(--text);font-weight:700;}
   .dash-empty{padding:40px;text-align:center;color:var(--text3);font-size:13px;}
+  /* GMV trend hover */
+  .trend-wrap{position:relative;}
+  .trend-hit{cursor:crosshair;}
+  .trend-tip{position:absolute;pointer-events:none;display:none;z-index:20;background:var(--text);color:#fff;border-radius:8px;padding:8px 11px;font-size:11px;line-height:1.55;box-shadow:0 6px 20px rgba(30,28,24,.28);transform:translate(-50%,-118%);white-space:nowrap;}
+  .trend-tip b{font-weight:800;font-variant-numeric:tabular-nums;}
+  .trend-tip .tt-k{color:#c9c4bc;font-weight:600;}
+  .trend-tip::after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--text);}
 </style>
 </head>
 <body>
@@ -1315,19 +1333,47 @@ function dashTrend(weeks){
   const cvals=weeks.map(w=>w.cm2p==null?0:w.cm2p);
   const cmin=Math.min(0,...cvals), cmax=Math.max(0.01,...cvals), crng=(cmax-cmin)||1;
   const bw=(W-padL-padR)/weeks.length;
+  const fY=v=>padT+(H-padB-padT)*(1-((v-cmin)/crng));
   const bars=weeks.map((w,i)=>{
     const bh=(w.gmv/gmax)*(H-padB-padT);
     const x=padL+i*bw+bw*0.18, y=H-padB-bh;
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.64).toFixed(1)}" height="${Math.max(0,bh).toFixed(1)}" rx="2" fill="#cde0d4"/>`;
+    return `<rect id="tb${i}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.64).toFixed(1)}" height="${Math.max(0,bh).toFixed(1)}" rx="2" fill="#cde0d4"/>`;
   }).join('');
-  const line=weeks.map((w,i)=>{
-    const x=padL+i*bw+bw*0.5;
-    const y=padT+(H-padB-padT)*(1-((cvals[i]-cmin)/crng));
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
-  const dots=weeks.map((w,i)=>{ const x=padL+i*bw+bw*0.5; const y=padT+(H-padB-padT)*(1-((cvals[i]-cmin)/crng)); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="#6b4fa0"/>`; }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:160px;display:block">
-    ${bars}<polyline points="${line}" fill="none" stroke="#6b4fa0" stroke-width="2" stroke-linejoin="round"/>${dots}</svg>`;
+  const line=weeks.map((w,i)=>`${(padL+i*bw+bw*0.5).toFixed(1)},${fY(cvals[i]).toFixed(1)}`).join(' ');
+  const dots=weeks.map((w,i)=>`<circle id="td${i}" cx="${(padL+i*bw+bw*0.5).toFixed(1)}" cy="${fY(cvals[i]).toFixed(1)}" r="2.4" fill="#6b4fa0"/>`).join('');
+  // transparent full-height hit columns carrying the data
+  const hits=weeks.map((w,i)=>{
+    const x=padL+i*bw;
+    return `<rect class="trend-hit" data-i="${i}" data-lab="${escapeHtml(w.k)}" data-gmv="${w.gmv}" data-cm2="${w.cm2}" data-cm2p="${w.cm2p==null?'':w.cm2p}" x="${x.toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H}" fill="transparent"/>`;
+  }).join('');
+  return `<div class="trend-wrap" id="trendWrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:160px;display:block">
+    ${bars}<line id="trendGuide" x1="0" y1="0" x2="0" y2="${H}" stroke="#b8b2a8" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>
+    <polyline points="${line}" fill="none" stroke="#6b4fa0" stroke-width="2" stroke-linejoin="round"/>${dots}${hits}</svg>
+    <div class="trend-tip" id="trendTip"></div></div>`;
+}
+// attach hover behaviour after the dashboard innerHTML is set
+function wireTrendHover(){
+  const wrap=document.getElementById('trendWrap'); if(!wrap) return;
+  const tip=document.getElementById('trendTip'), guide=document.getElementById('trendGuide');
+  const hits=wrap.querySelectorAll('.trend-hit');
+  const moneyR=n=>fmtRs(n), pct=n=>(n===''||n==null||!isFinite(+n))?'—':(+n*100).toFixed(1)+'%';
+  hits.forEach(h=>{
+    const i=h.dataset.i;
+    const show=ev=>{
+      const wr=wrap.getBoundingClientRect();
+      const x=ev.clientX-wr.left;
+      tip.style.display='block'; tip.style.left=Math.max(40,Math.min(wr.width-40,x))+'px'; tip.style.top=(ev.clientY-wr.top)+'px';
+      tip.innerHTML=`<div class="tt-k">${h.dataset.lab}</div><div>GMV <b>${moneyR(+h.dataset.gmv)}</b></div><div>CM2 <b>${moneyR(+h.dataset.cm2)}</b> · <b>${pct(h.dataset.cm2p)}</b></div>`;
+      const bar=document.getElementById('tb'+i), dot=document.getElementById('td'+i);
+      if(bar) bar.setAttribute('fill','#9ec6ad'); if(dot) dot.setAttribute('r','3.6');
+      const cx=h.getAttribute('x'); const w=+h.getAttribute('width'); const gx=(+cx+w/2);
+      if(guide){ guide.setAttribute('x1',gx); guide.setAttribute('x2',gx); guide.style.display='block'; }
+    };
+    const hide=()=>{ tip.style.display='none'; if(guide) guide.style.display='none';
+      const bar=document.getElementById('tb'+i), dot=document.getElementById('td'+i);
+      if(bar) bar.setAttribute('fill','#cde0d4'); if(dot) dot.setAttribute('r','2.4'); };
+    h.addEventListener('mouseenter',show); h.addEventListener('mousemove',show); h.addEventListener('mouseleave',hide);
+  });
 }
 
 function renderDashboard(){
@@ -1478,7 +1524,7 @@ function renderDashboard(){
   const pulseSpark = dashSpark(weeks.map(w=>w.gmv), 'var(--accent)');
 
   const leaderTable = (rows, valFn, subFn, subLab) => `<table class="mtbl"><thead><tr><th>SKU</th><th>${subLab}</th><th></th></tr></thead><tbody>${
-    rows.map(s=>`<tr><td title="${escapeHtml(s.sku)} ${escapeHtml(s.name)}">${escapeHtml(s.name||s.sku)}</td><td>${valFn(s)}</td><td style="color:var(--text3)">${subFn(s)}</td></tr>`).join('')||`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:14px">No data in range.</td></tr>`
+    rows.map((s,i)=>`<tr><td title="${escapeHtml(s.sku)} ${escapeHtml(s.name)}"><span class="rk${i<3?' top':''}">${i+1}</span>${escapeHtml(s.name||s.sku)}</td><td>${valFn(s)}</td><td style="color:var(--text3)">${subFn(s)}</td></tr>`).join('')||`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:14px">No data in range.</td></tr>`
   }</tbody></table>`;
 
   host.innerHTML = `
@@ -1599,7 +1645,7 @@ function renderDashboard(){
     <div class="dash-2" style="margin-top:16px">
       <div class="panel"><div class="panel-h">Top SKUs · GMV <span class="scope-chip">${narrowed?'filtered':'all'}</span></div>
         <table class="mtbl"><thead><tr><th>SKU</th><th>GMV</th><th>GM %</th><th>Prod CM2</th></tr></thead><tbody>
-        ${topGmv.map(s=>`<tr><td title="${escapeHtml(s.sku)} ${escapeHtml(s.name)}"><span class="bar-mini" style="width:${Math.max(4,s.gmv/maxSkuGmv*36)}px"></span>${escapeHtml(s.name||s.sku)}</td><td>${moneyR(s.gmv)}</td><td>${pct(s.gmpct)}</td><td class="${s.pcm2<0?'neg':''}">${moneyR(s.pcm2)}</td></tr>`).join('')||`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">No data.</td></tr>`}
+        ${topGmv.map((s,i)=>`<tr><td title="${escapeHtml(s.sku)} ${escapeHtml(s.name)}"><span class="rk${i<3?' top':''}">${i+1}</span>${escapeHtml(s.name||s.sku)}</td><td>${moneyR(s.gmv)}</td><td>${pct(s.gmpct)}</td><td class="${s.pcm2<0?'neg':''}">${moneyR(s.pcm2)}</td></tr>`).join('')||`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">No data.</td></tr>`}
         </tbody></table></div>
       <div class="panel"><div class="panel-h">Margin drainers <span class="scope-chip warn">CM2 &lt; 0</span></div>
         ${leaderTable(drainers, s=>`<span class="neg">${moneyR(s.pcm2)}</span>`, s=>pct(s.pcm2p), 'Prod CM2')}
@@ -1661,6 +1707,7 @@ function renderDashboard(){
       </div>
     </div>
   </div>`;
+  wireTrendHover();
 }
 
 // ═══════════════════════════════════════════════════════════════
