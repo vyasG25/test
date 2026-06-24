@@ -476,9 +476,14 @@
   table.zmom th.fycol,table.zmom td.fycol{background:var(--gold-light);}
   table.zmom thead th.fycol{background:#f7ecca;color:var(--gold);box-shadow:inset 0 -2px 0 rgba(184,137,46,.28);}
   table.zmom thead th.fycol .th-sub{color:rgba(184,137,46,.7);}
+  /* Year-summary columns (#Orders, Avg Order Value) — teal group, distinct from the gold year-total */
+  table.zmom th.r1-sumcol,table.zmom td.r1-sumcol{background:var(--teal-light);text-align:right;}
+  table.zmom thead th.r1-sumcol{background:#d8ecec;color:var(--teal);box-shadow:inset 0 -2px 0 rgba(42,122,122,.28);}
+  table.zmom thead th.r1-sumcol .th-sub{color:rgba(42,122,122,.7);}
   table.zmom tbody tr:hover td{background:var(--bg);}
   table.zmom tbody tr:hover td.zcol{background:var(--surface2);}
   table.zmom tbody tr:hover td.fycol{background:#f7ecca;}
+  table.zmom tbody tr:hover td.r1-sumcol{background:#d8ecec;}
   table.zmom tr.total-row td{font-weight:700;background:var(--blue-light);border-top:2px solid var(--blue-dark);}
   table.zmom tr.total-row td.zcol{background:var(--blue-light);color:var(--blue-dark);}
   table.zmom tr.total-row:hover td{background:var(--blue-light);}
@@ -1193,7 +1198,7 @@ let r1Search = '', r1SearchActive = false;
 let r1Sort = { col: '__TOTAL__', dir: 'desc' };   // default: sort by the year-total column, descending
 const R1_DIMS = [
   { k: 'product',     label: 'Product',     keys: [ { field: 'brand_name', label: 'Brand' }, { field: 'product_code', label: 'Product' } ] },
-  { k: 'retailer',    label: 'Retailer',    keys: [ { field: 'retailer_name', label: 'Retailer' } ], dateCols: true },
+  { k: 'retailer',    label: 'Retailer',    keys: [ { field: 'retailer_name', label: 'Retailer' } ], dateCols: true, orderCols: true },
   { k: 'distributor', label: 'Distributor', keys: [ { field: 'distributor', label: 'Distributor' } ] },
   { k: 'salesrep',    label: 'Sales Rep',   keys: [ { field: 'distributor', label: 'Distributor' }, { field: 'sales_rep', label: 'Sales Rep' } ] },
   { k: 'retailerproduct', label: 'Retailer × Product', keys: [ { field: 'retailer_name', label: 'Retailer' }, { field: 'brand_name', label: 'Brand' }, { field: 'product_code', label: 'Product' } ], hideZero: true },
@@ -1909,6 +1914,7 @@ function renderReport1() {
   const nLead    = keys.length;
   const dateCols = !!dimCfg.dateCols;
   const hideZero = !!dimCfg.hideZero;
+  const orderCols = !!dimCfg.orderCols;
   const splitKey = k => k.split(R1_SEP);
   const cleanVal = v => (v == null || v === '') ? '\u2014' : String(v);
 
@@ -1920,6 +1926,7 @@ function renderReport1() {
   // Aggregate qty (po_total_qty) & value by groupKey × monthKey (per chosen date basis)
   const qty = {}, val = {}, monthsSet = new Set(), keysSet = new Set();
   const firstD = {}, lastD = {};
+  const ordPO = {};   // distinct po_no per groupKey per monthKey (only populated when orderCols)
   for (let i = 0; i < RAW.length; i++) {
     const r = RAW[i];
     const dfull = (r1Basis === 'order') ? r.order_dt : r.dispatch_dt;
@@ -1931,6 +1938,7 @@ function renderReport1() {
     (qty[key] || (qty[key] = {}))[mk] = (qty[key][mk] || 0) + (r.total_qty || 0);
     (val[key] || (val[key] = {}))[mk] = (val[key][mk] || 0) + (r.value || 0);
     if (dateCols) { if (!firstD[key] || dfull < firstD[key]) firstD[key] = dfull; if (!lastD[key] || dfull > lastD[key]) lastD[key] = dfull; }
+    if (orderCols) { const po = r.po_no; if (po != null && po !== '') { const m = ordPO[key] || (ordPO[key] = {}); (m[mk] || (m[mk] = new Set())).add(po); } }
   }
 
   // Years (calendar)
@@ -1962,6 +1970,15 @@ function renderReport1() {
   const yQ = {}, yV = {};
   keysSet.forEach(k => { let q = 0, s = 0; yMonths.forEach(mk => { q += qAt(k, mk); s += vAt(k, mk); }); yQ[k] = q; yV[k] = s; });
 
+  // Distinct orders (po_no) for the selected year, per row, and AOV = year value ÷ #orders
+  const yearOrders = k => {
+    const m = ordPO[k]; if (!m) return 0;
+    const s = new Set();
+    yMonths.forEach(mk => { const ss = m[mk]; if (ss) ss.forEach(po => s.add(po)); });
+    return s.size;
+  };
+  const aovOf = k => { const n = yearOrders(k); return n ? (yV[k] / n) : 0; };
+
   // Rows: hide zero-order rows (if configured), search filter, then sort
   let rowsArr = [...keysSet];
   if (hideZero) rowsArr = rowsArr.filter(k => (yQ[k] || 0) !== 0 || (yV[k] || 0) !== 0);
@@ -1969,7 +1986,7 @@ function renderReport1() {
   if (sq) rowsArr = rowsArr.filter(k => splitKey(k).some(p => String(p).toLowerCase().includes(sq)));
 
   const leadSortCols = keys.map((_, ci) => '__K' + ci + '__');
-  const validSort = new Set(['__TOTAL__', ...leadSortCols, ...(dateCols ? ['__FIRST__', '__LAST__'] : []), ...cols.map(c => c.id)]);
+  const validSort = new Set(['__TOTAL__', ...leadSortCols, ...(dateCols ? ['__FIRST__', '__LAST__'] : []), ...(orderCols ? ['__ORDERS__', '__AOV__'] : []), ...cols.map(c => c.id)]);
   if (!validSort.has(r1Sort.col)) r1Sort = { col: '__TOTAL__', dir: 'desc' };
   function rowSortVal(k) {
     if (r1Sort.col === '__TOTAL__') return r1Metric === 'qty' ? yQ[k] : yV[k];
@@ -1982,6 +1999,8 @@ function renderReport1() {
     if (leadMatch) { const ci = +leadMatch[1], pa = splitKey(a), pb = splitKey(b); res = 0; for (let x = ci; x < nLead; x++) { res = String(pa[x] || '').localeCompare(String(pb[x] || '')); if (res) break; } }
     else if (r1Sort.col === '__FIRST__') res = String(firstD[a] || '').localeCompare(String(firstD[b] || ''));
     else if (r1Sort.col === '__LAST__')  res = String(lastD[a] || '').localeCompare(String(lastD[b] || ''));
+    else if (r1Sort.col === '__ORDERS__') { const d = yearOrders(a) - yearOrders(b); res = d !== 0 ? d : String(splitKey(a)[lastLead] || '').localeCompare(String(splitKey(b)[lastLead] || '')); }
+    else if (r1Sort.col === '__AOV__')    { const d = aovOf(a) - aovOf(b);             res = d !== 0 ? d : String(splitKey(a)[lastLead] || '').localeCompare(String(splitKey(b)[lastLead] || '')); }
     else { const d = rowSortVal(a) - rowSortVal(b); res = d !== 0 ? d : String(splitKey(a)[lastLead] || '').localeCompare(String(splitKey(b)[lastLead] || '')); }
     return r1Sort.dir === 'desc' ? -res : res;
   });
@@ -1993,6 +2012,7 @@ function renderReport1() {
   const TOTAL = '__ALL__';
   yQ[TOTAL] = rowsArr.reduce((a, k) => a + yQ[k], 0); yV[TOTAL] = rowsArr.reduce((a, k) => a + yV[k], 0);
   if (dateCols) { let gf = null, gl = null; rowsArr.forEach(k => { if (firstD[k] && (!gf || firstD[k] < gf)) gf = firstD[k]; if (lastD[k] && (!gl || lastD[k] > gl)) gl = lastD[k]; }); firstD[TOTAL] = gf; lastD[TOTAL] = gl; }
+  const ordTOTAL = orderCols ? (() => { const s = new Set(); rowsArr.forEach(k => { const m = ordPO[k]; if (m) yMonths.forEach(mk => { const ss = m[mk]; if (ss) ss.forEach(po => s.add(po)); }); }); return s.size; })() : 0;
   const colTotal = c => { let q = 0, s = 0; rowsArr.forEach(k => { const v = getv(k, c); q += v.q; s += v.s; }); return { q, s }; };
 
   function cellInner(v) {
@@ -2009,6 +2029,14 @@ function renderReport1() {
     return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(s)}</div><div class="pt-qty">${fmt(q)} qty</div></div></td>`;
   };
   const dateCellHtml = (k) => { if (!dateCols) return ''; const f = firstD[k], l = lastD[k]; return `<td class="zcell r1-datecell">${f ? fmtDate(f) : '—'}</td><td class="zcell r1-datecell">${l ? fmtDate(l) : '—'}</td>`; };
+  // #Orders (distinct po_no for the year) + Average Order Value (year value ÷ #orders)
+  const orderCellsHtml = (nOrders, aov) => {
+    if (!orderCols) return '';
+    const ordTxt = nOrders ? fmt(nOrders) : '—';
+    const aovTxt = nOrders ? fmtMoney(aov) : '—';
+    return `<td class="r1-sumcol"><div class="pt-cell"><div class="pt-sale">${ordTxt}</div><div class="pt-qty"></div></div></td>`
+         + `<td class="r1-sumcol"><div class="pt-cell"><div class="pt-sale">${aovTxt}</div><div class="pt-qty"></div></div></td>`;
+  };
 
   const leadCells = (key, isTotal) => {
     if (isTotal) return keys.map((kc, ci) => `<td class="zcol${ci === lastLead ? ' zlast' : ''}" style="left:${offs[ci]}px;min-width:${widths[ci]}px">${ci === 0 ? 'TOTAL' : ''}</td>`).join('');
@@ -2018,7 +2046,9 @@ function renderReport1() {
   const rowFor = (k, isTotal) => {
     const cells = cols.map(c => cellHtml(isTotal ? colTotal(c) : getv(k, c))).join('');
     const fq = isTotal ? yQ[TOTAL] : yQ[k], fs = isTotal ? yV[TOTAL] : yV[k];
-    return `<tr class="${isTotal ? 'total-row' : ''}">${leadCells(k, isTotal)}${dateCellHtml(k)}${fyCellHtml(fq, fs)}${cells}</tr>`;
+    const nOrd = isTotal ? ordTOTAL : yearOrders(k);
+    const aovV = nOrd ? (fs / nOrd) : 0;
+    return `<tr class="${isTotal ? 'total-row' : ''}">${leadCells(k, isTotal)}${dateCellHtml(k)}${fyCellHtml(fq, fs)}${orderCellsHtml(nOrd, aovV)}${cells}</tr>`;
   };
 
   function sortIcon(col) {
@@ -2031,16 +2061,21 @@ function renderReport1() {
       + `<th data-sortcol="__LAST__" style="min-width:96px">${r1Basis === 'order' ? 'Last Order' : 'Last Dispatch'}${sortIcon('__LAST__')}<span class="th-sub">Date</span></th>`
     : '';
   const headCells = cols.map(c => `<th data-sortcol="${escapeHtml(c.id)}">${escapeHtml(c.label)}${sortIcon(c.id)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
+  const orderHeads = orderCols
+    ? `<th class="r1-sumcol" data-sortcol="__ORDERS__"># Orders${sortIcon('__ORDERS__')}<span class="th-sub">${selY}</span></th>`
+      + `<th class="r1-sumcol" data-sortcol="__AOV__">Avg Order Value${sortIcon('__AOV__')}<span class="th-sub">Value ÷ Orders</span></th>`
+    : '';
   const thead = `<thead><tr>
     ${leadHeads}
     ${dateHeads}
     <th class="fycol" data-sortcol="__TOTAL__">${selY}${sortIcon('__TOTAL__')}<span class="th-sub">${escapeHtml(r1MetricSub())}</span></th>
+    ${orderHeads}
     ${headCells}
   </tr></thead>`;
   const leadEmpty = keys.map((kc, ci) => `<td class="zcol${ci === lastLead ? ' zlast' : ''}" style="left:${offs[ci]}px;min-width:${widths[ci]}px">${ci === 0 ? '—' : ''}</td>`).join('');
   const body = rowsArr.length
     ? rowsArr.map(k => rowFor(k, false)).join('') + rowFor(TOTAL, true)
-    : `<tr>${leadEmpty}<td colspan="${(dateCols ? 2 : 0) + cols.length + 1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} with orders in ${selY}.</td></tr>`;
+    : `<tr>${leadEmpty}<td colspan="${(dateCols ? 2 : 0) + (orderCols ? 2 : 0) + cols.length + 1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} with orders in ${selY}.</td></tr>`;
 
   // ── Toolbar (two lines) ──
   const yPills    = yList.map(f => `<button class="zmom-pill fy-pill${f === selY ? ' active' : ''}" data-r1y="${f}">${f}</button>`).join('');
@@ -2055,6 +2090,7 @@ function renderReport1() {
       : `Months Jan→Dec of ${selY}, newest first`)
     + ` · grouped by ${grouped} · period derived from <b>${escapeHtml(basisLabel)}</b>`
     + (hideZero ? ` · only ${escapeHtml(dimCfg.label.toLowerCase())} combinations with orders in ${selY} are shown` : '')
+    + (orderCols ? ` · <b>#Orders</b> = distinct PO (po_no) count for ${selY}, <b>Avg Order Value</b> = ${selY} value ÷ #Orders` : '')
     + (r1Basis === 'dispatch' ? ' · rows without a dispatch date are excluded' : '')
     + ` · click a header to sort · independent of the global filters.`;
 
