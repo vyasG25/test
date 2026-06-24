@@ -2075,10 +2075,10 @@ function renderReport1() {
       <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
       <div class="bt-fg"><label class="bt-flabel">Measure</label><div class="bt-chips">${metPills}</div></div>
-      <div class="bt-fg"><label class="bt-flabel">Date Basis</label>
-        <div class="db-seg"><button class="db-opt${r1Basis === 'order' ? ' active' : ''}" data-r1basis="order">Order Received</button><button class="db-opt${r1Basis === 'dispatch' ? ' active' : ''}" data-r1basis="dispatch">Dispatch Date</button></div></div>
       <div class="bt-break"></div>
       <div class="bt-fg"><label class="bt-flabel">Filters</label><div class="bt-chips">${dimPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Date Basis</label>
+        <div class="db-seg"><button class="db-opt${r1Basis === 'order' ? ' active' : ''}" data-r1basis="order">Order Received</button><button class="db-opt${r1Basis === 'dispatch' ? ' active' : ''}" data-r1basis="dispatch">Dispatch Date</button></div></div>
       <button class="kpi-reset" id="r1Reset" title="Reset search & sort">↺ Reset</button>
       <div class="bt-period" style="margin-left:auto;">
         <span class="bt-period-rng"><b>${selY}</b> · Jan–Dec</span>
@@ -2116,11 +2116,12 @@ function renderReport1() {
 // REPORT 2 — Order Pipeline  (Back Order & Future Dated)
 //   Independent of the global filters. Always grouped by Brand › Product.
 //   Search / Year / View(Month·Quarter) / Measure(Back Order·Future Dated)
-//   / Metric(Qty·Value). Each (Measure, Metric) has its own date axis & value:
+//   / Metric(All·Qty·Value). Date axis & value per (Measure, Metric):
 //     Back Order  · Qty   → order date,         back_order_qty
 //     Back Order  · Value → order date,         back_order_qty × back_order_rate
 //     Future Dated· Qty   → expected ship date, po_total_qty
 //     Future Dated· Value → order date,         total PO value
+//   All → shows Value + Qty together, bucketed by order date (the shared axis).
 // ═══════════════════════════════════════════════════════════════
 function renderReport2() {
   const host = document.getElementById('secReport2');
@@ -2129,20 +2130,20 @@ function renderReport2() {
 
   if (!['month', 'quarter'].includes(r2View))            r2View = 'month';
   if (!['backorder', 'future'].includes(r2Measure))      r2Measure = 'backorder';
-  if (!['qty', 'value'].includes(r2Metric))              r2Metric = 'qty';
+  if (!['all', 'qty', 'value'].includes(r2Metric))       r2Metric = 'all';
   const isBO  = r2Measure === 'backorder';
-  const isQty = r2Metric === 'qty';
+  const isAll = r2Metric === 'all', isQty = r2Metric === 'qty', isVal = r2Metric === 'value';
 
-  // Row universe, date axis and per-row value for the current (measure, metric)
+  // Row universe; date axis (expected ship date only for Future Dated + Qty-only; else order date)
   const inUniverse = r => isBO ? ((r.back_order_qty || 0) > 0) : !!r.expected_ship_dt;
-  const dateOf = r => (isBO || !isQty) ? r.order_dt : r.expected_ship_dt;   // future+qty uses expected ship date; everything else uses order date
-  const valOf  = r => isBO
-    ? (isQty ? (r.back_order_qty || 0) : (r.back_order_qty || 0) * (r.back_order_rate || 0))
-    : (isQty ? (r.total_qty || 0) : (r.value || 0));
+  const useShip = (!isBO && isQty);
+  const dateOf = r => useShip ? r.expected_ship_dt : r.order_dt;
+  const qOf = r => isBO ? (r.back_order_qty || 0) : (r.total_qty || 0);
+  const sOf = r => isBO ? (r.back_order_qty || 0) * (r.back_order_rate || 0) : (r.value || 0);
 
-  // Aggregate the single metric by (Brand SEP Product) × monthKey
+  // Aggregate qty & value by (Brand SEP Product) × monthKey
   const SEP = R1_SEP;
-  const agg = {}, monthsSet = new Set(), keysSet = new Set();
+  const aggQ = {}, aggS = {}, monthsSet = new Set(), keysSet = new Set();
   for (let i = 0; i < RAW.length; i++) {
     const r = RAW[i];
     if (!inUniverse(r)) continue;
@@ -2153,7 +2154,8 @@ function renderReport2() {
     const brand   = (r.brand_name   == null || r.brand_name   === '') ? '\u2014' : String(r.brand_name);
     const key = brand + SEP + product;
     keysSet.add(key); monthsSet.add(mk);
-    (agg[key] || (agg[key] = {}))[mk] = (agg[key][mk] || 0) + valOf(r);
+    (aggQ[key] || (aggQ[key] = {}))[mk] = (aggQ[key][mk] || 0) + qOf(r);
+    (aggS[key] || (aggS[key] = {}))[mk] = (aggS[key][mk] || 0) + sOf(r);
   }
   const splitKey = key => { const i = key.indexOf(SEP); return { parent: key.slice(0, i), child: key.slice(i + 1) }; };
 
@@ -2164,10 +2166,11 @@ function renderReport2() {
   if (selY == null || !ySet.has(selY)) { selY = yList.length ? yList[0] : new Date().getUTCFullYear(); r2Year = selY; }
   const yMonths = []; for (let i = 0; i < 12; i++) yMonths.push(zmomKeyShift(selY + '-01', i));
 
-  const at = (k, mk) => (agg[k] && agg[k][mk]) || 0;
+  const qAt = (k, mk) => (aggQ[k] && aggQ[k][mk]) || 0, sAt = (k, mk) => (aggS[k] && aggS[k][mk]) || 0;
 
   // Columns
   let cols, getv;
+  const colSub = isAll ? 'Value · Qty' : isQty ? 'Qty' : 'Value';
   if (r2View === 'quarter') {
     const quarters = [
       { id: 'Q1', label: 'Q1', sub: 'Jan–Mar', mons: yMonths.slice(0, 3)  },
@@ -2176,25 +2179,28 @@ function renderReport2() {
       { id: 'Q4', label: 'Q4', sub: 'Oct–Dec', mons: yMonths.slice(9, 12) },
     ];
     cols = quarters.slice().reverse();
-    getv = (k, c) => { let s = 0; c.mons.forEach(mk => { s += at(k, mk); }); return s; };
+    getv = (k, c) => { let q = 0, s = 0; c.mons.forEach(mk => { q += qAt(k, mk); s += sAt(k, mk); }); return { q, s }; };
   } else {
-    cols = yMonths.slice().sort().reverse().map(mk => ({ id: mk, label: zmomMonLabel(mk), sub: isQty ? 'Qty' : 'Value' }));
-    getv = (k, c) => at(k, c.id);
+    cols = yMonths.slice().sort().reverse().map(mk => ({ id: mk, label: zmomMonLabel(mk), sub: colSub }));
+    getv = (k, c) => ({ q: qAt(k, c.id), s: sAt(k, c.id) });
   }
 
   // Year totals
-  const yT = {}; keysSet.forEach(k => { let s = 0; yMonths.forEach(mk => { s += at(k, mk); }); yT[k] = s; });
+  const yQ = {}, yV = {};
+  keysSet.forEach(k => { let q = 0, s = 0; yMonths.forEach(mk => { q += qAt(k, mk); s += sAt(k, mk); }); yQ[k] = q; yV[k] = s; });
 
   // Rows: search (brand or product), then sort
   let rowsArr = [...keysSet];
   const sq = (r2Search || '').trim().toLowerCase();
   if (sq) rowsArr = rowsArr.filter(k => { const { parent, child } = splitKey(k); return String(child).toLowerCase().includes(sq) || String(parent).toLowerCase().includes(sq); });
 
+  const prim = v => isQty ? v.q : v.s;     // heatmap / sort / total ranked by value (or qty in Qty mode)
+  const primTot = k => isQty ? yQ[k] : yV[k];
   const validSort = new Set(['__DIM__', '__PARENT__', '__TOTAL__', ...cols.map(c => c.id)]);
   if (!validSort.has(r2Sort.col)) r2Sort = { col: '__TOTAL__', dir: 'desc' };
   function rowSortVal(k) {
-    if (r2Sort.col === '__TOTAL__') return yT[k];
-    const c = cols.find(x => x.id === r2Sort.col); return c ? getv(k, c) : yT[k];
+    if (r2Sort.col === '__TOTAL__') return primTot(k);
+    const c = cols.find(x => x.id === r2Sort.col); return c ? prim(getv(k, c)) : primTot(k);
   }
   rowsArr.sort((a, b) => {
     let res;
@@ -2205,14 +2211,24 @@ function renderReport2() {
   });
 
   // Heatmap
-  let maxP = 0; rowsArr.forEach(k => cols.forEach(c => { maxP = Math.max(maxP, getv(k, c)); }));
+  let maxP = 0; rowsArr.forEach(k => cols.forEach(c => { maxP = Math.max(maxP, prim(getv(k, c))); }));
   const TOTAL = '__ALL__';
-  yT[TOTAL] = rowsArr.reduce((a, k) => a + yT[k], 0);
-  const colTotal = c => { let s = 0; rowsArr.forEach(k => { s += getv(k, c); }); return s; };
+  yQ[TOTAL] = rowsArr.reduce((a, k) => a + yQ[k], 0); yV[TOTAL] = rowsArr.reduce((a, k) => a + yV[k], 0);
+  const colTotal = c => { let q = 0, s = 0; rowsArr.forEach(k => { const v = getv(k, c); q += v.q; s += v.s; }); return { q, s }; };
 
-  const fmtCell = v => isQty ? fmt(Math.round(v)) : fmtV(v);
-  const cellHtml = v => { const style = v ? `background:rgba(45,122,78,${(0.05 + 0.30 * (maxP ? Math.min(1, v / maxP) : 0)).toFixed(3)});` : ''; return `<td class="zcell" style="${style}"><div class="pt-cell"><div class="pt-sale">${v ? fmtCell(v) : '—'}</div><div class="pt-qty"></div></div></td>`; };
-  const fyCellHtml = s => `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${s ? fmtCell(s) : '—'}</div><div class="pt-qty"></div></div></td>`;
+  function cellInner(v) {
+    const has = v.q || v.s;
+    if (!has) return '<div class="pt-cell"><div class="pt-sale">—</div><div class="pt-qty"></div></div>';
+    if (isQty) return `<div class="pt-cell"><div class="pt-sale">${fmt(Math.round(v.q))}</div><div class="pt-qty"></div></div>`;
+    if (isVal) return `<div class="pt-cell"><div class="pt-sale">${fmtV(v.s)}</div><div class="pt-qty"></div></div>`;
+    return `<div class="pt-cell"><div class="pt-sale">${fmtV(v.s)}</div><div class="pt-qty">${fmt(Math.round(v.q))} qty</div></div>`;
+  }
+  const cellHtml = v => { const p = prim(v); const style = p ? `background:rgba(45,122,78,${(0.05 + 0.30 * (maxP ? Math.min(1, p / maxP) : 0)).toFixed(3)});` : ''; return `<td class="zcell" style="${style}">${cellInner(v)}</td>`; };
+  const fyCellHtml = (q, s) => {
+    if (isQty) return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmt(Math.round(q))}</div><div class="pt-qty"></div></div></td>`;
+    if (isVal) return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(s)}</div><div class="pt-qty"></div></div></td>`;
+    return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(s)}</div><div class="pt-qty">${fmt(Math.round(q))} qty</div></div></td>`;
+  };
 
   const parW = 165, dimW = 200;
   const leadCells = (key, isTotal) => {
@@ -2223,19 +2239,19 @@ function renderReport2() {
   };
   const rowFor = (k, isTotal) => {
     const cells = cols.map(c => cellHtml(isTotal ? colTotal(c) : getv(k, c))).join('');
-    return `<tr class="${isTotal ? 'total-row' : ''}">${leadCells(k, isTotal)}${fyCellHtml(isTotal ? yT[TOTAL] : yT[k])}${cells}</tr>`;
+    const fq = isTotal ? yQ[TOTAL] : yQ[k], fs = isTotal ? yV[TOTAL] : yV[k];
+    return `<tr class="${isTotal ? 'total-row' : ''}">${leadCells(k, isTotal)}${fyCellHtml(fq, fs)}${cells}</tr>`;
   };
 
   function sortIcon(col) {
     if (r2Sort.col === col) return `<span class="sort-ic on">${r2Sort.dir === 'desc' ? '▼' : '▲'}</span>`;
     return '<span class="sort-ic">⇅</span>';
   }
-  const metSub = isQty ? 'Qty' : 'Value';
   const headCells = cols.map(c => `<th data-sortcol="${escapeHtml(c.id)}">${escapeHtml(c.label)}${sortIcon(c.id)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
   const thead = `<thead><tr>
     <th class="zcol" data-sortcol="__PARENT__" style="left:0;min-width:${parW}px">Brand${sortIcon('__PARENT__')}</th>
     <th class="zcol zlast" data-sortcol="__DIM__" style="left:${parW}px;min-width:${dimW}px">Product${sortIcon('__DIM__')}</th>
-    <th class="fycol" data-sortcol="__TOTAL__">${selY}${sortIcon('__TOTAL__')}<span class="th-sub">${metSub}</span></th>
+    <th class="fycol" data-sortcol="__TOTAL__">${selY}${sortIcon('__TOTAL__')}<span class="th-sub">${escapeHtml(colSub)}</span></th>
     ${headCells}
   </tr></thead>`;
   const body = rowsArr.length
@@ -2246,15 +2262,15 @@ function renderReport2() {
   const yPills    = yList.map(f => `<button class="zmom-pill fy-pill${f === selY ? ' active' : ''}" data-r2y="${f}">${f}</button>`).join('') || '<span style="font-size:11px;color:var(--text3)">—</span>';
   const viewPills = [{ k: 'month', label: 'Month' }, { k: 'quarter', label: 'Quarter' }].map(v => `<button class="zmom-pill v-pill${v.k === r2View ? ' active' : ''}" data-r2view="${v.k}">${v.label}</button>`).join('');
   const measPills = [{ k: 'backorder', label: 'Back Order' }, { k: 'future', label: 'Future Dated' }].map(m => `<button class="zmom-pill meas-pill${m.k === r2Measure ? ' active' : ''}" data-r2meas="${m.k}">${m.label}</button>`).join('');
-  const metPills  = [{ k: 'qty', label: 'Qty' }, { k: 'value', label: 'Value' }].map(m => `<button class="zmom-pill met-pill${m.k === r2Metric ? ' active' : ''}" data-r2met="${m.k}">${m.label}</button>`).join('');
+  const metPills  = [{ k: 'all', label: 'All' }, { k: 'qty', label: 'Qty' }, { k: 'value', label: 'Value' }].map(m => `<button class="zmom-pill met-pill${m.k === r2Metric ? ' active' : ''}" data-r2met="${m.k}">${m.label}</button>`).join('');
 
-  const axisLabel = (isBO || !isQty) ? 'Order Received Date' : 'Expected Ship Date';
+  const axisLabel = useShip ? 'Expected Ship' : 'Order Received';
   const defn = isBO
-    ? (isQty ? 'back-order quantity' : 'back-order value (qty × rate)')
-    : (isQty ? 'future-dated quantity (PO total qty)' : 'future-dated PO value');
-  const note = `Showing <b>${escapeHtml(defn)}</b> by ${escapeHtml(axisLabel.replace(' Date',''))} month`
+    ? (isAll ? 'back orders (value & qty)' : isQty ? 'back-order quantity' : 'back-order value (qty × rate)')
+    : (isAll ? 'future-dated orders (value & qty)' : isQty ? 'future-dated quantity (PO total qty)' : 'future-dated PO value');
+  const note = `Showing <b>${escapeHtml(defn)}</b> by ${escapeHtml(axisLabel)} month`
     + ` · ${r2View === 'quarter' ? 'quarters' : 'months'} of ${selY}, newest first · grouped by Brand › Product`
-    + (isBO && !isQty ? ' · value only where a back-order rate is present' : '')
+    + (isBO && isVal ? ' · value only where a back-order rate is present' : '')
     + ` · click a header to sort · independent of the global filters.`;
 
   host.innerHTML = `
