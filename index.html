@@ -942,6 +942,7 @@
   table.zmom thead th[data-sortcol]:hover{filter:brightness(.97);}
   .sort-ic{font-size:9px;margin-left:5px;opacity:.45;color:var(--blue-dark);}
   .sort-ic.on{opacity:1;}
+  .r1-datecell{text-align:center;white-space:nowrap;font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums;}
 </style>
 </head>
 <body>
@@ -1191,7 +1192,7 @@ let r1Search = '', r1SearchActive = false;
 let r1Sort = { col: '__TOTAL__', dir: 'desc' };   // default: sort by the year-total column, descending
 const R1_DIMS = [
   { k: 'product',     label: 'Product',     field: 'product_code', parentField: 'brand_name', parentLabel: 'Brand' },
-  { k: 'retailer',    label: 'Retailer',    field: 'retailer_name'},
+  { k: 'retailer',    label: 'Retailer',    field: 'retailer_name', dateCols: true },
   { k: 'distributor', label: 'Distributor', field: 'distributor'  },
   { k: 'salesrep',    label: 'Sales Rep',   field: 'sales_rep', parentField: 'distributor', parentLabel: 'Distributor' },
 ];
@@ -1902,18 +1903,23 @@ function renderReport1() {
   const hasParent  = !!dimCfg.parentField;
   const parentField = dimCfg.parentField;
   const splitKey = key => { if (!hasParent) return { parent: '', child: key }; const i = key.indexOf(R1_SEP); return { parent: key.slice(0, i), child: key.slice(i + 1) }; };
+  const dateCols = !!dimCfg.dateCols;   // Retailer: first/last activity date per the Date-Basis toggle
 
   // Aggregate qty (po_total_qty) & value by groupKey × monthKey (per chosen date basis)
   const qty = {}, val = {}, monthsSet = new Set(), keysSet = new Set();
+  const firstD = {}, lastD = {};        // lifetime first/last date per group (ISO, basis-dependent)
   for (let i = 0; i < RAW.length; i++) {
     const r = RAW[i];
-    const mk = r1MonthKey(r); if (!mk) continue;
+    const dfull = (r1Basis === 'order') ? r.order_dt : r.dispatch_dt;
+    const mk = (dfull && dfull.length >= 7) ? dfull.slice(0, 7) : '';
+    if (!mk) continue;
     const child = (r[field] == null || r[field] === '') ? '\u2014' : String(r[field]);
     let key = child;
     if (hasParent) { const p = (r[parentField] == null || r[parentField] === '') ? '\u2014' : String(r[parentField]); key = p + R1_SEP + child; }
     keysSet.add(key); monthsSet.add(mk);
     (qty[key] || (qty[key] = {}))[mk] = (qty[key][mk] || 0) + (r.total_qty || 0);
     (val[key] || (val[key] = {}))[mk] = (val[key][mk] || 0) + (r.value || 0);
+    if (dateCols) { if (!firstD[key] || dfull < firstD[key]) firstD[key] = dfull; if (!lastD[key] || dfull > lastD[key]) lastD[key] = dfull; }
   }
 
   // Years present (calendar)
@@ -1950,7 +1956,7 @@ function renderReport1() {
   const sq = (r1Search || '').trim().toLowerCase();
   if (sq) rowsArr = rowsArr.filter(k => { const { parent, child } = splitKey(k); return String(child).toLowerCase().includes(sq) || (hasParent && String(parent).toLowerCase().includes(sq)); });
 
-  const validSort = new Set(['__DIM__', '__TOTAL__', ...(hasParent ? ['__PARENT__'] : []), ...cols.map(c => c.id)]);
+  const validSort = new Set(['__DIM__', '__TOTAL__', ...(hasParent ? ['__PARENT__'] : []), ...(dateCols ? ['__FIRST__', '__LAST__'] : []), ...cols.map(c => c.id)]);
   if (!validSort.has(r1Sort.col)) r1Sort = { col: '__TOTAL__', dir: 'desc' };
   function rowSortVal(k) {
     if (r1Sort.col === '__TOTAL__') return r1Metric === 'qty' ? yQ[k] : yV[k];
@@ -1961,6 +1967,8 @@ function renderReport1() {
     let res;
     if (r1Sort.col === '__DIM__') res = String(splitKey(a).child).localeCompare(String(splitKey(b).child));
     else if (r1Sort.col === '__PARENT__') { const pa = splitKey(a), pb = splitKey(b); res = String(pa.parent).localeCompare(String(pb.parent)) || String(pa.child).localeCompare(String(pb.child)); }
+    else if (r1Sort.col === '__FIRST__') res = String(firstD[a] || '').localeCompare(String(firstD[b] || ''));
+    else if (r1Sort.col === '__LAST__')  res = String(lastD[a] || '').localeCompare(String(lastD[b] || ''));
     else { const d = rowSortVal(a) - rowSortVal(b); res = d !== 0 ? d : String(splitKey(a).child).localeCompare(String(splitKey(b).child)); }
     return r1Sort.dir === 'desc' ? -res : res;
   });
@@ -1971,6 +1979,7 @@ function renderReport1() {
 
   const TOTAL = '__ALL__';
   yQ[TOTAL] = rowsArr.reduce((a, k) => a + yQ[k], 0); yV[TOTAL] = rowsArr.reduce((a, k) => a + yV[k], 0);
+  if (dateCols) { let gf = null, gl = null; rowsArr.forEach(k => { if (firstD[k] && (!gf || firstD[k] < gf)) gf = firstD[k]; if (lastD[k] && (!gl || lastD[k] > gl)) gl = lastD[k]; }); firstD[TOTAL] = gf; lastD[TOTAL] = gl; }
   const colTotal = c => { let q = 0, s = 0; rowsArr.forEach(k => { const v = getv(k, c); q += v.q; s += v.s; }); return { q, s }; };
 
   function cellInner(v) {
@@ -2001,10 +2010,11 @@ function renderReport1() {
     }
     return `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(child)}">${escapeHtml(child)}</td>`;
   };
+  const dateCellHtml = (k) => { if (!dateCols) return ''; const f = firstD[k], l = lastD[k]; return `<td class="zcell r1-datecell">${f ? fmtDate(f) : '—'}</td><td class="zcell r1-datecell">${l ? fmtDate(l) : '—'}</td>`; };
   const rowFor = (k, isTotal) => {
     const cells = cols.map(c => cellHtml(isTotal ? colTotal(c) : getv(k, c))).join('');
     const fq = isTotal ? yQ[TOTAL] : yQ[k], fs = isTotal ? yV[TOTAL] : yV[k];
-    return `<tr class="${isTotal ? 'total-row' : ''}">${leadCells(k, isTotal)}${fyCellHtml(fq, fs)}${cells}</tr>`;
+    return `<tr class="${isTotal ? 'total-row' : ''}">${leadCells(k, isTotal)}${dateCellHtml(k)}${fyCellHtml(fq, fs)}${cells}</tr>`;
   };
 
   // Sortable header icon
@@ -2017,8 +2027,13 @@ function renderReport1() {
       + `<th class="zcol zlast" data-sortcol="__DIM__" style="left:${parW}px;min-width:${dimW}px">${escapeHtml(dimCfg.label)}${sortIcon('__DIM__')}</th>`
     : `<th class="zcol zlast" data-sortcol="__DIM__" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}${sortIcon('__DIM__')}</th>`;
   const headCells = cols.map(c => `<th data-sortcol="${escapeHtml(c.id)}">${escapeHtml(c.label)}${sortIcon(c.id)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
+  const dateHeads = dateCols
+    ? `<th data-sortcol="__FIRST__" style="min-width:96px">${r1Basis === 'order' ? '1st Order' : '1st Dispatch'}${sortIcon('__FIRST__')}<span class="th-sub">Date</span></th>`
+      + `<th data-sortcol="__LAST__" style="min-width:96px">${r1Basis === 'order' ? 'Last Order' : 'Last Dispatch'}${sortIcon('__LAST__')}<span class="th-sub">Date</span></th>`
+    : '';
   const thead = `<thead><tr>
     ${dimHeads}
+    ${dateHeads}
     <th class="fycol" data-sortcol="__TOTAL__">${selY}${sortIcon('__TOTAL__')}<span class="th-sub">${escapeHtml(r1MetricSub())}</span></th>
     ${headCells}
   </tr></thead>`;
@@ -2027,7 +2042,7 @@ function renderReport1() {
     : `<td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td>`;
   const body = rowsArr.length
     ? rowsArr.map(k => rowFor(k, false)).join('') + rowFor(TOTAL, true)
-    : `<tr>${leadEmpty}<td colspan="${cols.length + 1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
+    : `<tr>${leadEmpty}<td colspan="${(dateCols ? 2 : 0) + cols.length + 1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
 
   // ── Toolbar (two lines) ──
   const yPills    = yList.map(f => `<button class="zmom-pill fy-pill${f === selY ? ' active' : ''}" data-r1y="${f}">${f}</button>`).join('');
