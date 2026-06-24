@@ -224,7 +224,8 @@
   .seg-period{background:linear-gradient(135deg,#eef4fb,#e1ecf8);border-color:#cfe0f0;}
   .seg-location{background:linear-gradient(135deg,#ecf6f0,#dcefe4);border-color:#c5e3d1;}
   .seg-product{background:linear-gradient(135deg,#fdf4e6,#fbe9cf);border-color:#efdcb4;}
-  .seg-period .seg-label{color:#2b5a7e;} .seg-location .seg-label{color:#1a6f47;} .seg-product .seg-label{color:#9a6f1f;}
+  .seg-party{background:linear-gradient(135deg,#ecf6f0,#dcefe4);border-color:#c5e3d1;}
+  .seg-period .seg-label{color:#2b5a7e;} .seg-location .seg-label{color:#1a6f47;} .seg-party .seg-label{color:#1a6f47;} .seg-product .seg-label{color:#9a6f1f;}
   .seg-label{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);white-space:nowrap;}
   .seg-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
   .fbar-spacer{flex:1;}
@@ -1147,39 +1148,18 @@
       </button>
       <button class="tab-btn" data-tab="report3">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        <span>Report 3</span>
-      </button>
-      <button class="tab-btn" data-tab="report4">
-        <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>
-        <span>Report 4</span>
+        <span>Retailer × Product</span>
       </button>
     </div>
     </div><!-- /tab-nav-sticky -->
 
     <!-- ===== TAB: DASHBOARD ===== -->
-    <div class="tab-panel active" id="tab-dashboard">
-      <div class="sec-header">
-        <div class="sec-title">
-          Data Overview
-          <span class="sec-badge" style="background:var(--accent-light);color:var(--accent)">Live · Filtered</span>
-        </div>
-      </div>
-      <div id="secOverview"></div>
+    <div class="tab-panel active" id="tab-dashboard"></div><!-- /tab-dashboard -->
 
-      <div class="sec-header">
-        <div class="sec-title">
-          Reports
-          <span class="sec-badge" style="background:var(--blue-light);color:var(--blue)">Coming Soon</span>
-        </div>
-      </div>
-      <div id="secDashNote"></div>
-    </div><!-- /tab-dashboard -->
-
-    <!-- ===== DUMMY TABS ===== -->
+    <!-- ===== REPORT TABS ===== -->
     <div class="tab-panel" id="tab-report1"><div id="secReport1"></div></div>
     <div class="tab-panel" id="tab-report2"><div id="secReport2"></div></div>
     <div class="tab-panel" id="tab-report3"><div id="secReport3"></div></div>
-    <div class="tab-panel" id="tab-report4"><div id="secReport4"></div></div>
 
   </div>
 </div>
@@ -1201,8 +1181,16 @@ const R1_DIMS = [
   { k: 'retailer',    label: 'Retailer',    keys: [ { field: 'retailer_name', label: 'Retailer' } ], dateCols: true, orderCols: true },
   { k: 'distributor', label: 'Distributor', keys: [ { field: 'distributor', label: 'Distributor' } ] },
   { k: 'salesrep',    label: 'Sales Rep',   keys: [ { field: 'distributor', label: 'Distributor' }, { field: 'sales_rep', label: 'Sales Rep' } ] },
-  { k: 'retailerproduct', label: 'Retailer × Product', keys: [ { field: 'retailer_name', label: 'Retailer' }, { field: 'brand_name', label: 'Brand' }, { field: 'product_code', label: 'Product' } ], hideZero: true },
 ];
+
+// ── REPORT 3 — moved here from "Performance Trends" (independent of the global filters) ──
+// ▼▼▼  RENAME HERE: set the report name (this string also drives the tab label below) ▼▼▼
+const R3_TITLE = 'Retailer × Product';
+// ▲▲▲  (also update the matching tab button <span> text in the nav above)            ▲▲▲
+const R3_DIM = { k: 'retailerproduct', label: 'Retailer × Product', keys: [ { field: 'retailer_name', label: 'Retailer' }, { field: 'brand_name', label: 'Brand' }, { field: 'product_code', label: 'Product' } ], hideZero: true };
+let r3Year = null, r3View = 'month', r3Metric = 'all', r3Basis = 'order';
+let r3Search = '', r3SearchActive = false;
+let r3Sort = { col: '__TOTAL__', dir: 'desc' };
 
 // ── REPORT 2 — "Order Pipeline" (Back Order & Future Dated, by Brand › Product) ──
 const R2_TITLE = 'Order Pipeline';
@@ -1829,6 +1817,7 @@ function initializeDashboard() {
   applyFilters();
   renderReport1();
   renderReport2();
+  renderReport3();
   adjustStickyTops();
   requestAnimationFrame(adjustStickyTops);
 }
@@ -1837,44 +1826,8 @@ function initializeDashboard() {
 // RENDER
 // ═══════════════════════════════════════════════════════════════
 function renderAll() {
-  renderOverview();
-  renderDummies();
   const rec = document.getElementById('fbarRecords');
   if (rec) rec.textContent = filtered.length.toLocaleString('en-US') + ' of ' + RAW.length.toLocaleString('en-US') + ' rows';
-}
-
-function distinct(field) { const s = new Set(); for (const r of filtered) if (r[field]) s.add(r[field]); return s.size; }
-function sumField(field) { let t = 0; for (const r of filtered) t += r[field] || 0; return t; }
-
-function metricCard(label, value, sub) {
-  return `<div class="metric-card"><div class="metric-label">${label}</div><div class="metric-value">${value}</div>${sub ? `<div class="metric-sub">${sub}</div>` : ''}</div>`;
-}
-
-function renderOverview() {
-  const host = document.getElementById('secOverview');
-  if (!host) return;
-  if (!filtered.length) { host.innerHTML = '<div class="no-data">No records match the current filters.</div>'; return; }
-
-  const dts = []; for (const r of filtered) if (r.order_dt) dts.push(r.order_dt);
-  dts.sort();
-  const span = dts.length ? `${fmtDate(dts[0])} – ${fmtDate(dts[dts.length-1])}` : '—';
-
-  const cards = [
-    metricCard('Order Rows',   fmt(filtered.length)),
-    metricCard('PO Value',     fmtV(sumField('value')),     'Total PO value'),
-    metricCard('Total PO Qty', fmt(sumField('total_qty')),  'Bill + free'),
-    metricCard('Bill Qty',     fmt(sumField('bill_qty'))),
-    metricCard('Free Qty',     fmt(sumField('free_qty'))),
-    metricCard('Purchase Orders', fmt(distinct('po_no'))),
-    metricCard('Invoices',     fmt(distinct('invoice_no'))),
-    metricCard('Retailers',    fmt(distinct('retailer_name'))),
-    metricCard('Products',     fmt(distinct('product_code'))),
-    metricCard('Sales Reps',   fmt(distinct('sales_rep'))),
-  ].join('');
-
-  host.innerHTML =
-    `<div class="metric-sub" style="margin:-4px 0 12px;color:var(--text3);">Order Received Date · <b style="color:var(--text2);font-weight:600;">${span}</b></div>` +
-    `<div class="metric-grid">${cards}</div>`;
 }
 
 // ── Date helpers for the trend grid (shift month key, label) ──
@@ -2340,36 +2293,240 @@ function renderReport2() {
   if (rst) rst.addEventListener('click', () => { r2Search = ''; r2SearchActive = false; r2Sort = { col: '__TOTAL__', dir: 'desc' }; renderReport2(); });
 }
 
-function renderDummies() {
-  const tabs = [
-    { id: 'secReport3', name: 'Report 3' },
-    { id: 'secReport4', name: 'Report 4' },
-  ];
-  tabs.forEach(t => {
-    const host = document.getElementById(t.id);
-    if (!host) return;
-    host.innerHTML = `
-      <div class="sec-header"><div class="sec-title">${t.name}<span class="sec-badge" style="background:var(--gold-light);color:var(--gold)">Placeholder</span></div></div>
-      <div class="top-card" style="text-align:center;padding:54px 24px;">
-        <div style="width:72px;height:72px;border-radius:18px;background:var(--blue-light);border:2px dashed var(--blue);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:30px;color:var(--blue-dark);">📊</div>
-        <div style="font-family:'Playfair Display',serif;font-size:21px;color:var(--text);margin-bottom:8px;">${t.name}</div>
-        <div style="color:var(--text3);font-size:13.5px;max-width:460px;margin:0 auto;line-height:1.55;">This tab is ready and styled. Tell me which report belongs here and I'll build it in the GT look. The global filters above will drive it.</div>
-        <div style="margin-top:18px;font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:20px;display:inline-flex;padding:6px 14px;">
-          <b style="font-weight:700;margin-right:5px;">${filtered.length.toLocaleString('en-US')}</b> rows match current filters
-        </div>
-      </div>`;
+function renderReport3() {
+  const host = document.getElementById('secReport3');
+  if (!host) return;
+  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+
+  if (!['month', 'quarter'].includes(r3View))     r3View = 'month';
+  if (!['all', 'qty', 'value'].includes(r3Metric)) r3Metric = 'all';
+  if (!['order', 'dispatch'].includes(r3Basis))    r3Basis = 'order';
+  const metricSub = () => r3Metric === 'qty' ? 'Qty' : r3Metric === 'value' ? 'Value' : 'Value · Qty';
+  const dimCfg   = R3_DIM;
+  const keys     = dimCfg.keys;
+  const nLead    = keys.length;
+  const dateCols = !!dimCfg.dateCols;
+  const hideZero = !!dimCfg.hideZero;
+  const orderCols = !!dimCfg.orderCols;
+  const splitKey = k => k.split(R1_SEP);
+  const cleanVal = v => (v == null || v === '') ? '\u2014' : String(v);
+
+  // Frozen lead-column widths & cumulative left offsets
+  const widths = nLead === 1 ? [200] : nLead === 2 ? [165, 200] : [150, 110, 180];
+  const offs = [0]; for (let i = 1; i < nLead; i++) offs[i] = offs[i - 1] + widths[i - 1];
+  const lastLead = nLead - 1;
+
+  // Aggregate qty (po_total_qty) & value by groupKey × monthKey (per chosen date basis)
+  const qty = {}, val = {}, monthsSet = new Set(), keysSet = new Set();
+  const firstD = {}, lastD = {};
+  const ordPO = {};   // distinct po_no per groupKey per monthKey (only populated when orderCols)
+  for (let i = 0; i < RAW.length; i++) {
+    const r = RAW[i];
+    const dfull = (r3Basis === 'order') ? r.order_dt : r.dispatch_dt;
+    const mk = (dfull && dfull.length >= 7) ? dfull.slice(0, 7) : '';
+    if (!mk) continue;
+    let key = cleanVal(r[keys[0].field]);
+    for (let c = 1; c < nLead; c++) key += R1_SEP + cleanVal(r[keys[c].field]);
+    keysSet.add(key); monthsSet.add(mk);
+    (qty[key] || (qty[key] = {}))[mk] = (qty[key][mk] || 0) + (r.total_qty || 0);
+    (val[key] || (val[key] = {}))[mk] = (val[key][mk] || 0) + (r.value || 0);
+    if (dateCols) { if (!firstD[key] || dfull < firstD[key]) firstD[key] = dfull; if (!lastD[key] || dfull > lastD[key]) lastD[key] = dfull; }
+    if (orderCols) { const po = r.po_no; if (po != null && po !== '') { const m = ordPO[key] || (ordPO[key] = {}); (m[mk] || (m[mk] = new Set())).add(po); } }
+  }
+
+  // Years (calendar)
+  const ySet = new Set(); monthsSet.forEach(mk => ySet.add(+mk.slice(0, 4)));
+  const yList = [...ySet].sort((a, b) => b - a);
+  let selY = r3Year;
+  if (selY == null || !ySet.has(selY)) { selY = yList.length ? yList[0] : new Date().getUTCFullYear(); r3Year = selY; }
+  const yMonths = []; for (let i = 0; i < 12; i++) yMonths.push(zmomKeyShift(selY + '-01', i));
+
+  const qAt = (k, mk) => (qty[k] && qty[k][mk]) || 0, vAt = (k, mk) => (val[k] && val[k][mk]) || 0;
+
+  // Columns
+  let cols, getv;
+  if (r3View === 'quarter') {
+    const quarters = [
+      { id: 'Q1', label: 'Q1', sub: 'Jan–Mar', mons: yMonths.slice(0, 3)  },
+      { id: 'Q2', label: 'Q2', sub: 'Apr–Jun', mons: yMonths.slice(3, 6)  },
+      { id: 'Q3', label: 'Q3', sub: 'Jul–Sep', mons: yMonths.slice(6, 9)  },
+      { id: 'Q4', label: 'Q4', sub: 'Oct–Dec', mons: yMonths.slice(9, 12) },
+    ];
+    cols = quarters.slice().reverse();
+    getv = (k, c) => { let q = 0, s = 0; c.mons.forEach(mk => { q += qAt(k, mk); s += vAt(k, mk); }); return { q, s }; };
+  } else {
+    cols = yMonths.slice().sort().reverse().map(mk => ({ id: mk, label: zmomMonLabel(mk), sub: metricSub() }));
+    getv = (k, c) => ({ q: qAt(k, c.id), s: vAt(k, c.id) });
+  }
+
+  // Year totals per row
+  const yQ = {}, yV = {};
+  keysSet.forEach(k => { let q = 0, s = 0; yMonths.forEach(mk => { q += qAt(k, mk); s += vAt(k, mk); }); yQ[k] = q; yV[k] = s; });
+
+  // Distinct orders (po_no) for the selected year, per row, and AOV = year value ÷ #orders
+  const yearOrders = k => {
+    const m = ordPO[k]; if (!m) return 0;
+    const s = new Set();
+    yMonths.forEach(mk => { const ss = m[mk]; if (ss) ss.forEach(po => s.add(po)); });
+    return s.size;
+  };
+  const aovOf = k => { const n = yearOrders(k); return n ? (yV[k] / n) : 0; };
+
+  // Rows: hide zero-order rows (if configured), search filter, then sort
+  let rowsArr = [...keysSet];
+  if (hideZero) rowsArr = rowsArr.filter(k => (yQ[k] || 0) !== 0 || (yV[k] || 0) !== 0);
+  const sq = (r3Search || '').trim().toLowerCase();
+  if (sq) rowsArr = rowsArr.filter(k => splitKey(k).some(p => String(p).toLowerCase().includes(sq)));
+
+  const leadSortCols = keys.map((_, ci) => '__K' + ci + '__');
+  const validSort = new Set(['__TOTAL__', ...leadSortCols, ...(dateCols ? ['__FIRST__', '__LAST__'] : []), ...(orderCols ? ['__ORDERS__', '__AOV__'] : []), ...cols.map(c => c.id)]);
+  if (!validSort.has(r3Sort.col)) r3Sort = { col: '__TOTAL__', dir: 'desc' };
+  function rowSortVal(k) {
+    if (r3Sort.col === '__TOTAL__') return r3Metric === 'qty' ? yQ[k] : yV[k];
+    const c = cols.find(x => x.id === r3Sort.col); if (!c) return r3Metric === 'qty' ? yQ[k] : yV[k];
+    const v = getv(k, c); return r3Metric === 'qty' ? v.q : v.s;
+  }
+  const leadMatch = r3Sort.col.match(/^__K(\d+)__$/);
+  rowsArr.sort((a, b) => {
+    let res;
+    if (leadMatch) { const ci = +leadMatch[1], pa = splitKey(a), pb = splitKey(b); res = 0; for (let x = ci; x < nLead; x++) { res = String(pa[x] || '').localeCompare(String(pb[x] || '')); if (res) break; } }
+    else if (r3Sort.col === '__FIRST__') res = String(firstD[a] || '').localeCompare(String(firstD[b] || ''));
+    else if (r3Sort.col === '__LAST__')  res = String(lastD[a] || '').localeCompare(String(lastD[b] || ''));
+    else if (r3Sort.col === '__ORDERS__') { const d = yearOrders(a) - yearOrders(b); res = d !== 0 ? d : String(splitKey(a)[lastLead] || '').localeCompare(String(splitKey(b)[lastLead] || '')); }
+    else if (r3Sort.col === '__AOV__')    { const d = aovOf(a) - aovOf(b);             res = d !== 0 ? d : String(splitKey(a)[lastLead] || '').localeCompare(String(splitKey(b)[lastLead] || '')); }
+    else { const d = rowSortVal(a) - rowSortVal(b); res = d !== 0 ? d : String(splitKey(a)[lastLead] || '').localeCompare(String(splitKey(b)[lastLead] || '')); }
+    return r3Sort.dir === 'desc' ? -res : res;
   });
 
-  const note = document.getElementById('secDashNote');
-  if (note) note.innerHTML = `
-    <div class="top-card" style="padding:20px 22px;">
-      <div style="font-size:13.5px;color:var(--text2);line-height:1.6;">
-        The scaffolding is live: secure login, animated loading, live status, refresh, and session handling all work.
-        Global filters are wired across <b>Period</b> (date range on Order Received Date + Year / Quarter / Month),
-        <b>Product</b> (Product / Brand) and <b>Party</b> (Retailer / Distributor / Sales Rep).
-        The four report tabs are empty placeholders — share each report you want and I'll build them one at a time.
+  // Heatmap scaled by the primary metric (qty when Qty view, else value)
+  const prim = v => r3Metric === 'qty' ? v.q : v.s;
+  let maxP = 0; rowsArr.forEach(k => cols.forEach(c => { maxP = Math.max(maxP, prim(getv(k, c))); }));
+
+  const TOTAL = '__ALL__';
+  yQ[TOTAL] = rowsArr.reduce((a, k) => a + yQ[k], 0); yV[TOTAL] = rowsArr.reduce((a, k) => a + yV[k], 0);
+  if (dateCols) { let gf = null, gl = null; rowsArr.forEach(k => { if (firstD[k] && (!gf || firstD[k] < gf)) gf = firstD[k]; if (lastD[k] && (!gl || lastD[k] > gl)) gl = lastD[k]; }); firstD[TOTAL] = gf; lastD[TOTAL] = gl; }
+  const ordTOTAL = orderCols ? (() => { const s = new Set(); rowsArr.forEach(k => { const m = ordPO[k]; if (m) yMonths.forEach(mk => { const ss = m[mk]; if (ss) ss.forEach(po => s.add(po)); }); }); return s.size; })() : 0;
+  const colTotal = c => { let q = 0, s = 0; rowsArr.forEach(k => { const v = getv(k, c); q += v.q; s += v.s; }); return { q, s }; };
+
+  function cellInner(v) {
+    const has = v.q || v.s;
+    if (!has) return '<div class="pt-cell"><div class="pt-sale">—</div><div class="pt-qty"></div></div>';
+    if (r3Metric === 'qty')   return `<div class="pt-cell"><div class="pt-sale">${fmt(v.q)}</div><div class="pt-qty"></div></div>`;
+    if (r3Metric === 'value') return `<div class="pt-cell"><div class="pt-sale">${fmtV(v.s)}</div><div class="pt-qty"></div></div>`;
+    return `<div class="pt-cell"><div class="pt-sale">${fmtV(v.s)}</div><div class="pt-qty">${fmt(v.q)} qty</div></div>`;
+  }
+  const cellHtml = v => { const p = prim(v); const style = p ? `background:rgba(45,122,78,${(0.05 + 0.30 * (maxP ? Math.min(1, p / maxP) : 0)).toFixed(3)});` : ''; return `<td class="zcell" style="${style}">${cellInner(v)}</td>`; };
+  const fyCellHtml = (q, s) => {
+    if (r3Metric === 'qty')   return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmt(q)}</div><div class="pt-qty"></div></div></td>`;
+    if (r3Metric === 'value') return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(s)}</div><div class="pt-qty"></div></div></td>`;
+    return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(s)}</div><div class="pt-qty">${fmt(q)} qty</div></div></td>`;
+  };
+  const dateCellHtml = (k) => { if (!dateCols) return ''; const f = firstD[k], l = lastD[k]; return `<td class="zcell r1-datecell">${f ? fmtDate(f) : '—'}</td><td class="zcell r1-datecell">${l ? fmtDate(l) : '—'}</td>`; };
+  // #Orders (distinct po_no for the year) + Average Order Value (year value ÷ #orders)
+  const orderCellsHtml = (nOrders, aov) => {
+    if (!orderCols) return '';
+    const ordTxt = nOrders ? fmt(nOrders) : '—';
+    const aovTxt = nOrders ? fmtMoney(aov) : '—';
+    return `<td class="r1-sumcol"><div class="pt-cell"><div class="pt-sale">${ordTxt}</div><div class="pt-qty"></div></div></td>`
+         + `<td class="r1-sumcol"><div class="pt-cell"><div class="pt-sale">${aovTxt}</div><div class="pt-qty"></div></div></td>`;
+  };
+
+  const leadCells = (key, isTotal) => {
+    if (isTotal) return keys.map((kc, ci) => `<td class="zcol${ci === lastLead ? ' zlast' : ''}" style="left:${offs[ci]}px;min-width:${widths[ci]}px">${ci === 0 ? 'TOTAL' : ''}</td>`).join('');
+    const parts = splitKey(key);
+    return keys.map((kc, ci) => `<td class="zcol${ci === lastLead ? ' zlast' : ''} zwrap" style="left:${offs[ci]}px;min-width:${widths[ci]}px;max-width:${widths[ci]}px;width:${widths[ci]}px" title="${escapeHtml(parts[ci] || '')}">${escapeHtml(parts[ci] || '')}</td>`).join('');
+  };
+  const rowFor = (k, isTotal) => {
+    const cells = cols.map(c => cellHtml(isTotal ? colTotal(c) : getv(k, c))).join('');
+    const fq = isTotal ? yQ[TOTAL] : yQ[k], fs = isTotal ? yV[TOTAL] : yV[k];
+    const nOrd = isTotal ? ordTOTAL : yearOrders(k);
+    const aovV = nOrd ? (fs / nOrd) : 0;
+    return `<tr class="${isTotal ? 'total-row' : ''}">${leadCells(k, isTotal)}${dateCellHtml(k)}${fyCellHtml(fq, fs)}${orderCellsHtml(nOrd, aovV)}${cells}</tr>`;
+  };
+
+  function sortIcon(col) {
+    if (r3Sort.col === col) return `<span class="sort-ic on">${r3Sort.dir === 'desc' ? '▼' : '▲'}</span>`;
+    return '<span class="sort-ic">⇅</span>';
+  }
+  const leadHeads = keys.map((kc, ci) => `<th class="zcol${ci === lastLead ? ' zlast' : ''}" data-sortcol="__K${ci}__" style="left:${offs[ci]}px;min-width:${widths[ci]}px">${escapeHtml(kc.label)}${sortIcon('__K' + ci + '__')}</th>`).join('');
+  const dateHeads = dateCols
+    ? `<th data-sortcol="__FIRST__" style="min-width:96px">${r3Basis === 'order' ? '1st Order' : '1st Dispatch'}${sortIcon('__FIRST__')}<span class="th-sub">Date</span></th>`
+      + `<th data-sortcol="__LAST__" style="min-width:96px">${r3Basis === 'order' ? 'Last Order' : 'Last Dispatch'}${sortIcon('__LAST__')}<span class="th-sub">Date</span></th>`
+    : '';
+  const headCells = cols.map(c => `<th data-sortcol="${escapeHtml(c.id)}">${escapeHtml(c.label)}${sortIcon(c.id)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
+  const orderHeads = orderCols
+    ? `<th class="r1-sumcol" data-sortcol="__ORDERS__"># Orders${sortIcon('__ORDERS__')}<span class="th-sub">${selY}</span></th>`
+      + `<th class="r1-sumcol" data-sortcol="__AOV__">Avg Order Value${sortIcon('__AOV__')}<span class="th-sub">Value ÷ Orders</span></th>`
+    : '';
+  const thead = `<thead><tr>
+    ${leadHeads}
+    ${dateHeads}
+    <th class="fycol" data-sortcol="__TOTAL__">${selY}${sortIcon('__TOTAL__')}<span class="th-sub">${escapeHtml(metricSub())}</span></th>
+    ${orderHeads}
+    ${headCells}
+  </tr></thead>`;
+  const leadEmpty = keys.map((kc, ci) => `<td class="zcol${ci === lastLead ? ' zlast' : ''}" style="left:${offs[ci]}px;min-width:${widths[ci]}px">${ci === 0 ? '—' : ''}</td>`).join('');
+  const body = rowsArr.length
+    ? rowsArr.map(k => rowFor(k, false)).join('') + rowFor(TOTAL, true)
+    : `<tr>${leadEmpty}<td colspan="${(dateCols ? 2 : 0) + (orderCols ? 2 : 0) + cols.length + 1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} with orders in ${selY}.</td></tr>`;
+
+  // ── Toolbar (two lines) ──
+  const yPills    = yList.map(f => `<button class="zmom-pill fy-pill${f === selY ? ' active' : ''}" data-r3y="${f}">${f}</button>`).join('');
+  const viewPills = [{ k: 'month', label: 'Month' }, { k: 'quarter', label: 'Quarter' }].map(v => `<button class="zmom-pill v-pill${v.k === r3View ? ' active' : ''}" data-r3view="${v.k}">${v.label}</button>`).join('');
+  const metPills  = [{ k: 'all', label: 'All' }, { k: 'qty', label: 'Qty' }, { k: 'value', label: 'Value' }].map(m => `<button class="zmom-pill met-pill${m.k === r3Metric ? ' active' : ''}" data-r3met="${m.k}">${m.label}</button>`).join('');
+
+  const basisLabel = r3Basis === 'order' ? 'Order Received Date' : 'Dispatch Date';
+  const grouped = keys.map(kc => escapeHtml(kc.label)).join(' › ');
+  const note = (r3View === 'quarter'
+      ? `Quarters of ${selY} (Q1 Jan–Mar … Q4 Oct–Dec), newest first`
+      : `Months Jan→Dec of ${selY}, newest first`)
+    + ` · grouped by ${grouped} · period derived from <b>${escapeHtml(basisLabel)}</b>`
+    + (hideZero ? ` · only ${escapeHtml(dimCfg.label.toLowerCase())} combinations with orders in ${selY} are shown` : '')
+    + (orderCols ? ` · <b>#Orders</b> = distinct PO (po_no) count for ${selY}, <b>Avg Order Value</b> = ${selY} value ÷ #Orders` : '')
+    + (r3Basis === 'dispatch' ? ' · rows without a dispatch date are excluded' : '')
+    + ` · click a header to sort · independent of the global filters.`;
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:200px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox r3-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(r3Search)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Measure</label><div class="bt-chips">${metPills}</div></div>
+      <div class="bt-break"></div>
+      <div class="bt-fg"><label class="bt-flabel">Date Basis</label>
+        <div class="db-seg"><button class="db-opt${r3Basis === 'order' ? ' active' : ''}" data-r3basis="order">Order Received</button><button class="db-opt${r3Basis === 'dispatch' ? ' active' : ''}" data-r3basis="dispatch">Dispatch Date</button></div></div>
+      <button class="kpi-reset" id="r3Reset" title="Reset search & sort">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${selY}</b> · Jan–Dec</span>
+        <span class="bt-period-tag">${escapeHtml(R3_TITLE)}</span>
       </div>
-    </div>`;
+    </div>
+    <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">${note}</div>`;
+
+  // ── Wire controls ──
+  host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { r3Year = +b.dataset.r3y; renderReport3(); }));
+  host.querySelectorAll('.v-pill').forEach(b => b.addEventListener('click', () => { r3View = b.dataset.r3view; renderReport3(); }));
+  host.querySelectorAll('.met-pill').forEach(b => b.addEventListener('click', () => { r3Metric = b.dataset.r3met; renderReport3(); }));
+  host.querySelectorAll('.db-opt').forEach(b => b.addEventListener('click', () => { r3Basis = b.dataset.r3basis; r3Year = null; renderReport3(); }));
+  host.querySelectorAll('th[data-sortcol]').forEach(th => th.addEventListener('click', () => {
+    const col = th.dataset.sortcol;
+    if (r3Sort.col === col) r3Sort.dir = (r3Sort.dir === 'desc') ? 'asc' : 'desc';
+    else r3Sort = { col, dir: 'desc' };
+    renderReport3();
+  }));
+
+  const si = host.querySelector('.r3-search');
+  if (si) {
+    si.addEventListener('input', () => { r3Search = si.value; r3SearchActive = true; renderReport3(); });
+    si.addEventListener('focus', () => { r3SearchActive = true; });
+    si.addEventListener('blur',  () => { r3SearchActive = false; });
+    if (r3SearchActive) { si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
+  }
+  const rst = host.querySelector('#r3Reset');
+  if (rst) rst.addEventListener('click', () => { r3Search = ''; r3SearchActive = false; r3Sort = { col: '__TOTAL__', dir: 'desc' }; renderReport3(); });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2384,9 +2541,10 @@ function setup() {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
       const fb = document.getElementById('filterBar');
-      if (fb) fb.style.display = (tab === 'report1' || tab === 'report2') ? 'none' : '';
+      if (fb) fb.style.display = (tab === 'report1' || tab === 'report2' || tab === 'report3') ? 'none' : '';
       if (tab === 'report1') renderReport1();
       if (tab === 'report2') renderReport2();
+      if (tab === 'report3') renderReport3();
       adjustStickyTops();
     });
   });
