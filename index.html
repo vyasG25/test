@@ -2109,7 +2109,7 @@ function renderReport1() {
 //   Search / Year / View(Month·Quarter) / Measure(Back Order·Future Dated)
 //   / Metric(All·Qty·Value). Date axis & value per (Measure, Metric):
 //     Back Order  · Qty   → order date,         back_order_qty
-//     Back Order  · Value → order date,         back_order_qty × back_order_rate
+//     Back Order  · Value → order date,         back_order_rate (already qty × value)
 //     Future Dated· Qty   → expected ship date, po_total_qty
 //     Future Dated· Value → order date,         total PO value
 //   All → shows Value + Qty together, bucketed by order date (the shared axis).
@@ -2130,7 +2130,7 @@ function renderReport2() {
   const useShip = (!isBO && isQty);
   const dateOf = r => useShip ? r.expected_ship_dt : r.order_dt;
   const qOf = r => isBO ? (r.back_order_qty || 0) : (r.total_qty || 0);
-  const sOf = r => isBO ? (r.back_order_qty || 0) * (r.back_order_rate || 0) : (r.value || 0);
+  const sOf = r => isBO ? (r.back_order_rate || 0) : (r.value || 0);
 
   // Aggregate qty & value by (Brand SEP Product) × monthKey
   const SEP = R1_SEP;
@@ -2257,7 +2257,7 @@ function renderReport2() {
 
   const axisLabel = useShip ? 'Expected Ship' : 'Order Received';
   const defn = isBO
-    ? (isAll ? 'back orders (value & qty)' : isQty ? 'back-order quantity' : 'back-order value (qty × rate)')
+    ? (isAll ? 'back orders (value & qty)' : isQty ? 'back-order quantity' : 'back-order value (back-order rate)')
     : (isAll ? 'future-dated orders (value & qty)' : isQty ? 'future-dated quantity (PO total qty)' : 'future-dated PO value');
   const note = `Showing <b>${escapeHtml(defn)}</b> by ${escapeHtml(axisLabel)} month`
     + ` · ${r2View === 'quarter' ? 'quarters' : 'months'} of ${selY}, newest first · grouped by Brand › Product`
