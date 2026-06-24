@@ -949,6 +949,17 @@
   .sort-ic{font-size:9px;margin-left:5px;opacity:.45;color:var(--blue-dark);}
   .sort-ic.on{opacity:1;}
   .r1-datecell{text-align:center;white-space:nowrap;font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums;}
+
+  /* ── DASHBOARD: 4-up period-over-period grid + last-3-months table ── */
+  .pop-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media(max-width:1300px){.pop-grid4{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:680px){.pop-grid4{grid-template-columns:1fr;}}
+  .l3-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+  .l3-table th,.l3-table td{padding:11px 16px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--border);}
+  .l3-table thead th{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);font-weight:700;background:var(--surface2);}
+  .l3-table td:first-child,.l3-table th:first-child{text-align:left;font-weight:600;color:var(--text);}
+  .l3-table tbody tr:hover td{background:var(--surface2);}
+  .l3-table tr.l3-total td{background:var(--surface2);font-weight:700;color:var(--text);border-bottom:none;border-top:2px solid var(--border2);}
 </style>
 </head>
 <body>
@@ -1158,21 +1169,7 @@
 
     <!-- ===== TAB: DASHBOARD ===== -->
     <div class="tab-panel active" id="tab-dashboard">
-      <div class="sec-header">
-        <div class="sec-title">
-          Data Overview
-          <span class="sec-badge" style="background:var(--accent-light);color:var(--accent)">Live · Filtered</span>
-        </div>
-      </div>
-      <div id="secOverview"></div>
-
-      <div class="sec-header">
-        <div class="sec-title">
-          Reports
-          <span class="sec-badge" style="background:var(--blue-light);color:var(--blue)">Coming Soon</span>
-        </div>
-      </div>
-      <div id="secDashNote"></div>
+      <div id="dashRoot"></div>
     </div><!-- /tab-dashboard -->
 
     <!-- ===== DUMMY TABS ===== -->
@@ -1837,7 +1834,7 @@ function initializeDashboard() {
 // RENDER
 // ═══════════════════════════════════════════════════════════════
 function renderAll() {
-  renderOverview();
+  renderDashboard();
   renderDummies();
   const rec = document.getElementById('fbarRecords');
   if (rec) rec.textContent = filtered.length.toLocaleString('en-US') + ' of ' + RAW.length.toLocaleString('en-US') + ' rows';
@@ -1850,31 +1847,161 @@ function metricCard(label, value, sub) {
   return `<div class="metric-card"><div class="metric-label">${label}</div><div class="metric-value">${value}</div>${sub ? `<div class="metric-sub">${sub}</div>` : ''}</div>`;
 }
 
-function renderOverview() {
-  const host = document.getElementById('secOverview');
+function renderDashboard() {
+  const host = document.getElementById('dashRoot');
   if (!host) return;
   if (!filtered.length) { host.innerHTML = '<div class="no-data">No records match the current filters.</div>'; return; }
 
-  const dts = []; for (const r of filtered) if (r.order_dt) dts.push(r.order_dt);
-  dts.sort();
-  const span = dts.length ? `${fmtDate(dts[0])} – ${fmtDate(dts[dts.length-1])}` : '—';
+  // Anchor = latest order-received date in the filtered set
+  let maxISO = ''; for (const r of filtered) { if (r.order_dt && r.order_dt > maxISO) maxISO = r.order_dt; }
+  const ay = +maxISO.slice(0, 4), am = +maxISO.slice(5, 7), ad = +maxISO.slice(8, 10);
+  const aq = Math.ceil(am / 3);
+  const pad = n => String(n).padStart(2, '0');
+  const lastDay = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const ymd = (y, m, d) => y + '-' + pad(m) + '-' + pad(d);
+  const monName = (y, m) => new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-  const cards = [
-    metricCard('Order Rows',   fmt(filtered.length)),
-    metricCard('PO Value',     fmtV(sumField('value')),     'Total PO value'),
-    metricCard('Total PO Qty', fmt(sumField('total_qty')),  'Bill + free'),
-    metricCard('Bill Qty',     fmt(sumField('bill_qty'))),
-    metricCard('Free Qty',     fmt(sumField('free_qty'))),
-    metricCard('Purchase Orders', fmt(distinct('po_no'))),
-    metricCard('Invoices',     fmt(distinct('invoice_no'))),
-    metricCard('Retailers',    fmt(distinct('retailer_name'))),
-    metricCard('Products',     fmt(distinct('product_code'))),
-    metricCard('Sales Reps',   fmt(distinct('sales_rep'))),
+  // ── SECTION 1 · Summary metrics (1–14) ──
+  let totQty = 0, billQ = 0, freeQ = 0, totVal = 0, boQty = 0, boVal = 0, fdQty = 0, fdVal = 0;
+  const poAll = new Set(), poBO = new Set(), poFD = new Set(), inv = new Set(), ret = new Set(), prod = new Set(), dist = new Set(), rep = new Set();
+  for (const r of filtered) {
+    totQty += r.total_qty || 0; billQ += r.bill_qty || 0; freeQ += r.free_qty || 0; totVal += r.value || 0;
+    if ((r.back_order_qty || 0) > 0) { boQty += r.back_order_qty || 0; boVal += (r.back_order_qty || 0) * (r.back_order_rate || 0); if (r.po_no) poBO.add(r.po_no); }
+    if (r.expected_ship_dt) { fdQty += r.total_qty || 0; fdVal += r.value || 0; if (r.po_no) poFD.add(r.po_no); }
+    if (r.po_no) poAll.add(r.po_no);
+    if (r.invoice_no) inv.add(r.invoice_no);
+    if (r.retailer_name) ret.add(r.retailer_name);
+    if (r.product_code) prod.add(r.product_code);
+    if (r.distributor) dist.add(r.distributor);
+    if (r.sales_rep) rep.add(r.sales_rep);
+  }
+  const summaryCards = [
+    metricCard('Total Order Qty', fmt(totQty), 'Bill ' + fmt(billQ) + ' · Free ' + fmt(freeQ)),
+    metricCard('Total Order Value', fmtV(totVal)),
+    metricCard('Back Order Qty', fmt(boQty)),
+    metricCard('Back Order Value', fmtV(boVal)),
+    metricCard('Future Dated Qty', fmt(fdQty)),
+    metricCard('Future Dated Value', fmtV(fdVal)),
+    metricCard('No. of Orders', fmt(poAll.size)),
+    metricCard('No. of Back Orders', fmt(poBO.size)),
+    metricCard('No. of Future Dated', fmt(poFD.size)),
+    metricCard('No. of Invoices', fmt(inv.size)),
+    metricCard('No. of Retailers', fmt(ret.size)),
+    metricCard('No. of Products', fmt(prod.size)),
+    metricCard('Agencies / Distributors', fmt(dist.size)),
+    metricCard('No. of Sales Reps', fmt(rep.size)),
   ].join('');
 
-  host.innerHTML =
-    `<div class="metric-sub" style="margin:-4px 0 12px;color:var(--text3);">Order Received Date · <b style="color:var(--text2);font-weight:600;">${span}</b></div>` +
-    `<div class="metric-grid">${cards}</div>`;
+  // ── SECTION 2 · Period-over-Period ──
+  function popSum(fromISO, toISO) {
+    let amt = 0, qty = 0; const po = new Set();
+    for (const r of filtered) { const d = r.order_dt; if (!d || d < fromISO || d > toISO) continue; amt += r.value || 0; qty += r.total_qty || 0; if (r.po_no) po.add(r.po_no); }
+    return { amt, qty, orders: po.size };
+  }
+  const pm = am === 1 ? { y: ay - 1, m: 12 } : { y: ay, m: am - 1 };
+  const qStartM = (aq - 1) * 3 + 1;
+  const prevQ = aq === 1 ? { y: ay - 1, sm: 10 } : { y: ay, sm: qStartM - 3 };
+  const periods = [
+    { title: 'Monthly',   c: 'var(--accent)',  cl: 'var(--accent-light)',  label: monName(ay, am),
+      cur: [ymd(ay, am, 1), ymd(ay, am, lastDay(ay, am))],
+      prev: [ymd(pm.y, pm.m, 1), ymd(pm.y, pm.m, lastDay(pm.y, pm.m))] },
+    { title: 'Quarterly', c: 'var(--blue)',    cl: 'var(--blue-light)',    label: 'Q' + aq + ' ' + ay,
+      cur: [ymd(ay, qStartM, 1), ymd(ay, qStartM + 2, lastDay(ay, qStartM + 2))],
+      prev: [ymd(prevQ.y, prevQ.sm, 1), ymd(prevQ.y, prevQ.sm + 2, lastDay(prevQ.y, prevQ.sm + 2))] },
+    { title: 'Yearly',    c: 'var(--accent2)', cl: 'var(--accent2-light)', label: '' + ay,
+      cur: [ymd(ay, 1, 1), ymd(ay, 12, 31)],
+      prev: [ymd(ay - 1, 1, 1), ymd(ay - 1, 12, 31)] },
+    { title: 'YTD',       c: 'var(--red)',     cl: 'var(--red-light)',     label: ay + ' YTD', upto: maxISO,
+      cur: [ymd(ay, 1, 1), maxISO],
+      prev: [ymd(ay - 1, 1, 1), ymd(ay - 1, am, Math.min(ad, lastDay(ay - 1, am)))] },
+  ];
+  const deltaPill = (cur, prev) => { if (!prev) return '<span class="pop-growth na">N/A</span>'; const p = (cur - prev) / Math.abs(prev) * 100; const cls = p >= 0 ? 'up' : 'dn'; const ar = p >= 0 ? '▲' : '▼'; return `<span class="pop-growth ${cls}"><span class="g-arrow">${ar}</span> ${Math.abs(p).toFixed(1)}%</span>`; };
+  const pmDelta = (cur, prev) => { if (!prev) return '<span class="pm-delta na">—</span>'; const p = (cur - prev) / Math.abs(prev) * 100; const cls = p >= 0 ? 'up' : 'dn'; const ar = p >= 0 ? '▲' : '▼'; return `<span class="pm-delta ${cls}">${ar} ${Math.abs(p).toFixed(1)}%</span>`; };
+  const popCards = periods.map(P => {
+    const cur = popSum(P.cur[0], P.cur[1]), prev = popSum(P.prev[0], P.prev[1]);
+    const maxV = Math.max(cur.amt, prev.amt, 1);
+    const curW = cur.amt > 0 ? Math.max(cur.amt / maxV * 100, 4) : 0, prevW = prev.amt > 0 ? Math.max(prev.amt / maxV * 100, 4) : 0;
+    const aovCur = cur.orders ? cur.amt / cur.orders : 0, aovPrev = prev.orders ? prev.amt / prev.orders : 0;
+    const upto = P.upto ? ` <span class="pop-cap-upto">(upto ${fmtDate(P.upto)})</span>` : '';
+    return `<div class="pop-card" style="--c:${P.c};--cl:${P.cl};">
+      <div class="pop-head"><div class="pop-title-wrap"><span class="pop-dot"></span><span class="pop-title">${P.title}</span></div>
+        <span class="pop-sel-btn" style="cursor:default">${escapeHtml(P.label)}</span></div>
+      <div class="pop-dotline"></div>
+      <div class="pop-hero"><div class="pop-hero-main">
+        <div class="pop-hero-cap">Order Value · <span class="pop-cap-period">${escapeHtml(P.label)}</span>${upto}</div>
+        <div class="pop-hero-val">${fmtV(cur.amt)}</div></div>${deltaPill(cur.amt, prev.amt)}</div>
+      <div class="pop-compare">
+        <div class="pop-bar-row is-cur"><span class="pop-bar-tag">Current</span>
+          <div class="pop-bar-track"><div class="pop-bar-fill cur" style="width:${curW}%"></div></div>
+          <span class="pop-bar-val">${fmtV(cur.amt)}</span><span class="pop-bar-asp">Qty ${fmt(cur.qty)}</span></div>
+        <div class="pop-bar-row is-prev"><span class="pop-bar-tag">Prior</span>
+          <div class="pop-bar-track"><div class="pop-bar-fill prev" style="width:${prevW}%"></div></div>
+          <span class="pop-bar-val">${fmtV(prev.amt)}</span><span class="pop-bar-asp">Qty ${fmt(prev.qty)}</span></div>
+      </div>
+      <div class="pop-metrics">
+        <div class="pop-metric"><div class="pm-top"><span class="pm-label">Order Qty</span>${pmDelta(cur.qty, prev.qty)}</div><div class="pm-val">${fmt(cur.qty)}</div></div>
+        <div class="pop-metric"><div class="pm-top"><span class="pm-label">Orders</span>${pmDelta(cur.orders, prev.orders)}</div><div class="pm-val">${fmt(cur.orders)}</div></div>
+        <div class="pop-metric"><div class="pm-top"><span class="pm-label">Avg / Order</span>${pmDelta(aovCur, aovPrev)}</div><div class="pm-val">${fmtV(aovCur)}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── SECTION 3 · Top SKU Performance (top 5 by PO qty) ──
+  function topSku(fromISO, toISO) {
+    const m = {};
+    for (const r of filtered) { const d = r.order_dt; if (!d || d < fromISO || d > toISO) continue; const k = r.product_code || '\u2014'; m[k] = (m[k] || 0) + (r.total_qty || 0); }
+    return Object.entries(m).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }
+  const skuPeriods = [
+    { ico: '📅', label: 'This Month',   range: [ymd(ay, am, 1), ymd(ay, am, lastDay(ay, am))] },
+    { ico: '📅', label: 'Last Month',   range: [ymd(pm.y, pm.m, 1), ymd(pm.y, pm.m, lastDay(pm.y, pm.m))] },
+    { ico: '🗓️', label: 'This Quarter', range: [ymd(ay, qStartM, 1), ymd(ay, qStartM + 2, lastDay(ay, qStartM + 2))] },
+    { ico: '🗓️', label: 'Last Quarter', range: [ymd(prevQ.y, prevQ.sm, 1), ymd(prevQ.y, prevQ.sm + 2, lastDay(prevQ.y, prevQ.sm + 2))] },
+    { ico: '📈', label: 'This Year',    range: [ymd(ay, 1, 1), ymd(ay, 12, 31)] },
+    { ico: '📈', label: 'Last Year',    range: [ymd(ay - 1, 1, 1), ymd(ay - 1, 12, 31)] },
+  ];
+  const skuCards = skuPeriods.map(sp => {
+    const top = topSku(sp.range[0], sp.range[1]);
+    const rows = top.length
+      ? top.map((e, i) => `<div class="sku-row"><span class="sku-rank">${i + 1}</span><span class="sku-name" title="${escapeHtml(e[0])}">${escapeHtml(e[0])}</span><span class="sku-qty">${fmt(e[1])}</span></div>`).join('')
+      : '<div class="sku-empty">No orders in this period</div>';
+    return `<div class="sku-card"><div class="sku-card-head"><span class="sku-ico">${sp.ico}</span>${sp.label} · Top 5 SKU</div>${rows}</div>`;
+  }).join('');
+
+  // ── SECTION 4 · Last 3 months (Order vs Dispatch) ──
+  function monthAgg(y, m) {
+    const f = ymd(y, m, 1), t = ymd(y, m, lastDay(y, m));
+    let oq = 0, ov = 0, dq = 0, dv = 0;
+    for (const r of filtered) {
+      if (r.order_dt >= f && r.order_dt <= t) { oq += r.total_qty || 0; ov += r.value || 0; }
+      if (r.dispatch_dt && r.dispatch_dt >= f && r.dispatch_dt <= t) { dq += r.total_qty || 0; dv += r.value || 0; }
+    }
+    return { oq, ov, dq, dv };
+  }
+  const l3 = []; let yy = ay, mm = am;
+  for (let i = 0; i < 3; i++) { l3.push({ y: yy, m: mm, a: monthAgg(yy, mm) }); mm--; if (mm < 1) { mm = 12; yy--; } }
+  let toq = 0, tov = 0, tdq = 0, tdv = 0; l3.forEach(x => { toq += x.a.oq; tov += x.a.ov; tdq += x.a.dq; tdv += x.a.dv; });
+  const l3rows = l3.map(x => `<tr><td>${monName(x.y, x.m)}</td><td>${fmt(x.a.oq)}</td><td>${fmtV(x.a.ov)}</td><td>${fmt(x.a.dq)}</td><td>${fmtV(x.a.dv)}</td></tr>`).join('');
+  const l3table = `<table class="l3-table"><thead><tr><th>Month</th><th>Order Qty</th><th>Order Value</th><th>Dispatch Qty</th><th>Dispatch Value</th></tr></thead><tbody>${l3rows}<tr class="l3-total"><td>Total</td><td>${fmt(toq)}</td><td>${fmtV(tov)}</td><td>${fmt(tdq)}</td><td>${fmtV(tdv)}</td></tr></tbody></table>`;
+
+  // ── Assemble ──
+  const dts = []; for (const r of filtered) if (r.order_dt) dts.push(r.order_dt); dts.sort();
+  const span = dts.length ? `${fmtDate(dts[0])} – ${fmtDate(dts[dts.length - 1])}` : '—';
+
+  host.innerHTML = `
+    <div class="sec-header"><div class="sec-title">Summary <span class="sec-badge" style="background:var(--accent-light);color:var(--accent)">Live · Filtered</span></div></div>
+    <div class="metric-sub" style="margin:-4px 0 12px;color:var(--text3);">Order Received Date · <b style="color:var(--text2);font-weight:600;">${span}</b></div>
+    <div class="metric-grid">${summaryCards}</div>
+
+    <div class="sec-header" style="margin-top:24px;"><div class="sec-title">Period-over-Period <span class="sec-badge" style="background:var(--blue-light);color:var(--blue)">Current vs Prior</span></div></div>
+    <div class="pop-grid4">${popCards}</div>
+
+    <div class="sec-header" style="margin-top:24px;"><div class="sec-title">Top SKU Performance <span class="sec-badge" style="background:var(--accent2-light);color:var(--accent2)">Top 5 · PO Qty</span></div></div>
+    <div class="sku-grid">${skuCards}</div>
+
+    <div class="sec-header" style="margin-top:24px;"><div class="sec-title">Last 3 Months <span class="sec-badge" style="background:var(--gold-light);color:var(--gold)">Order vs Dispatch</span></div></div>
+    ${l3table}
+  `;
 }
 
 // ── Date helpers for the trend grid (shift month key, label) ──
