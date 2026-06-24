@@ -929,6 +929,14 @@
 
   @keyframes lpRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
   @media (prefers-reduced-motion:reduce){.lp-track,.lp-aura span,.lp-orbit,.lp-card::before,.lp-btn::after{animation:none!important;}}
+
+  /* ── REPORT 1: measure pills (purple) + Date-Basis segmented toggle (green) ── */
+  .zmom-pill.met-pill.active{background:var(--accent2);border-color:var(--accent2);color:#fff;box-shadow:0 1px 5px rgba(107,79,160,.28);}
+  .db-seg{display:inline-flex;align-items:center;background:var(--surface);border:1.5px solid var(--accent);border-radius:999px;padding:2px;gap:2px;}
+  .db-opt{padding:6px 15px;border:none;background:transparent;color:var(--accent);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;border-radius:999px;transition:all .15s;white-space:nowrap;}
+  .db-opt:hover{opacity:.82;}
+  .db-opt.active{background:linear-gradient(135deg,#247a4d,#1a5f3a);color:#fff;box-shadow:0 2px 7px rgba(26,95,58,.30);}
+  .bt-break{flex-basis:100%;height:0;margin:0;padding:0;}
 </style>
 </head>
 <body>
@@ -1119,7 +1127,7 @@
       </button>
       <button class="tab-btn" data-tab="report1">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-        <span>Report 1</span>
+        <span>Performance Trends</span>
       </button>
       <button class="tab-btn" data-tab="report2">
         <svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 8.4 12 13 3.4 8.4M12 13v8M20.6 8.4 12 3.8 3.4 8.4v7.2L12 20.2l8.6-4.6Z"/></svg>
@@ -1170,6 +1178,24 @@
 // ═══════════════════════════════════════════════════════════════
 let RAW = [];
 let filtered = [];
+
+// ── REPORT 1 — "Performance Trends" (independent of the global filters) ──
+const R1_TITLE = 'Performance Trends';
+let r1Year = null, r1Dim = 'product', r1View = 'month', r1Metric = 'all', r1Basis = 'order';
+let r1Search = '', r1SearchActive = false;
+const r1Filt = { retailer: new Set(), distributor: new Set(), salesrep: new Set() };
+const R1_DIMS = [
+  { k: 'product',     label: 'Product',     field: 'product_code' },
+  { k: 'brand',       label: 'Brand',       field: 'brand_name'   },
+  { k: 'retailer',    label: 'Retailer',    field: 'retailer_name'},
+  { k: 'distributor', label: 'Distributor', field: 'distributor'  },
+  { k: 'salesrep',    label: 'Sales Rep',   field: 'sales_rep'    },
+];
+const R1_FILTERS = [
+  { key: 'retailer',    label: 'Retailer Name',              field: 'retailer_name' },
+  { key: 'distributor', label: 'Sales Agency / Distributor', field: 'distributor'   },
+  { key: 'salesrep',    label: 'Sales Rep',                  field: 'sales_rep'     },
+];
 
 // ── API URL configuration ──
 // Save your data file next to index.html as "data.json" (or edit the path below).
@@ -1784,6 +1810,7 @@ function initializeDashboard() {
     document.getElementById('dateTo').value   = dataMaxDate;
   }
   applyFilters();
+  renderReport1();
   adjustStickyTops();
   requestAnimationFrame(adjustStickyTops);
 }
@@ -1832,9 +1859,235 @@ function renderOverview() {
     `<div class="metric-grid">${cards}</div>`;
 }
 
+// ── Date helpers for the trend grid (shift month key, label) ──
+function zmomKeyShift(key, dMonths) {
+  let [y, m] = key.split('-').map(Number);
+  m += dMonths;
+  while (m < 1) { m += 12; y--; }
+  while (m > 12) { m -= 12; y++; }
+  return y + '-' + String(m).padStart(2, '0');
+}
+function zmomMonLabel(key) {
+  const [y, m] = key.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REPORT 1 — Performance Trends  (modeled on GT "Product Trends")
+//   Independent of the global filters. Own Search / Year / View(Month·Quarter)
+//   / Measure(All·Qty·Value) / Dimension / Date-Basis(Order·Dispatch) + local
+//   filters: Retailer / Distributor / Sales Rep.
+// ═══════════════════════════════════════════════════════════════
+function r1MonthKey(r) {
+  const d = (r1Basis === 'order') ? r.order_dt : r.dispatch_dt;
+  return (d && d.length >= 7) ? d.slice(0, 7) : '';
+}
+function r1MetricSub() { return r1Metric === 'qty' ? 'Qty' : r1Metric === 'value' ? 'Value' : 'Value · Qty'; }
+
+function renderReport1() {
+  const host = document.getElementById('secReport1');
+  if (!host) return;
+  if (!RAW || !RAW.length) { host.innerHTML = '<div class="no-data">No data loaded.</div>'; return; }
+
+  if (!['month', 'quarter'].includes(r1View))     r1View = 'month';
+  if (!['all', 'qty', 'value'].includes(r1Metric)) r1Metric = 'all';
+  if (!['order', 'dispatch'].includes(r1Basis))    r1Basis = 'order';
+  const dimCfg = R1_DIMS.find(d => d.k === r1Dim) || R1_DIMS[0];
+  const field  = dimCfg.field;
+
+  // Local filter option lists (from full RAW), prune stale selections
+  const optsFor = f => [...new Set(RAW.map(r => r[f]).filter(v => v != null && v !== ''))].sort((a, b) => String(a).localeCompare(String(b), 'en', { numeric: true }));
+  const allOpts = { retailer: optsFor('retailer_name'), distributor: optsFor('distributor'), salesrep: optsFor('sales_rep') };
+  const fmap = { retailer: 'retailer_name', distributor: 'distributor', salesrep: 'sales_rep' };
+  R1_FILTERS.forEach(f => { const valid = new Set(allOpts[f.key]); [...r1Filt[f.key]].forEach(v => { if (!valid.has(v)) r1Filt[f.key].delete(v); }); });
+
+  // Apply local filters
+  const workRAW = RAW.filter(r => {
+    for (const f of R1_FILTERS) { const sel = r1Filt[f.key]; if (sel.size && !sel.has(r[fmap[f.key]])) return false; }
+    return true;
+  });
+
+  // Aggregate qty (po_total_qty) & value by dimension × monthKey (per chosen date basis)
+  const qty = {}, val = {}, monthsSet = new Set(), keysSet = new Set();
+  for (let i = 0; i < workRAW.length; i++) {
+    const r = workRAW[i];
+    const mk = r1MonthKey(r); if (!mk) continue;
+    const k = (r[field] == null || r[field] === '') ? '\u2014' : String(r[field]);
+    keysSet.add(k); monthsSet.add(mk);
+    (qty[k] || (qty[k] = {}))[mk] = (qty[k][mk] || 0) + (r.total_qty || 0);
+    (val[k] || (val[k] = {}))[mk] = (val[k][mk] || 0) + (r.value || 0);
+  }
+
+  // Years present (calendar)
+  const ySet = new Set(); monthsSet.forEach(mk => ySet.add(+mk.slice(0, 4)));
+  const yList = [...ySet].sort((a, b) => b - a);
+  let selY = r1Year;
+  if (selY == null || !ySet.has(selY)) { selY = yList[0]; r1Year = selY; }
+  const yMonths = []; for (let i = 0; i < 12; i++) yMonths.push(zmomKeyShift(selY + '-01', i));
+
+  const qAt = (k, mk) => (qty[k] && qty[k][mk]) || 0, vAt = (k, mk) => (val[k] && val[k][mk]) || 0;
+  const yQ = {}, yV = {};
+  keysSet.forEach(k => { let q = 0, s = 0; yMonths.forEach(mk => { q += qAt(k, mk); s += vAt(k, mk); }); yQ[k] = q; yV[k] = s; });
+
+  // Rows sorted by year-total value (desc), then name; then search-filtered
+  let rowsArr = [...keysSet].sort((a, b) => { const d = yV[b] - yV[a]; return d !== 0 ? d : String(a).localeCompare(String(b)); });
+  const sq = (r1Search || '').trim().toLowerCase();
+  if (sq) rowsArr = rowsArr.filter(k => String(k).toLowerCase().includes(sq));
+
+  // Columns: Month (12, newest first) or Quarter (Q4→Q1)
+  let cols, getv;
+  if (r1View === 'quarter') {
+    const quarters = [
+      { id: 'Q1', label: 'Q1', sub: 'Jan–Mar', mons: yMonths.slice(0, 3)  },
+      { id: 'Q2', label: 'Q2', sub: 'Apr–Jun', mons: yMonths.slice(3, 6)  },
+      { id: 'Q3', label: 'Q3', sub: 'Jul–Sep', mons: yMonths.slice(6, 9)  },
+      { id: 'Q4', label: 'Q4', sub: 'Oct–Dec', mons: yMonths.slice(9, 12) },
+    ];
+    cols = quarters.slice().reverse();
+    getv = (k, c) => { let q = 0, s = 0; c.mons.forEach(mk => { q += qAt(k, mk); s += vAt(k, mk); }); return { q, s }; };
+  } else {
+    cols = yMonths.slice().sort().reverse().map(mk => ({ id: mk, label: zmomMonLabel(mk), sub: r1MetricSub() }));
+    getv = (k, c) => ({ q: qAt(k, c.id), s: vAt(k, c.id) });
+  }
+
+  // Heatmap scaled by the primary metric (qty when Qty view, else value)
+  const prim = v => r1Metric === 'qty' ? v.q : v.s;
+  let maxP = 0; rowsArr.forEach(k => cols.forEach(c => { maxP = Math.max(maxP, prim(getv(k, c))); }));
+
+  const TOTAL = '__ALL__';
+  yQ[TOTAL] = rowsArr.reduce((a, k) => a + yQ[k], 0); yV[TOTAL] = rowsArr.reduce((a, k) => a + yV[k], 0);
+  const colTotal = c => { let q = 0, s = 0; rowsArr.forEach(k => { const v = getv(k, c); q += v.q; s += v.s; }); return { q, s }; };
+
+  function cellInner(v) {
+    const has = v.q || v.s;
+    if (!has) return '<div class="pt-cell"><div class="pt-sale">—</div><div class="pt-qty"></div></div>';
+    if (r1Metric === 'qty')   return `<div class="pt-cell"><div class="pt-sale">${fmt(v.q)}</div><div class="pt-qty"></div></div>`;
+    if (r1Metric === 'value') return `<div class="pt-cell"><div class="pt-sale">${fmtV(v.s)}</div><div class="pt-qty"></div></div>`;
+    return `<div class="pt-cell"><div class="pt-sale">${fmtV(v.s)}</div><div class="pt-qty">${fmt(v.q)} qty</div></div>`;
+  }
+  const cellHtml = v => { const p = prim(v); const style = p ? `background:rgba(45,122,78,${(0.05 + 0.30 * (maxP ? Math.min(1, p / maxP) : 0)).toFixed(3)});` : ''; return `<td class="zcell" style="${style}">${cellInner(v)}</td>`; };
+  const fyCellHtml = (q, s) => {
+    if (r1Metric === 'qty')   return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmt(q)}</div><div class="pt-qty"></div></div></td>`;
+    if (r1Metric === 'value') return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(s)}</div><div class="pt-qty"></div></div></td>`;
+    return `<td class="fycol"><div class="pt-cell"><div class="pt-sale">${fmtV(s)}</div><div class="pt-qty">${fmt(q)} qty</div></div></td>`;
+  };
+
+  const dimW = 200;
+  const rowFor = (k, isTotal) => {
+    const cells = cols.map(c => cellHtml(isTotal ? colTotal(c) : getv(k, c))).join('');
+    const fq = isTotal ? yQ[TOTAL] : yQ[k], fs = isTotal ? yV[TOTAL] : yV[k];
+    const dimCell = isTotal
+      ? `<td class="zcol zlast" style="left:0;min-width:${dimW}px">TOTAL</td>`
+      : `<td class="zcol zlast zwrap" style="left:0;min-width:${dimW}px;max-width:${dimW}px;width:${dimW}px" title="${escapeHtml(k)}">${escapeHtml(k)}</td>`;
+    return `<tr class="${isTotal ? 'total-row' : ''}">${dimCell}${fyCellHtml(fq, fs)}${cells}</tr>`;
+  };
+
+  const headCells = cols.map(c => `<th>${escapeHtml(c.label)}<span class="th-sub">${escapeHtml(c.sub)}</span></th>`).join('');
+  const thead = `<thead><tr>
+    <th class="zcol zlast" style="left:0;min-width:${dimW}px">${escapeHtml(dimCfg.label)}</th>
+    <th class="fycol">${selY}<span class="th-sub">${escapeHtml(r1MetricSub())}</span></th>
+    ${headCells}
+  </tr></thead>`;
+  const body = rowsArr.length
+    ? rowsArr.map(k => rowFor(k, false)).join('') + rowFor(TOTAL, true)
+    : `<tr><td class="zcol zlast" style="left:0;min-width:${dimW}px">—</td><td colspan="${cols.length + 1}" style="padding:18px;text-align:center;color:var(--text3)">No ${escapeHtml(dimCfg.label.toLowerCase())} matches.</td></tr>`;
+
+  // ── Toolbar (two lines) ──
+  const yPills   = yList.map(f => `<button class="zmom-pill fy-pill${f === selY ? ' active' : ''}" data-r1y="${f}">${f}</button>`).join('');
+  const dimPills = R1_DIMS.map(d => `<button class="zmom-pill m-pill${d.k === r1Dim ? ' active' : ''}" data-r1dim="${d.k}">${escapeHtml(d.label)}</button>`).join('');
+  const viewPills = [{ k: 'month', label: 'Month' }, { k: 'quarter', label: 'Quarter' }].map(v => `<button class="zmom-pill v-pill${v.k === r1View ? ' active' : ''}" data-r1view="${v.k}">${v.label}</button>`).join('');
+  const metPills = [{ k: 'all', label: 'All' }, { k: 'qty', label: 'Qty' }, { k: 'value', label: 'Value' }].map(m => `<button class="zmom-pill met-pill${m.k === r1Metric ? ' active' : ''}" data-r1met="${m.k}">${m.label}</button>`).join('');
+
+  function r1Chip(f) {
+    const n = r1Filt[f.key].size;
+    const badge = `<span class="mc-badge" id="r1badge-${f.key}" style="display:${n ? 'inline-flex' : 'none'}">${n}</span>`;
+    return `<div class="mc bt-chip"><button class="mc-btn${n ? ' active' : ''}" id="r1btn-${f.key}" type="button"><span>${escapeHtml(f.label)}</span>${badge}<span class="mc-chev">▾</span></button><div class="mc-panel" id="r1panel-${f.key}"><input type="text" class="ms-search" id="r1search-${f.key}" placeholder="Search ${escapeHtml(f.label.toLowerCase())}…"><div class="ms-list" id="r1list-${f.key}"></div><div class="ms-actions"><button class="ms-action-btn" data-r1act="all" data-r1k="${f.key}">Select All</button><button class="ms-action-btn" data-r1act="clear" data-r1k="${f.key}">Clear All</button></div></div></div>`;
+  }
+
+  const basisLabel = r1Basis === 'order' ? 'Order Received Date' : 'Dispatch Date';
+  const note = (r1View === 'quarter'
+      ? `Quarters of ${selY} (Q1 Jan–Mar … Q4 Oct–Dec), newest first`
+      : `Months Jan→Dec of ${selY}, newest first`)
+    + ` · grouped by ${escapeHtml(dimCfg.label)} · period derived from <b>${escapeHtml(basisLabel)}</b>`
+    + (r1Basis === 'dispatch' ? ' · rows without a dispatch date are excluded' : '')
+    + ` · independent of the global filters.`;
+
+  host.innerHTML = `
+    <div class="bt-bar">
+      <div class="bt-fg"><label class="bt-flabel">Search</label>
+        <div class="kpi-search-wrap" style="max-width:200px"><span class="kpi-search-ic">⌕</span>
+          <input type="text" class="kpi-searchbox r1-search" placeholder="Search ${escapeHtml(dimCfg.label.toLowerCase())}…" value="${escapeHtml(r1Search)}" autocomplete="off"></div></div>
+      <div class="bt-fg"><label class="bt-flabel">Year</label><div class="bt-chips">${yPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">View</label><div class="bt-chips">${viewPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Measure</label><div class="bt-chips">${metPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Date Basis</label>
+        <div class="db-seg"><button class="db-opt${r1Basis === 'order' ? ' active' : ''}" data-r1basis="order">Order Received</button><button class="db-opt${r1Basis === 'dispatch' ? ' active' : ''}" data-r1basis="dispatch">Dispatch Date</button></div></div>
+      <div class="bt-break"></div>
+      <div class="bt-fg"><label class="bt-flabel">Dimension</label><div class="bt-chips">${dimPills}</div></div>
+      <div class="bt-fg"><label class="bt-flabel">Filters</label><div class="bt-chips">${R1_FILTERS.map(r1Chip).join('')}</div></div>
+      <button class="kpi-reset" id="r1Reset" title="Clear all Performance Trends filters">↺ Reset</button>
+      <div class="bt-period" style="margin-left:auto;">
+        <span class="bt-period-rng"><b>${selY}</b> · Jan–Dec</span>
+        <span class="bt-period-tag">${escapeHtml(R1_TITLE)}</span>
+      </div>
+    </div>
+    <div class="zmom-wrap"><table class="zmom">${thead}<tbody>${body}</tbody></table></div>
+    <div style="margin-top:7px;font-size:11px;color:var(--text2);">${note}</div>`;
+
+  // ── Wire controls ──
+  host.querySelectorAll('.fy-pill').forEach(b => b.addEventListener('click', () => { r1Year = +b.dataset.r1y; renderReport1(); }));
+  host.querySelectorAll('.v-pill').forEach(b => b.addEventListener('click', () => { r1View = b.dataset.r1view; renderReport1(); }));
+  host.querySelectorAll('.m-pill').forEach(b => b.addEventListener('click', () => { r1Dim = b.dataset.r1dim; r1Search = ''; r1SearchActive = false; renderReport1(); }));
+  host.querySelectorAll('.met-pill').forEach(b => b.addEventListener('click', () => { r1Metric = b.dataset.r1met; renderReport1(); }));
+  host.querySelectorAll('.db-opt').forEach(b => b.addEventListener('click', () => { r1Basis = b.dataset.r1basis; r1Year = null; renderReport1(); }));
+
+  const si = host.querySelector('.r1-search');
+  if (si) {
+    si.addEventListener('input', () => { r1Search = si.value; r1SearchActive = true; renderReport1(); });
+    si.addEventListener('focus', () => { r1SearchActive = true; });
+    si.addEventListener('blur',  () => { r1SearchActive = false; });
+    if (r1SearchActive) { si.focus(); const L = si.value.length; si.setSelectionRange(L, L); }
+  }
+  const rst = host.querySelector('#r1Reset');
+  if (rst) rst.addEventListener('click', () => { R1_FILTERS.forEach(f => r1Filt[f.key].clear()); r1Search = ''; r1SearchActive = false; renderReport1(); });
+
+  R1_FILTERS.forEach(f => {
+    const key = f.key;
+    const btn = host.querySelector('#r1btn-' + key), panel = host.querySelector('#r1panel-' + key);
+    const search = host.querySelector('#r1search-' + key), list = host.querySelector('#r1list-' + key);
+    if (!btn || !panel) return;
+    btn.addEventListener('click', () => {
+      const open = panel.classList.contains('open');
+      host.querySelectorAll('.mc-panel.open').forEach(p => p.classList.remove('open'));
+      host.querySelectorAll('.mc-btn.open').forEach(b => b.classList.remove('open'));
+      if (!open) { panel.classList.add('open'); btn.classList.add('open'); if (search) setTimeout(() => search.focus(), 0); }
+    });
+    function renderR1List(qq) {
+      qq = (qq || '').trim().toLowerCase();
+      const items = allOpts[key].filter(o => !qq || String(o).toLowerCase().includes(qq));
+      list.innerHTML = items.length
+        ? items.map(o => `<label class="ms-item"><input type="checkbox" data-v="${escapeHtml(o)}" ${r1Filt[key].has(o) ? 'checked' : ''}><span>${escapeHtml(o)}</span></label>`).join('')
+        : '<div style="padding:10px 13px;color:var(--text3);font-size:12px">No matches</div>';
+      list.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => {
+        const v = cb.dataset.v; if (cb.checked) r1Filt[key].add(v); else r1Filt[key].delete(v);
+        renderReport1();
+      }));
+    }
+    if (search) search.addEventListener('input', () => renderR1List(search.value));
+    renderR1List('');
+  });
+  host.querySelectorAll('.ms-action-btn[data-r1k]').forEach(b => b.addEventListener('click', () => {
+    const key = b.dataset.r1k, sb = host.querySelector('#r1search-' + key);
+    if (b.dataset.r1act === 'all') {
+      const qq = (sb && sb.value ? sb.value : '').trim().toLowerCase();
+      (qq ? allOpts[key].filter(o => String(o).toLowerCase().includes(qq)) : allOpts[key]).forEach(v => r1Filt[key].add(v));
+    } else { r1Filt[key].clear(); if (sb) sb.value = ''; }
+    renderReport1();
+  }));
+}
+
 function renderDummies() {
   const tabs = [
-    { id: 'secReport1', name: 'Report 1' },
     { id: 'secReport2', name: 'Report 2' },
     { id: 'secReport3', name: 'Report 3' },
     { id: 'secReport4', name: 'Report 4' },
@@ -1877,6 +2130,9 @@ function setup() {
       const tab = btn.dataset.tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+      const fb = document.getElementById('filterBar');
+      if (fb) fb.style.display = (tab === 'report1') ? 'none' : '';
+      if (tab === 'report1') renderReport1();
       adjustStickyTops();
     });
   });
