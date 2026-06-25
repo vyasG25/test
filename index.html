@@ -1025,40 +1025,57 @@
   .ex-g.na{ background:var(--surface2); color:var(--text3); border:1px solid var(--border); font-weight:600; }
   .ex-g .a{ font-size:8px; }
 
-  /* ── PIPELINE FUNNEL ── */
-  .ex-pipe{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px;
-    box-shadow:var(--shadow); }
+  /* ── PIPELINE FUNNEL (modern card rail) ── */
+  .ex-pipe{ background:transparent; border:none; padding:0; box-shadow:none; }
   .ex-flow{ display:flex; align-items:stretch; gap:0; flex-wrap:wrap; }
-  .ex-node{ flex:1; min-width:172px; position:relative; padding:6px 12px; display:flex; flex-direction:column; }
-  .ex-node-top{ display:flex; align-items:center; gap:8px; margin-bottom:11px; }
-  .ex-node-ic{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center;
-    background:var(--nc-l); color:var(--nc); flex-shrink:0; }
+  .ex-node{ flex:1 1 0; min-width:196px; position:relative; display:flex; flex-direction:column;
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:17px 17px 15px; overflow:hidden;
+    box-shadow:0 1px 2px rgba(30,28,24,.05), 0 6px 16px -12px rgba(30,28,24,.22);
+    transition:box-shadow .2s ease, transform .2s ease, border-color .2s ease; }
+  .ex-node::before{ content:''; position:absolute; left:0; right:0; top:0; height:3px;
+    background:var(--nc);
+    background:linear-gradient(90deg,var(--nc),color-mix(in srgb,var(--nc) 55%, #ffffff)); }
+  .ex-node::after{ content:''; position:absolute; right:-40px; top:-40px; width:120px; height:120px; border-radius:50%;
+    background:radial-gradient(circle, color-mix(in srgb,var(--nc) 9%, transparent) 0%, transparent 70%); pointer-events:none; }
+  .ex-node:hover{ box-shadow:0 2px 4px rgba(30,28,24,.06), 0 16px 30px -16px rgba(30,28,24,.32);
+    transform:translateY(-3px); border-color:color-mix(in srgb,var(--nc) 30%, var(--border)); }
+  .ex-node-top{ display:flex; align-items:center; gap:9px; margin-bottom:13px; }
+  .ex-node-ic{ width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:var(--nc-l); color:var(--nc); flex-shrink:0;
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--nc) 18%, transparent); }
   .ex-node-ic svg{ width:16px; height:16px; }
-  .ex-node-name{ font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.4px; line-height:1.2; }
-  .ex-node-val{ font-size:24px; font-weight:700; color:var(--text); line-height:1; letter-spacing:-.5px; }
-  .ex-node-qty{ font-size:13px; color:var(--text2); font-weight:600; margin-top:6px; }
-  .ex-node-orders{ font-size:11.5px; color:var(--text3); font-weight:600; margin-top:3px; }
-  .ex-node-grow{ display:flex; flex-direction:column; gap:5px; margin-top:11px; }
-  .ex-ng{ display:flex; align-items:center; gap:7px; }
-  .ex-ng em{ font-style:normal; font-size:10.5px; color:var(--text3); font-weight:600; letter-spacing:.2px; }
-  .ex-node-money{ font-size:12.5px; color:var(--text2); font-weight:600; margin-top:4px; }
-  .ex-node-conv{ font-size:11px; color:var(--nc); font-weight:700; margin-top:7px; display:inline-flex; align-items:center; gap:4px; }
-  .ex-node .ex-spark{ margin-top:11px; }
-  .ex-node-track{ height:5px; border-radius:4px; background:var(--surface2); margin-top:10px; overflow:hidden; }
-  .ex-node-fill{ height:100%; border-radius:4px; background:var(--nc); }
-  .ex-arrow{ display:flex; align-items:center; color:var(--text3); padding:0 2px; font-size:18px; align-self:center; }
-  @media(max-width:980px){ .ex-arrow{ display:none; } .ex-node{ min-width:46%; border:1px solid var(--border);
-    border-radius:var(--rs); margin:4px; } }
-  .ex-pipe-foot{ display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:18px; }
+  .ex-node-name{ font-size:11px; font-weight:800; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; line-height:1.2; }
+  .ex-node-val{ font-size:25px; font-weight:700; color:var(--text); line-height:1; letter-spacing:-.6px; }
+  .ex-node-qty{ font-size:13px; color:var(--text2); font-weight:600; margin-top:7px; }
+  .ex-node-line{ display:flex; align-items:center; flex-wrap:wrap; gap:7px 11px; margin-top:9px;
+    padding-top:9px; border-top:1px dashed var(--border); }
+  .ex-node-orders{ font-size:11.5px; color:var(--text3); font-weight:700; }
+  .ex-ng-i{ display:inline-flex; align-items:center; gap:5px; }
+  .ex-ng-i em{ font-style:normal; font-size:9.5px; color:var(--text3); font-weight:800; letter-spacing:.4px; }
+  .ex-node .ex-spark{ margin-top:12px; height:36px; }
+  .ex-node-track{ height:5px; border-radius:4px; background:var(--surface2); margin-top:11px; overflow:hidden;
+    box-shadow:inset 0 0 0 1px var(--border); }
+  .ex-node-fill{ height:100%; border-radius:4px; background:var(--nc);
+    background:linear-gradient(90deg,var(--nc),color-mix(in srgb,var(--nc) 70%, #ffffff)); }
+  .ex-arrow{ display:flex; align-items:center; justify-content:center; align-self:center; flex:0 0 30px; }
+  .ex-arrow span{ width:9px; height:9px; border-top:2px solid var(--border2); border-right:2px solid var(--border2);
+    transform:rotate(45deg); display:block; }
+  @media(max-width:980px){ .ex-arrow{ display:none; } .ex-node{ min-width:45%; margin:5px; } }
+  @media(max-width:560px){ .ex-node{ min-width:100%; margin:5px 0; } }
+  .ex-pipe-foot{ display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:15px; }
   @media(max-width:980px){ .ex-pipe-foot{ grid-template-columns:repeat(2,1fr); } }
   @media(max-width:680px){ .ex-pipe-foot{ grid-template-columns:1fr; } }
-  .ex-out{ display:flex; align-items:center; gap:13px; padding:14px 16px; border-radius:var(--r);
-    border:1px solid var(--oc-b); background:var(--oc-l); }
-  .ex-out-ic{ width:38px; height:38px; border-radius:10px; background:#fff; display:flex; align-items:center;
-    justify-content:center; color:var(--oc); flex-shrink:0; box-shadow:var(--shadow); }
+  .ex-out{ display:flex; align-items:center; gap:13px; padding:15px 17px; border-radius:15px;
+    border:1px solid var(--oc-b); background:var(--oc-l);
+    background:linear-gradient(180deg,var(--oc-l),color-mix(in srgb,var(--oc-l) 55%, var(--surface)));
+    box-shadow:0 1px 2px rgba(30,28,24,.04); transition:box-shadow .2s ease, transform .2s ease; }
+  .ex-out:hover{ box-shadow:0 10px 22px -14px rgba(30,28,24,.3); transform:translateY(-2px); }
+  .ex-out-ic{ width:40px; height:40px; border-radius:11px; background:var(--surface); display:flex; align-items:center;
+    justify-content:center; color:var(--oc); flex-shrink:0; box-shadow:var(--shadow), inset 0 0 0 1px color-mix(in srgb,var(--oc) 14%, transparent); }
   .ex-out-ic svg{ width:19px; height:19px; }
-  .ex-out-l{ font-size:11px; font-weight:700; color:var(--oc); text-transform:uppercase; letter-spacing:.5px; }
-  .ex-out-v{ font-size:19px; font-weight:700; color:var(--text); line-height:1.1; }
+  .ex-out-l{ font-size:11px; font-weight:800; color:var(--oc); text-transform:uppercase; letter-spacing:.5px; }
+  .ex-out-v{ font-size:19px; font-weight:700; color:var(--text); line-height:1.1; margin-top:1px; }
   .ex-out-s{ font-size:11.5px; color:var(--text2); margin-top:2px; }
 
   /* ── COMPARISON RIBBONS (business performance) ── */
@@ -3119,19 +3136,18 @@ function renderDashboard() {
     return { cur: s[cur] || 0, prev: s[prevK] || 0, ly: s[lyK] || 0, spark: exMonthsBack(cur, 12).map(m => s[m] || 0) };
   };
 
-  // enriched stage card: Value ▸ Qty ▸ #orders ▸ growth (vs last mo / vs LYSM) ▸ sparkline
-  const node = (name, color, cl, icon, money, qty, orders, series, fillPct) => {
+  // stage card: Value ▸ Qty ▸ [orders · LM · LYSM in one line] ▸ sparkline ▸ funnel bar
+  const node = (name, color, cl, icon, money, qty, orders, series, fillPct, showGrowth) => {
     const st = nodeStats(series);
+    const growth = showGrowth
+      ? `<span class="ex-ng-i">${exG(st.cur, st.prev)}<em>LM</em></span><span class="ex-ng-i">${exG(st.cur, st.ly)}<em>LYSM</em></span>`
+      : '';
     return `
     <div class="ex-node" style="--nc:${color};--nc-l:${cl}">
       <div class="ex-node-top"><div class="ex-node-ic">${icon}</div><div class="ex-node-name">${name}</div></div>
       <div class="ex-node-val">${fmtV(money)}</div>
       <div class="ex-node-qty">${fmt(Math.round(qty))} qty</div>
-      <div class="ex-node-orders">${orders.toLocaleString('en-US')} orders</div>
-      <div class="ex-node-grow">
-        <span class="ex-ng">${exG(st.cur, st.prev)}<em>vs last mo</em></span>
-        <span class="ex-ng">${exG(st.cur, st.ly)}<em>vs LYSM</em></span>
-      </div>
+      <div class="ex-node-line"><span class="ex-node-orders">${orders.toLocaleString('en-US')} orders</span>${growth}</div>
       ${exSpark(st.spark, color)}
       <div class="ex-node-track"><div class="ex-node-fill" style="width:${Math.max(3, fillPct).toFixed(1)}%"></div></div>
     </div>`;
@@ -3143,7 +3159,7 @@ function renderDashboard() {
     truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
   };
-  const arrow = '<div class="ex-arrow">→</div>';
+  const arrow = '<div class="ex-arrow"><span></span></div>';
   H += `
   <div class="sec-header">
     <div class="sec-title">Order Pipeline <span class="sec-badge ex-badge-blue">Flow</span></div>
@@ -3151,13 +3167,13 @@ function renderDashboard() {
   </div>
   <div class="ex-pipe">
     <div class="ex-flow">
-      ${node('Orders Received', 'var(--ex-blue)', 'var(--blue-light)', IC.in, recV, recQ, recPO.size, ovM, 100)}
+      ${node('Orders Received', 'var(--ex-blue)', 'var(--blue-light)', IC.in, recV, recQ, recPO.size, ovM, 100, true)}
       ${arrow}
-      ${node('Future Dated', 'var(--ex-purple)', 'var(--accent2-light)', IC.clock, futV, futQ, futPO.size, futVM, pct(futV))}
+      ${node('Future Dated', 'var(--ex-purple)', 'var(--accent2-light)', IC.clock, futV, futQ, futPO.size, futVM, pct(futV), false)}
       ${arrow}
-      ${node('Back Orders', 'var(--ex-red)', 'var(--red-light)', IC.back, backV, backQ, backPO.size, backVM, pct(backV))}
+      ${node('Back Orders', 'var(--ex-red)', 'var(--red-light)', IC.back, backV, backQ, backPO.size, backVM, pct(backV), false)}
       ${arrow}
-      ${node('Dispatched', 'var(--ex-green)', 'var(--green-light)', IC.truck, dispV, dispQ, dispPO.size, dvM, pct(dispV))}
+      ${node('Dispatched', 'var(--ex-green)', 'var(--green-light)', IC.truck, dispV, dispQ, dispPO.size, dvM, pct(dispV), true)}
     </div>
     <div class="ex-pipe-foot">
       <div class="ex-out" style="--oc:var(--ex-warm);--oc-l:var(--warm-light);--oc-b:#fbe9cf">
