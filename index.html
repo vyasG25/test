@@ -1054,9 +1054,8 @@
   .ex-node-name{ font-size:11px; font-weight:800; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; line-height:1.25; }
   .ex-node-val{ font-size:25px; font-weight:700; color:var(--text); line-height:1; letter-spacing:-.6px; }
   .ex-node-qty{ font-size:13px; color:var(--text2); font-weight:600; margin-top:7px; }
-  .ex-node-line{ display:flex; align-items:center; flex-wrap:wrap; gap:7px 10px; margin-top:9px;
-    padding-top:9px; border-top:1px dashed var(--border); }
-  .ex-node-orders{ font-size:11.5px; color:var(--text3); font-weight:700; }
+  .ex-node-sep{ color:var(--text3); margin:0 6px; }
+  .ex-node-orders{ font-size:13px; color:var(--text3); font-weight:600; }
   .ex-ng-i{ display:inline-flex; align-items:center; gap:5px; }
   .ex-ng-i em{ font-style:normal; font-size:9.5px; color:var(--text3); font-weight:800; letter-spacing:.4px; }
   .ex-node .ex-spark{ margin-top:12px; height:34px; }
@@ -3179,18 +3178,14 @@ function renderDashboard() {
     return { cur: s[cur] || 0, prev: s[prevK] || 0, ly: s[lyK] || 0, spark: exMonthsBack(cur, 12).map(m => s[m] || 0) };
   };
 
-  // stage card: Value ▸ Qty ▸ [orders · LM · LYSM in one line] ▸ sparkline ▸ funnel bar
-  const node = (name, color, cl, icon, money, qty, orders, series, fillPct, showGrowth) => {
+  // stage card: Value ▸ [Qty · Orders] ▸ sparkline ▸ funnel bar
+  const node = (name, color, cl, icon, money, qty, orders, series, fillPct) => {
     const st = nodeStats(series);
-    const growth = showGrowth
-      ? `<span class="ex-ng-i">${exG(st.cur, st.prev)}<em>LM</em></span><span class="ex-ng-i">${exG(st.cur, st.ly)}<em>LYSM</em></span>`
-      : '';
     return `
     <div class="ex-node" style="--nc:${color};--nc-l:${cl}">
       <div class="ex-node-top"><div class="ex-node-ic">${icon}</div><div class="ex-node-name">${name}</div></div>
       <div class="ex-node-val">${fmtV(money)}</div>
-      <div class="ex-node-qty">${fmt(Math.round(qty))} qty</div>
-      <div class="ex-node-line"><span class="ex-node-orders">${orders.toLocaleString('en-US')} orders</span>${growth}</div>
+      <div class="ex-node-qty">${fmt(Math.round(qty))} qty<span class="ex-node-sep">·</span><span class="ex-node-orders">${orders.toLocaleString('en-US')} orders</span></div>
       ${exSpark(st.spark, color)}
       <div class="ex-node-track"><div class="ex-node-fill" style="width:${Math.max(3, fillPct).toFixed(1)}%"></div></div>
     </div>`;
