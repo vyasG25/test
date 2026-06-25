@@ -997,12 +997,14 @@
   .ex-mcard{ background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:18px 20px 16px;
     box-shadow:var(--shadow); margin-top:14px; }
   .ex-mcard-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:15px; }
-  .ex-mom-bars{ display:flex; align-items:flex-end; gap:5px; height:104px; }
-  .ex-mom-bars i{ flex:1; border-radius:4px 4px 0 0; min-height:4px; transition:height .3s ease, background .3s ease;
+  .ex-mom-bars{ display:flex; align-items:flex-end; gap:6px; }
+  .ex-mom-col{ flex:1; min-width:0; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; }
+  .ex-mom-cv{ font-size:8.5px; font-weight:700; color:var(--text2); margin-bottom:4px; white-space:nowrap; line-height:1; }
+  .ex-mom-col i{ width:100%; max-width:36px; border-radius:4px 4px 0 0; min-height:4px; transition:height .3s ease, background .3s ease;
     background:var(--blue-light); background:color-mix(in srgb, var(--mc) 22%, #ffffff); }
-  .ex-mom-bars i.hot{ background:var(--blue-grad); background:var(--mc); }
-  .ex-mom-axis{ display:flex; gap:5px; margin-top:7px; }
-  .ex-mom-axis span{ flex:1; text-align:center; font-size:10px; }
+  .ex-mom-col i.hot{ background:var(--blue-grad); background:var(--mc); }
+  .ex-mom-cx{ font-size:9px; color:var(--text3); font-weight:600; margin-top:7px; white-space:nowrap; line-height:1; }
+  @media(max-width:680px){ .ex-mom-cv{ font-size:7.5px; } .ex-mom-cx{ font-size:8px; } .ex-mom-bars{ gap:3px; } }
   .ex-mom-foot{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
     margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
   .ex-mom-figs{ display:flex; gap:28px; }
@@ -1104,6 +1106,38 @@
   .ex-cmp-vwrap{ display:flex; align-items:center; gap:9px; }
   .ex-cmp-v{ font-size:16px; font-weight:700; color:var(--text); letter-spacing:-.3px; }
   .ex-cmp-prev{ font-size:11px; color:var(--text3); }
+
+  /* ── PERIOD-OVER-PERIOD CARDS (image style) ── */
+  .ex-perf-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media(max-width:1024px){ .ex-perf-grid{ grid-template-columns:1fr; } }
+  .ex-perf-note{ color:var(--text3); font-weight:600; }
+  .ex-perf{ position:relative; background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    overflow:hidden; box-shadow:var(--shadow); }
+  .ex-perf::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--pc); z-index:1; }
+  .ex-perf-wash{ padding:16px 17px 15px; border-bottom:1px solid var(--border);
+    background:var(--pc-l); background:linear-gradient(180deg,var(--pc-l),color-mix(in srgb,var(--pc-l) 30%, var(--surface))); }
+  .ex-perf-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .ex-perf-label{ display:flex; align-items:center; gap:7px; font-size:11px; font-weight:800; color:var(--pc);
+    text-transform:uppercase; letter-spacing:.5px; }
+  .ex-perf-dot{ width:8px; height:8px; border-radius:50%; background:var(--pc); flex-shrink:0; }
+  .ex-perf-sel{ font-size:12px; font-weight:600; color:var(--text); background:var(--surface);
+    border:1px solid var(--border2); border-radius:9px; padding:6px 10px; cursor:pointer; max-width:140px;
+    box-shadow:0 1px 2px rgba(30,28,24,.05); }
+  .ex-perf-sel:hover{ border-color:var(--pc); }
+  .ex-perf-sub{ font-size:12px; color:var(--text2); margin-top:12px; }
+  .ex-perf-sub b{ color:var(--pc); font-weight:700; }
+  .ex-perf-hero{ display:flex; align-items:center; gap:11px; margin-top:8px; }
+  .ex-perf-heroval{ font-size:29px; font-weight:700; letter-spacing:-.7px; color:var(--text); line-height:1; }
+  .ex-perf-rows{ padding:15px 17px 16px; display:flex; flex-direction:column; gap:15px; }
+  .ex-perf-row{ display:flex; flex-direction:column; gap:7px; }
+  .ex-perf-rowtop{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .ex-perf-name{ font-size:10.5px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
+  .ex-perf-bar{ display:flex; height:28px; border-radius:7px; overflow:hidden; background:var(--surface2);
+    box-shadow:inset 0 0 0 1px var(--border); }
+  .ex-perf-cur{ display:flex; align-items:center; padding:0 10px; min-width:0; background:var(--pc); color:#fff; }
+  .ex-perf-pri{ display:flex; align-items:center; justify-content:flex-end; padding:0 10px; min-width:0;
+    background:var(--border2); color:var(--text2); }
+  .ex-perf-in{ font-size:11px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   /* ── TREND PANEL ── */
   .ex-trend{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:18px 20px;
@@ -2881,6 +2915,10 @@ init();
 // view state (persists across re-renders)
 let exTrendMetric = 'ov';     // ov | oq | dv | dq
 let exMomMetric   = 'ov';     // ov | oq | dv | dq (Sales Momentum selector)
+let exMtdMon      = null;     // Business Performance MTD month  (independent of global filters)
+let exQtdKey      = null;     // Business Performance QTD quarter
+let exYtdYear     = null;     // Business Performance YTD year
+let exRawCache    = null;     // cached RAW monthly series (period cards ignore global filters)
 let exTopDim      = 'sku';    // sku | retailer | salesrep | distributor | brand
 let _exGradId = 0;
 
@@ -2957,6 +2995,23 @@ function exRingSVG(pct, stroke, light) {
 }
 // window helpers over a {monthKey:value} map
 function exWin(map, months) { let s = 0; for (const m of months) s += (map[m] || 0); return s; }
+// full-book monthly series for the Period-over-Period cards (deliberately ignores global date/filters)
+function exRawSeries() {
+  if (exRawCache && exRawCache.n === RAW.length) return exRawCache;
+  const ovM = {}, oqM = {}, dvM = {}, dqM = {}, maxByMon = {}, months = {};
+  for (let i = 0; i < RAW.length; i++) {
+    const r = RAW[i], v = r.value || 0, q = r.total_qty || 0;
+    const od = r.order_dt;
+    if (od && od.length >= 7) { const mk = od.slice(0, 7); months[mk] = 1;
+      ovM[mk] = (ovM[mk] || 0) + v; oqM[mk] = (oqM[mk] || 0) + q;
+      if (!maxByMon[mk] || od > maxByMon[mk]) maxByMon[mk] = od; }
+    const dd = r.dispatch_dt;
+    if (dd && dd.length >= 7) { const dk = dd.slice(0, 7);
+      dvM[dk] = (dvM[dk] || 0) + v; dqM[dk] = (dqM[dk] || 0) + q; }
+  }
+  exRawCache = { n: RAW.length, ovM, oqM, dvM, dqM, maxByMon, months: Object.keys(months).sort() };
+  return exRawCache;
+}
 function exMonthsBack(endKey, count) { const a = []; for (let i = count - 1; i >= 0; i--) a.push(zmomKeyShift(endKey, -i)); return a; }
 
 // ── MAIN RENDER ──────────────────────────────────────────────────────
@@ -3061,10 +3116,10 @@ function renderDashboard() {
 
   // shared metric definitions (used by Sales Momentum selector and Trend Analysis)
   const MET = {
-    ov: { label: 'Order Value', map: ovM, color: 'var(--ex-blue)', fmt: fmtV, win: [ov12, ovP] },
-    oq: { label: 'Order Qty', map: oqM, color: 'var(--ex-purple)', fmt: v => fmt(Math.round(v)), win: [oq12, oqP] },
-    dv: { label: 'Dispatch Value', map: dvM, color: 'var(--ex-green)', fmt: fmtV, win: [dv12, dvP] },
-    dq: { label: 'Dispatch Qty', map: dqM, color: 'var(--ex-teal)', fmt: v => fmt(Math.round(v)), win: [dq12, dqP] },
+    ov: { label: 'Order Value', map: ovM, color: 'var(--ex-blue)', fmt: fmtV, win: [ov12, ovP], kind: 'val' },
+    oq: { label: 'Order Qty', map: oqM, color: 'var(--ex-purple)', fmt: v => fmt(Math.round(v)), win: [oq12, oqP], kind: 'qty' },
+    dv: { label: 'Dispatch Value', map: dvM, color: 'var(--ex-green)', fmt: fmtV, win: [dv12, dvP], kind: 'val' },
+    dq: { label: 'Dispatch Qty', map: dqM, color: 'var(--ex-teal)', fmt: v => fmt(Math.round(v)), win: [dq12, dqP], kind: 'qty' },
   };
 
   // ── HEALTH SCORE (composite, 0–100) ──
@@ -3186,6 +3241,7 @@ function renderDashboard() {
   const mom12 = last12.map(m => mm.map[m] || 0);
   const mom12mx = Math.max(...mom12, 1);
   const [mmCur, mmPrev] = mm.win;
+  const momCallout = v => mm.kind === 'val' ? fmtV(v) : (v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + 'K' : fmt(Math.round(v)));
   H += `
   <div class="ex-mcard" style="--mc:${mm.color}">
     <div class="ex-mcard-head">
@@ -3194,8 +3250,12 @@ function renderDashboard() {
         ${Object.entries(MET).map(([k, o]) => `<button class="ex-pill ${k === exMomMetric ? 'on' : ''}" data-exmom="${k}">${o.label}</button>`).join('')}
       </div>
     </div>
-    <div class="ex-mom-bars">${mom12.map((v, i) => `<i class="${v >= mom12mx * 0.8 ? 'hot' : ''}" style="height:${Math.max(6, v / mom12mx * 100)}%" title="${zmomMonLabel(last12[i])}: ${mm.fmt(v)}"></i>`).join('')}</div>
-    <div class="ex-mom-axis">${last12.map((m, i) => `<span class="ex-cmp-prev">${i % 2 === 0 ? zmomMonLabel(m) : ''}</span>`).join('')}</div>
+    <div class="ex-mom-bars">${mom12.map((v, i) => `
+      <div class="ex-mom-col">
+        <span class="ex-mom-cv">${momCallout(v)}</span>
+        <i class="${v >= mom12mx * 0.8 ? 'hot' : ''}" style="height:${Math.max(4, v / mom12mx * 92)}px" title="${zmomMonLabel(last12[i])}: ${mm.fmt(v)}"></i>
+        <span class="ex-mom-cx">${zmomMonLabel(last12[i])}</span>
+      </div>`).join('')}</div>
     <div class="ex-mom-foot">
       <div class="ex-mom-figs">
         <div class="ex-mom-fig"><span class="ex-mom-fig-l">Last 12 mo</span><b style="color:${mm.color}">${mm.fmt(mmCur)}</b></div>
@@ -3208,39 +3268,86 @@ function renderDashboard() {
     </div>
   </div>`;
 
-  const curMon = maxKey, prevMon = zmomKeyShift(maxKey, -1);
-  const qKey = k => `${k.slice(0,4)}-Q${Math.floor((+k.slice(5,7) - 1) / 3) + 1}`;
-  const qMonths = (yr, qn) => [0,1,2].map(o => `${yr}-${String((qn-1)*3 + 1 + o).padStart(2,'0')}`);
-  const curQ = Math.floor((maxMon - 1) / 3) + 1;
-  const curQy = maxYear, prevQn = curQ === 1 ? 4 : curQ - 1, prevQy = curQ === 1 ? maxYear - 1 : maxYear;
-  const curQM = qMonths(curQy, curQ), prevQM = qMonths(prevQy, prevQn);
-  const ytdCur = [], ytdPrev = [];
-  for (let m = 1; m <= maxMon; m++) { ytdCur.push(`${maxYear}-${String(m).padStart(2,'0')}`); ytdPrev.push(`${maxYear-1}-${String(m).padStart(2,'0')}`); }
+  // ── 3 · BUSINESS PERFORMANCE · Period-over-Period (independent of global filters) ──
+  const qKey = k => `${k.slice(0, 4)}-Q${Math.floor((+k.slice(5, 7) - 1) / 3) + 1}`;
+  const qMonths = (yr, qn) => [0, 1, 2].map(o => `${yr}-${String((qn - 1) * 3 + 1 + o).padStart(2, '0')}`);
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monFull = mk => `${MONTHS[+mk.slice(5, 7) - 1]} ${mk.slice(0, 4)}`;
+  const qFull = qk => { const [y, q] = qk.split('-Q'); return `Q${q} ${y}`; };
 
-  const cmpRow = (label, color, ov, op, dv, dp) => `
-    <div class="ex-cmp-row">
-      <div class="ex-cmp-k"><i style="background:var(--ex-blue)"></i>Order</div>
-      <div class="ex-cmp-vwrap"><span class="ex-cmp-v">${fmtV(ov)}</span>${exG(ov, op)}</div>
+  const RS = exRawSeries();
+  const allM = RS.months;
+  if (allM.length) {
+    const latestM = allM[allM.length - 1];
+    const qSet = [...new Set(allM.map(qKey))].sort();
+    const ySet = [...new Set(allM.map(m => +m.slice(0, 4)))].sort((a, b) => a - b);
+    // resolve/clamp selections
+    if (!allM.includes(exMtdMon)) exMtdMon = latestM;
+    if (!qSet.includes(exQtdKey)) exQtdKey = qSet[qSet.length - 1];
+    if (!ySet.includes(+exYtdYear)) exYtdYear = ySet[ySet.length - 1]; else exYtdYear = +exYtdYear;
+
+    const uptoOf = ms => ms.map(m => RS.maxByMon[m]).filter(Boolean).sort().pop();
+    const sel = (attr, val, opts) => `<select class="ex-perf-sel" data-${attr}>${opts.map(o => `<option value="${o.v}" ${o.v == val ? 'selected' : ''}>${o.l}</option>`).join('')}</select>`;
+
+    // period month-lists
+    const mtdCur = [exMtdMon], mtdPrev = [zmomKeyShift(exMtdMon, -1)];
+    const [qy, qn] = exQtdKey.split('-Q').map(Number);
+    const pq = qn === 1 ? [qy - 1, 4] : [qy, qn - 1];
+    const qtdCur = qMonths(qy, qn), qtdPrev = qMonths(pq[0], pq[1]);
+    const yMons = allM.filter(m => +m.slice(0, 4) === exYtdYear);
+    const lastMon = yMons.length ? +yMons[yMons.length - 1].slice(5, 7) : 12;
+    const ytdCur = [], ytdPrev = [];
+    for (let m = 1; m <= lastMon; m++) { const mm = String(m).padStart(2, '0'); ytdCur.push(`${exYtdYear}-${mm}`); ytdPrev.push(`${exYtdYear - 1}-${mm}`); }
+
+    // split bar: current vs prior share of one metric (value+qty inside current, prior value inside prior) + value growth
+    const perfRow = (name, cV, pV, cQ, pQ) => {
+      const tot = cV + pV, cp = tot > 0 ? cV / tot * 100 : 50;
+      return `
+      <div class="ex-perf-row">
+        <div class="ex-perf-rowtop"><span class="ex-perf-name">${name}</span>${exG(cV, pV)}</div>
+        <div class="ex-perf-bar">
+          <div class="ex-perf-cur" style="width:${cp.toFixed(1)}%"><span class="ex-perf-in">${fmtV(cV)} · ${fmt(Math.round(cQ))}</span></div>
+          <div class="ex-perf-pri" style="width:${(100 - cp).toFixed(1)}%"><span class="ex-perf-in">${fmtV(pV)}</span></div>
+        </div>
+      </div>`;
+    };
+    const perfCard = (label, accent, accentL, selHtml, periodLabel, cur, prev) => {
+      const oV = exWin(RS.ovM, cur), opV = exWin(RS.ovM, prev), oQ = exWin(RS.oqM, cur), opQ = exWin(RS.oqM, prev);
+      const dV = exWin(RS.dvM, cur), dpV = exWin(RS.dvM, prev), dQ = exWin(RS.dqM, cur), dpQ = exWin(RS.dqM, prev);
+      const upto = uptoOf(cur);
+      return `
+      <div class="ex-perf" style="--pc:${accent};--pc-l:${accentL}">
+        <div class="ex-perf-wash">
+          <div class="ex-perf-head">
+            <div class="ex-perf-label"><span class="ex-perf-dot"></span>${label}</div>
+            ${selHtml}
+          </div>
+          <div class="ex-perf-sub">Sales Value · <b>${periodLabel}</b>${upto ? ` (upto ${fmtDate(upto)})` : ''}</div>
+          <div class="ex-perf-hero"><span class="ex-perf-heroval">${fmtV(oV)}</span>${exG(oV, opV)}</div>
+        </div>
+        <div class="ex-perf-rows">
+          ${perfRow('Order Received', oV, opV, oQ, opQ)}
+          ${perfRow('Dispatch Date', dV, dpV, dQ, dpQ)}
+        </div>
+      </div>`;
+    };
+
+    const monOpts = [...allM].reverse().map(m => ({ v: m, l: monFull(m) }));
+    const qOpts = [...qSet].reverse().map(q => ({ v: q, l: qFull(q) }));
+    const yOpts = [...ySet].reverse().map(y => ({ v: y, l: `${y}` }));
+
+    H += `
+    <div class="sec-header">
+      <div class="sec-title">Business Performance <span class="sec-badge ex-badge-purple">Order vs Dispatch</span></div>
+      <div class="ex-sub">Period-over-period comparison · MTD · QTD · YTD <span class="ex-perf-note">· independent of global filters</span></div>
     </div>
-    <div class="ex-cmp-row">
-      <div class="ex-cmp-k"><i style="background:var(--ex-green)"></i>Dispatch</div>
-      <div class="ex-cmp-vwrap"><span class="ex-cmp-v">${fmtV(dv)}</span>${exG(dv, dp)}</div>
+    <div class="ex-perf-grid">
+      ${perfCard('Month-to-Date', 'var(--ex-green)', 'var(--green-light)', sel('exmtd', exMtdMon, monOpts), monFull(exMtdMon), mtdCur, mtdPrev)}
+      ${perfCard('Quarter-to-Date', 'var(--ex-blue)', 'var(--blue-light)', sel('exqtd', exQtdKey, qOpts), qFull(exQtdKey), qtdCur, qtdPrev)}
+      ${perfCard('Year-to-Date', 'var(--ex-red)', 'var(--red-light)', sel('exytd', exYtdYear, yOpts), `${exYtdYear}`, ytdCur, ytdPrev)}
     </div>`;
-  const cmpCard = (title, tag, ov, op, dv, dp) => `
-    <div class="ex-cmp">
-      <div class="ex-cmp-head"><div class="ex-cmp-title">${title}</div><div class="ex-cmp-tag">${tag}</div></div>
-      ${cmpRow(title, '', ov, op, dv, dp)}
-    </div>`;
-  H += `
-  <div class="sec-header">
-    <div class="sec-title">Business Performance <span class="sec-badge ex-badge-purple">Order vs Dispatch</span></div>
-    <div class="ex-sub">Like-for-like comparisons across month, quarter and year-to-date</div>
-  </div>
-  <div class="ex-cmp-grid">
-    ${cmpCard(zmomMonLabel(curMon), 'vs ' + zmomMonLabel(prevMon), ovM[curMon] || 0, ovM[prevMon] || 0, dvM[curMon] || 0, dvM[prevMon] || 0)}
-    ${cmpCard(`Q${curQ} ${curQy}`, `vs Q${prevQn} ${prevQy}`, exWin(ovM, curQM), exWin(ovM, prevQM), exWin(dvM, curQM), exWin(dvM, prevQM))}
-    ${cmpCard(`YTD ${maxYear}`, `vs YTD ${maxYear-1}`, exWin(ovM, ytdCur), exWin(ovM, ytdPrev), exWin(dvM, ytdCur), exWin(dvM, ytdPrev))}
-  </div>`;
+  }
+
 
   // ── 4 · TREND ANALYSIS ──
   const TM = MET;
@@ -3486,6 +3593,9 @@ function renderDashboard() {
   // ── wire interactive controls ──
   host.querySelectorAll('[data-extm]').forEach(b => b.addEventListener('click', () => { exTrendMetric = b.dataset.extm; renderDashboard(); }));
   host.querySelectorAll('[data-exmom]').forEach(b => b.addEventListener('click', () => { exMomMetric = b.dataset.exmom; renderDashboard(); }));
+  host.querySelectorAll('[data-exmtd]').forEach(s => s.addEventListener('change', () => { exMtdMon = s.value; renderDashboard(); }));
+  host.querySelectorAll('[data-exqtd]').forEach(s => s.addEventListener('change', () => { exQtdKey = s.value; renderDashboard(); }));
+  host.querySelectorAll('[data-exytd]').forEach(s => s.addEventListener('change', () => { exYtdYear = s.value; renderDashboard(); }));
   host.querySelectorAll('[data-extop]').forEach(b => b.addEventListener('click', () => { exTopDim = b.dataset.extop; renderDashboard(); }));
 }
 
