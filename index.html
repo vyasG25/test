@@ -997,14 +997,14 @@
   .ex-mcard{ background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:18px 20px 16px;
     box-shadow:var(--shadow); margin-top:14px; }
   .ex-mcard-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:15px; }
-  .ex-mom-bars{ display:flex; align-items:flex-end; gap:6px; }
+  .ex-mom-bars{ display:flex; align-items:flex-end; gap:8px; }
   .ex-mom-col{ flex:1; min-width:0; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; }
-  .ex-mom-cv{ font-size:8.5px; font-weight:700; color:var(--text2); margin-bottom:4px; white-space:nowrap; line-height:1; }
-  .ex-mom-col i{ width:100%; max-width:36px; border-radius:4px 4px 0 0; min-height:4px; transition:height .3s ease, background .3s ease;
+  .ex-mom-cv{ font-size:12px; font-weight:700; color:var(--text2); margin-bottom:6px; white-space:nowrap; line-height:1; }
+  .ex-mom-col i{ width:100%; max-width:66px; border-radius:5px 5px 0 0; min-height:4px; transition:height .3s ease, background .3s ease;
     background:var(--blue-light); background:color-mix(in srgb, var(--mc) 22%, #ffffff); }
   .ex-mom-col i.hot{ background:var(--blue-grad); background:var(--mc); }
-  .ex-mom-cx{ font-size:9px; color:var(--text3); font-weight:600; margin-top:7px; white-space:nowrap; line-height:1; }
-  @media(max-width:680px){ .ex-mom-cv{ font-size:7.5px; } .ex-mom-cx{ font-size:8px; } .ex-mom-bars{ gap:3px; } }
+  .ex-mom-cx{ font-size:10.5px; color:var(--text3); font-weight:600; margin-top:8px; white-space:nowrap; line-height:1; }
+  @media(max-width:680px){ .ex-mom-cv{ font-size:10px; } .ex-mom-cx{ font-size:9px; } .ex-mom-bars{ gap:4px; } .ex-mom-col i{ max-width:46px; } }
   .ex-mom-foot{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
     margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
   .ex-mom-figs{ display:flex; gap:28px; }
@@ -3237,6 +3237,8 @@ function renderDashboard() {
   </div>`;
 
   // ── Sales Momentum (relocated below pipeline · metric-selectable, 12-month) ──
+  if (exMomMetric !== 'ov' && exMomMetric !== 'dv') exMomMetric = 'ov';
+  const MOM_KEYS = ['ov', 'dv'];
   const mm = MET[exMomMetric] || MET.ov;
   const mom12 = last12.map(m => mm.map[m] || 0);
   const mom12mx = Math.max(...mom12, 1);
@@ -3247,7 +3249,7 @@ function renderDashboard() {
     <div class="ex-mcard-head">
       <div class="ex-rk-label">Sales Momentum</div>
       <div class="ex-trend-pick">
-        ${Object.entries(MET).map(([k, o]) => `<button class="ex-pill ${k === exMomMetric ? 'on' : ''}" data-exmom="${k}">${o.label}</button>`).join('')}
+        ${MOM_KEYS.map(k => `<button class="ex-pill ${k === exMomMetric ? 'on' : ''}" data-exmom="${k}">${MET[k].label}</button>`).join('')}
       </div>
     </div>
     <div class="ex-mom-bars">${mom12.map((v, i) => `
