@@ -1491,7 +1491,7 @@ let r1Year = null, r1Dim = 'product', r1View = 'month', r1Metric = 'all', r1Basi
 let r1Search = '', r1SearchActive = false;
 let r1Sort = { col: '__TOTAL__', dir: 'desc' };   // default: sort by the year-total column, descending
 const R1_DIMS = [
-  { k: 'product',     label: 'Product',     keys: [ { field: 'brand_name', label: 'Brand' }, { field: 'product_code', label: 'Product' } ] },
+  { k: 'product',     label: 'Product',     keys: [ { field: 'brand_name', label: 'Brand' }, { field: 'product_code', label: 'Product' } ], dateCols: true },
   { k: 'retailer',    label: 'Retailer',    keys: [ { field: 'retailer_name', label: 'Retailer' } ], dateCols: true, orderCols: true },
   { k: 'distributor', label: 'Distributor', keys: [ { field: 'distributor', label: 'Distributor' } ] },
   { k: 'salesrep',    label: 'Sales Rep',   keys: [ { field: 'distributor', label: 'Distributor' }, { field: 'sales_rep', label: 'Sales Rep' } ], ordersCol: true },
@@ -3471,7 +3471,9 @@ function renderDashboard() {
   // biggest dispatch month
   let bigDispM = null, bigDispV = -1; for (const m in dvM) if (dvM[m] > bigDispV) { bigDispV = dvM[m]; bigDispM = m; }
   // largest single order (by po) & largest invoice (by inv)
-  const poVal = {}, invVal = {}; for (const r of rows) { if (r.po_no) poVal[r.po_no] = (poVal[r.po_no] || 0) + (r.value || 0); if (r.invoice_no) invVal[r.invoice_no] = (invVal[r.invoice_no] || 0) + (r.value || 0); }
+  const poVal = {}, invVal = {}, poDist = {}, invDist = {}; for (const r of rows) { if (r.po_no) { poVal[r.po_no] = (poVal[r.po_no] || 0) + (r.value || 0); if (r.distributor && !poDist[r.po_no]) poDist[r.po_no] = r.distributor; } if (r.invoice_no) { invVal[r.invoice_no] = (invVal[r.invoice_no] || 0) + (r.value || 0); if (r.distributor && !invDist[r.invoice_no]) invDist[r.invoice_no] = r.distributor; } }
+  // full SKU name from a "code - name" product key (keeps names that themselves contain " - ")
+  const skuFull = pc => { const s = String(pc || ''); const i = s.indexOf(' - '); return i >= 0 ? s.slice(i + 3) : s; };
   const bigPO = topOf(poVal ? Object.fromEntries(Object.entries(poVal).map(([k, v]) => [k, { v }])) : {}, o => o.v);
   let bigPOk = null, bigPOv = -1; for (const k in poVal) if (poVal[k] > bigPOv) { bigPOv = poVal[k]; bigPOk = k; }
   let bigINVk = null, bigINVv = -1; for (const k in invVal) if (invVal[k] > bigINVv) { bigINVv = invVal[k]; bigINVk = k; }
@@ -3498,15 +3500,15 @@ function renderDashboard() {
   </div>
   <div class="ex-hi-grid">
     ${growRet ? HIC('var(--ex-green)', 'var(--green-light)', i_trend, 'Fastest-growing retailer', escapeHtml(growRet.k), `+${growRet.g.toFixed(0)}% · ${fmtV(growRet.v)} (12 mo)`) : ''}
-    ${growSku ? HIC('var(--ex-blue)', 'var(--blue-light)', i_trend, 'Fastest-growing SKU', escapeHtml(growSku.k.split(' - ')[1] || growSku.k), `+${growSku.g.toFixed(0)}% · ${fmtV(growSku.v)} (12 mo)`) : ''}
+    ${growSku ? HIC('var(--ex-blue)', 'var(--blue-light)', i_trend, 'Fastest-growing SKU', escapeHtml(skuFull(growSku.k)), `+${growSku.g.toFixed(0)}% · ${fmtV(growSku.v)} (12 mo)`) : ''}
     ${growBrand ? HIC('var(--ex-purple)', 'var(--accent2-light)', i_fire, 'Fastest-growing brand', escapeHtml(growBrand.k), `+${growBrand.g.toFixed(0)}% growth (12 mo)`) : ''}
     ${topAgency ? HIC('var(--ex-teal)', 'var(--teal-light)', i_box, 'Largest sales agency', escapeHtml(topAgency.k), `${fmtV(topAgency.v)} · ${(topAgency.v / totV * 100).toFixed(0)}% of value`) : ''}
     ${topRep ? HIC('var(--ex-blue)', 'var(--blue-light)', i_user, 'Top sales rep', escapeHtml(topRep.k), `${fmtV(topRep.v)} booked`) : ''}
     ${bigDispM ? HIC('var(--ex-green)', 'var(--green-light)', i_cal, 'Biggest dispatch month', zmomMonLabel(bigDispM), `${fmtV(bigDispV)} dispatched`) : ''}
-    ${bigBO ? HIC('var(--ex-red)', 'var(--red-light)', i_box, 'Largest back order', escapeHtml((bigBO.product_code || '').split(' - ')[1] || bigBO.product_code || '—'), `${fmt(Math.round(bigBO.back_order_qty))} qty · ${escapeHtml(bigBO.retailer_name || '')}`) : ''}
-    ${bigPOk ? HIC('var(--ex-gold)', 'var(--gold-light)', i_bag, 'Largest order', 'PO ' + escapeHtml(bigPOk), `${fmtV(bigPOv)} single order`) : ''}
+    ${bigBO ? HIC('var(--ex-red)', 'var(--red-light)', i_box, 'Largest back order', escapeHtml(bigBO.sku_name || skuFull(bigBO.product_code) || '—'), `${fmt(Math.round(bigBO.back_order_qty))} qty · ${escapeHtml(bigBO.retailer_name || '')}`) : ''}
+    ${bigPOk ? HIC('var(--ex-gold)', 'var(--gold-light)', i_bag, 'Largest order', 'PO ' + escapeHtml(bigPOk), `${fmtV(bigPOv)} · ${escapeHtml(poDist[bigPOk] || '—')}`) : ''}
     ${topRetActive ? HIC('var(--ex-warm)', 'var(--warm-light)', i_user, 'Most active retailer', escapeHtml(topRetActive.k), `${topRetActive.v} orders placed`) : ''}
-    ${bigINVk ? HIC('var(--ex-acc)', 'var(--accent-light)', i_doc, 'Largest invoice', escapeHtml(bigINVk), `${fmtV(bigINVv)} invoiced`) : ''}
+    ${bigINVk ? HIC('var(--ex-acc)', 'var(--accent-light)', i_doc, 'Largest invoice', escapeHtml(bigINVk), `${fmtV(bigINVv)} · ${escapeHtml(invDist[bigINVk] || '—')}`) : ''}
   </div>`;
 
   // ── 8 · OPERATIONAL HEALTH ──
@@ -3531,50 +3533,6 @@ function renderDashboard() {
     ${op('var(--ex-acc)', 'Avg Invoice Value', fmtMoney(aiv), 'per invoice')}
     ${op('var(--ex-purple)', 'Avg Order Qty', fmt(Math.round(aoq)), 'units per PO')}
     ${op('var(--ex-teal)', 'Avg Dispatch Qty', fmt(Math.round(adq)), 'units shipped per PO')}
-  </div>`;
-
-  // ── 9 · ALERTS & EXCEPTIONS ──
-  // largest pending customers (undispatched value by retailer)
-  const pendByRet = {}; for (const r of rows) if (!r.dispatch_dt && r.retailer_name) pendByRet[r.retailer_name] = (pendByRet[r.retailer_name] || 0) + (r.value || 0);
-  const pendTop = Object.entries(pendByRet).sort((a, b) => b[1] - a[1]).slice(0, 4);
-  // top back orders by qty
-  const boTop = backRows.slice().sort((a, b) => b.back_order_qty - a.back_order_qty).slice(0, 4);
-  // late dispatches: lead time > 30 days
-  let lateCnt = 0, lateMax = 0, lateRef = null;
-  for (const r of rows) if (r.dispatch_dt && r.order_dt) { const lt = (new Date(r.dispatch_dt) - new Date(r.order_dt)) / 86400000; if (lt > 30) { lateCnt++; if (lt > lateMax) { lateMax = lt; lateRef = r; } } }
-  // products with no order in last 90 days (from maxKey month end)
-  const cutoff = (() => { const d = new Date(maxKey + '-01'); d.setMonth(d.getMonth() + 1); d.setDate(d.getDate() - 90); return d.toISOString().slice(0, 10); })();
-  const stale = Object.entries(lastByProduct).filter(([k, d]) => d < cutoff).sort((a, b) => a[1].localeCompare(b[1]));
-  const avgLead = leadCnt ? (leadSum / leadCnt) : 0;
-
-  const alertList = items => items.length ? `<div class="ex-alert-list">${items.map(it => `<div class="ex-alert-item"><span>${escapeHtml(it[0])}</span><b>${it[1]}</b></div>`).join('')}</div>` : '<div class="ex-alert-d ex-ok">All clear — nothing flagged.</div>';
-  const alert = (color, lightVar, icon, label, count, body) => `
-    <div class="ex-alert" style="--ac:${color};--ac-l:${lightVar}">
-      <div class="ex-alert-ic">${icon}</div>
-      <div class="ex-alert-body">
-        <div class="ex-alert-l">${label}${count != null ? `<span class="ex-alert-count">${count}</span>` : ''}</div>
-        ${body}
-      </div></div>`;
-  const i_warn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
-
-  H += `
-  <div class="sec-header">
-    <div class="sec-title">Alerts &amp; Exceptions <span class="sec-badge ex-badge-warm">Needs attention</span></div>
-    <div class="ex-sub">What to act on today</div>
-  </div>
-  <div class="ex-alert-grid">
-    ${alert('var(--ex-red)', 'var(--red-light)', IC.back, 'Large back orders', backRows.length || null,
-      backRows.length ? alertList(boTop.map(r => [`${(r.product_code || '').split(' - ')[1] || r.product_code} · ${r.retailer_name || ''}`, fmt(Math.round(r.back_order_qty)) + ' qty'])) : '<div class="ex-alert-d ex-ok">No open back orders.</div>')}
-    ${alert('var(--ex-warm)', 'var(--warm-light)', i_warn, 'Largest pending customers', pendTop.length || null,
-      pendTop.length ? alertList(pendTop.map(([k, v]) => [k, fmtV(v)])) : '<div class="ex-alert-d ex-ok">Nothing awaiting dispatch.</div>')}
-    ${alert('var(--ex-purple)', 'var(--accent2-light)', IC.clock, 'Future-dated orders', futRows.length || null,
-      `<div class="ex-alert-d"><b>${fmt(Math.round(futQ))}</b> qty (${fmtV(futV)}) scheduled to ship ahead across <b>${futRows.length}</b> lines.</div>`)}
-    ${alert('var(--ex-blue)', 'var(--blue-light)', IC.truck, 'Dispatch lead time', null,
-      `<div class="ex-alert-d">Average <b>${avgLead.toFixed(1)} days</b> order→dispatch. <b>${lateCnt}</b> lines took over 30 days${lateRef ? `; longest <b>${Math.round(lateMax)}d</b> (${escapeHtml(lateRef.retailer_name || '')})` : ''}.</div>`)}
-    ${alert('var(--ex-gold)', 'var(--gold-light)', i_box, 'Dormant products', stale.length || null,
-      stale.length ? `<div class="ex-alert-d"><b>${stale.length}</b> products have had no orders in 90+ days.</div>${alertList(stale.slice(0, 3).map(([k, d]) => [(k.split(' - ')[1] || k), 'last ' + fmtDate(d)]))}` : '<div class="ex-alert-d ex-ok">Every product ordered within 90 days.</div>')}
-    ${alert('var(--ex-green)', 'var(--green-light)', IC.check, 'Order→Dispatch conversion', null,
-      `<div class="ex-alert-d"><b>${pct(dispV).toFixed(1)}%</b> of order value dispatched; <b>${fmtV(recV - dispV)}</b> still in the pipeline across ${pendOrdersCount(rows)} orders.</div>`)}
   </div>`;
 
   // ── footer ──
