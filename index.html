@@ -1029,21 +1029,28 @@
   .ex-pipe{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px;
     box-shadow:var(--shadow); }
   .ex-flow{ display:flex; align-items:stretch; gap:0; flex-wrap:wrap; }
-  .ex-node{ flex:1; min-width:150px; position:relative; padding:4px 8px; }
-  .ex-node-top{ display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+  .ex-node{ flex:1; min-width:172px; position:relative; padding:6px 12px; display:flex; flex-direction:column; }
+  .ex-node-top{ display:flex; align-items:center; gap:8px; margin-bottom:11px; }
   .ex-node-ic{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center;
     background:var(--nc-l); color:var(--nc); flex-shrink:0; }
   .ex-node-ic svg{ width:16px; height:16px; }
   .ex-node-name{ font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.4px; line-height:1.2; }
-  .ex-node-val{ font-size:21px; font-weight:700; color:var(--text); line-height:1; letter-spacing:-.4px; }
+  .ex-node-val{ font-size:24px; font-weight:700; color:var(--text); line-height:1; letter-spacing:-.5px; }
+  .ex-node-qty{ font-size:13px; color:var(--text2); font-weight:600; margin-top:6px; }
+  .ex-node-orders{ font-size:11.5px; color:var(--text3); font-weight:600; margin-top:3px; }
+  .ex-node-grow{ display:flex; flex-direction:column; gap:5px; margin-top:11px; }
+  .ex-ng{ display:flex; align-items:center; gap:7px; }
+  .ex-ng em{ font-style:normal; font-size:10.5px; color:var(--text3); font-weight:600; letter-spacing:.2px; }
   .ex-node-money{ font-size:12.5px; color:var(--text2); font-weight:600; margin-top:4px; }
   .ex-node-conv{ font-size:11px; color:var(--nc); font-weight:700; margin-top:7px; display:inline-flex; align-items:center; gap:4px; }
-  .ex-node-track{ height:5px; border-radius:4px; background:var(--surface2); margin-top:9px; overflow:hidden; }
+  .ex-node .ex-spark{ margin-top:11px; }
+  .ex-node-track{ height:5px; border-radius:4px; background:var(--surface2); margin-top:10px; overflow:hidden; }
   .ex-node-fill{ height:100%; border-radius:4px; background:var(--nc); }
   .ex-arrow{ display:flex; align-items:center; color:var(--text3); padding:0 2px; font-size:18px; align-self:center; }
   @media(max-width:980px){ .ex-arrow{ display:none; } .ex-node{ min-width:46%; border:1px solid var(--border);
     border-radius:var(--rs); margin:4px; } }
-  .ex-pipe-foot{ display:grid; grid-template-columns:repeat(2,1fr); gap:13px; margin-top:18px; }
+  .ex-pipe-foot{ display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:18px; }
+  @media(max-width:980px){ .ex-pipe-foot{ grid-template-columns:repeat(2,1fr); } }
   @media(max-width:680px){ .ex-pipe-foot{ grid-template-columns:1fr; } }
   .ex-out{ display:flex; align-items:center; gap:13px; padding:14px 16px; border-radius:var(--r);
     border:1px solid var(--oc-b); background:var(--oc-l); }
@@ -2948,6 +2955,9 @@ function renderDashboard() {
   const poByEntity = {};                                  // distinct PO per retailer (activity)
   const backRows = [], futRows = [];
   const lastByProduct = {};                               // last order date per product
+  // per-pipeline-stage monthly value/qty series + distinct-PO sets (for node growth & sparklines)
+  const futVM = {}, futQM = {}, backVM = {}, backQM = {};
+  const recPO = poSet, futPO = new Set(), backPO = new Set(), dispPO = new Set();
   let maxKey = '';
 
   // ── Metric definitions (authoritative source columns) ──────────────────
@@ -2971,12 +2981,23 @@ function renderDashboard() {
       dispQ += q; dispV += v;
       const dk = r.dispatch_dt.slice(0, 7);
       dvM[dk] = (dvM[dk] || 0) + v; dqM[dk] = (dqM[dk] || 0) + q;
+      if (r.po_no) dispPO.add(r.po_no);
       // dispatch lead time
       if (od) { const lt = (new Date(r.dispatch_dt) - new Date(od)) / 86400000; if (isFinite(lt) && lt >= 0) { leadSum += lt; leadCnt++; } }
     } else { pendQ += q; pendV += v; }
 
-    if (r.back_order_qty > 0) { backQ += r.back_order_qty; backV += (r.back_order_rate || 0); backRows.push(r); }
-    if (r.expected_ship_dt) { futQ += q; futV += v; futRows.push(r); }
+    if (r.back_order_qty > 0) {
+      const br = r.back_order_rate || 0;
+      backQ += r.back_order_qty; backV += br; backRows.push(r);
+      if (mk) { backVM[mk] = (backVM[mk] || 0) + br; backQM[mk] = (backQM[mk] || 0) + r.back_order_qty; }
+      if (r.po_no) backPO.add(r.po_no);
+    }
+    if (r.expected_ship_dt) {
+      futQ += q; futV += v; futRows.push(r);
+      const sk = r.expected_ship_dt.slice(0, 7);
+      futVM[sk] = (futVM[sk] || 0) + v; futQM[sk] = (futQM[sk] || 0) + q;
+      if (r.po_no) futPO.add(r.po_no);
+    }
     if (r.invoice_no) { invV += v; invQ += q; invSet.add(r.invoice_no); }
 
     if (r.po_no) poSet.add(r.po_no);
@@ -3084,38 +3105,37 @@ function renderDashboard() {
         <span class="ex-cmp-prev"><b style="color:var(--text)">${fmt(Math.round(pendQ))}</b> qty awaiting dispatch · ${fmtV(pendV)}</span>
       </div>
     </div>
-  </div>
-  <div class="ex-kpis">
-    ${kpi('Order Value', 'var(--ex-blue)', fmtV(ordV), ov12, ovP, 'prior 12 mo', ovSpark)}
-    ${kpi('Order Qty', 'var(--ex-purple)', fmt(Math.round(ordQ)), oq12, oqP, 'prior 12 mo', oqSpark)}
-    ${kpi('Dispatch Value', 'var(--ex-green)', fmtV(dispV), dv12, dvP, 'prior 12 mo', dvSpark)}
-    ${kpi('Dispatch Qty', 'var(--ex-teal)', fmt(Math.round(dispQ)), dq12, dqP, 'prior 12 mo', dqSpark)}
-    <div class="ex-kpi" style="--kc:var(--ex-gold)">
-      <div class="ex-kpi-top"><div class="ex-kpi-label"><span class="ex-kpi-dot"></span>Fill Rate</div></div>
-      <div class="ex-kpi-val">${fillRate.toFixed(1)}%</div>
-      <div class="ex-kpi-meta">${exG(fillRate, exWin(dqM, prev12) && exWin(oqM, prev12) ? exWin(dqM, prev12) / exWin(oqM, prev12) * 100 : 0)}<span class="ex-kpi-prev">dispatch ÷ order</span></div>
-      ${exSpark(frSpark, 'var(--ex-gold)')}
-    </div>
-    <div class="ex-kpi" style="--kc:var(--ex-warm)">
-      <div class="ex-kpi-top"><div class="ex-kpi-label"><span class="ex-kpi-dot"></span>Pending</div></div>
-      <div class="ex-kpi-val">${fmt(pendOrdersCount(rows))}</div>
-      <div class="ex-kpi-meta"><span class="ex-g na" style="background:var(--warm-light);color:var(--warm);border:none;">${fmtV(pendV)}</span><span class="ex-kpi-prev">orders awaiting dispatch</span></div>
-      <div class="ex-spark" style="display:flex;align-items:flex-end;gap:2px;">${last12.map(m => { const oq = oqM[m] || 0, dq = dqM[m] || 0, pendQm = Math.max(0, oq - dq); return `<i style="flex:1;background:var(--warm-light);border-radius:2px 2px 0 0;height:${oq ? Math.max(6, pendQm / (oq || 1) * 100) : 6}%"></i>`; }).join('')}</div>
-    </div>
   </div>`;
 
   // ── 2 · ORDER PIPELINE ──
   const recV = ordV, recQ = ordQ;
   const pct = x => recV ? (x / recV * 100) : 0;
   const awaitQ = pendQ, awaitV = pendV;
-  const node = (name, color, cl, icon, q, money, conv, fillPct) => `
+
+  // latest populated month of a value series, and MoM / LYSM growth + 12-mo spark for it
+  const lastPop = s => { const k = Object.keys(s).filter(m => s[m] > 0).sort(); return k.length ? k[k.length - 1] : maxKey; };
+  const nodeStats = s => {
+    const cur = lastPop(s), prevK = zmomKeyShift(cur, -1), lyK = zmomKeyShift(cur, -12);
+    return { cur: s[cur] || 0, prev: s[prevK] || 0, ly: s[lyK] || 0, spark: exMonthsBack(cur, 12).map(m => s[m] || 0) };
+  };
+
+  // enriched stage card: Value ▸ Qty ▸ #orders ▸ growth (vs last mo / vs LYSM) ▸ sparkline
+  const node = (name, color, cl, icon, money, qty, orders, series, fillPct) => {
+    const st = nodeStats(series);
+    return `
     <div class="ex-node" style="--nc:${color};--nc-l:${cl}">
       <div class="ex-node-top"><div class="ex-node-ic">${icon}</div><div class="ex-node-name">${name}</div></div>
-      <div class="ex-node-val">${fmt(Math.round(q))}</div>
-      <div class="ex-node-money">${fmtV(money)}</div>
-      <div class="ex-node-conv">${conv}</div>
+      <div class="ex-node-val">${fmtV(money)}</div>
+      <div class="ex-node-qty">${fmt(Math.round(qty))} qty</div>
+      <div class="ex-node-orders">${orders.toLocaleString('en-US')} orders</div>
+      <div class="ex-node-grow">
+        <span class="ex-ng">${exG(st.cur, st.prev)}<em>vs last mo</em></span>
+        <span class="ex-ng">${exG(st.cur, st.ly)}<em>vs LYSM</em></span>
+      </div>
+      ${exSpark(st.spark, color)}
       <div class="ex-node-track"><div class="ex-node-fill" style="width:${Math.max(3, fillPct).toFixed(1)}%"></div></div>
     </div>`;
+  };
   const IC = {
     in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
@@ -3127,19 +3147,17 @@ function renderDashboard() {
   H += `
   <div class="sec-header">
     <div class="sec-title">Order Pipeline <span class="sec-badge ex-badge-blue">Flow</span></div>
-    <div class="ex-sub">From order received to invoiced — conversion at each stage</div>
+    <div class="ex-sub">From order received to dispatched — value, volume &amp; momentum at each stage</div>
   </div>
   <div class="ex-pipe">
     <div class="ex-flow">
-      ${node('Orders Received', 'var(--ex-blue)', 'var(--blue-light)', IC.in, recQ, recV, `${nOrders.toLocaleString('en-US')} orders · 100%`, 100)}
+      ${node('Orders Received', 'var(--ex-blue)', 'var(--blue-light)', IC.in, recV, recQ, recPO.size, ovM, 100)}
       ${arrow}
-      ${node('Future Dated', 'var(--ex-purple)', 'var(--accent2-light)', IC.clock, futQ, futV, `${pct(futV).toFixed(1)}% scheduled ahead`, pct(futV))}
+      ${node('Future Dated', 'var(--ex-purple)', 'var(--accent2-light)', IC.clock, futV, futQ, futPO.size, futVM, pct(futV))}
       ${arrow}
-      ${node('Back Orders', 'var(--ex-red)', 'var(--red-light)', IC.back, backQ, backV, `${pct(backV).toFixed(1)}% on back order`, pct(backV))}
+      ${node('Back Orders', 'var(--ex-red)', 'var(--red-light)', IC.back, backV, backQ, backPO.size, backVM, pct(backV))}
       ${arrow}
-      ${node('Dispatched', 'var(--ex-green)', 'var(--green-light)', IC.truck, dispQ, dispV, `${pct(dispV).toFixed(1)}% fulfilled`, pct(dispV))}
-      ${arrow}
-      ${node('Invoiced', 'var(--ex-acc)', 'var(--accent-light)', IC.check, invQ, invV, `${pct(invV).toFixed(1)}% billed`, pct(invV))}
+      ${node('Dispatched', 'var(--ex-green)', 'var(--green-light)', IC.truck, dispV, dispQ, dispPO.size, dvM, pct(dispV))}
     </div>
     <div class="ex-pipe-foot">
       <div class="ex-out" style="--oc:var(--ex-warm);--oc-l:var(--warm-light);--oc-b:#fbe9cf">
@@ -3147,6 +3165,12 @@ function renderDashboard() {
         <div><div class="ex-out-l">Awaiting Dispatch</div>
           <div class="ex-out-v">${fmt(Math.round(awaitQ))} qty · ${fmtV(awaitV)}</div>
           <div class="ex-out-s">${pendOrdersCount(rows).toLocaleString('en-US')} orders not yet shipped</div></div>
+      </div>
+      <div class="ex-out" style="--oc:var(--ex-red);--oc-l:var(--red-light);--oc-b:#f1cace">
+        <div class="ex-out-ic">${IC.back}</div>
+        <div><div class="ex-out-l">Back Orders</div>
+          <div class="ex-out-v">${fmt(Math.round(backQ))} qty · ${fmtV(backV)}</div>
+          <div class="ex-out-s">${backPO.size.toLocaleString('en-US')} orders · ${pct(backV).toFixed(1)}% of order value</div></div>
       </div>
       <div class="ex-out" style="--oc:var(--ex-green);--oc-l:var(--green-light);--oc-b:#c5e3d1">
         <div class="ex-out-ic">${IC.check}</div>
