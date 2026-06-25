@@ -2950,6 +2950,15 @@ function renderDashboard() {
   const lastByProduct = {};                               // last order date per product
   let maxKey = '';
 
+  // ── Metric definitions (authoritative source columns) ──────────────────
+  //   Order Qty        → order_received_dt   + po_total_qty            (r.total_qty,  by order_dt)
+  //   Order Value      → order_received_dt   + total_(total_po_value)  (r.value,      by order_dt)
+  //   Dispatch Qty     → dispatch_date       + po_total_qty            (r.total_qty,  by dispatch_dt)
+  //   Dispatch Value   → dispatch_date       + total_(total_po_value)  (r.value,      by dispatch_dt)
+  //   Back Order Qty   → order_received_dt   + back_order_qty          (r.back_order_qty)
+  //   Back Order Value → order_received_dt   + back_order_rate         (r.back_order_rate — already qty×value)
+  //   Future Dated Qty → excepted_ship_date  + po_total_qty            (r.total_qty,  by expected_ship_dt)
+  //   Future Dated Val → excepted_ship_date  + total_(total_po_value)  (r.value,      by expected_ship_dt)
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
     const v = r.value || 0, q = r.total_qty || 0;
@@ -2966,7 +2975,7 @@ function renderDashboard() {
       if (od) { const lt = (new Date(r.dispatch_dt) - new Date(od)) / 86400000; if (isFinite(lt) && lt >= 0) { leadSum += lt; leadCnt++; } }
     } else { pendQ += q; pendV += v; }
 
-    if (r.back_order_qty > 0) { backQ += r.back_order_qty; backV += v; backRows.push(r); }
+    if (r.back_order_qty > 0) { backQ += r.back_order_qty; backV += (r.back_order_rate || 0); backRows.push(r); }
     if (r.expected_ship_dt) { futQ += q; futV += v; futRows.push(r); }
     if (r.invoice_no) { invV += v; invQ += q; invSet.add(r.invoice_no); }
 
