@@ -1225,18 +1225,25 @@
     line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ex-hi-s{ position:relative; z-index:1; font-size:11.5px; color:var(--text2); font-weight:600; }
 
-  /* ── OPERATIONAL HEALTH ── */
-  .ex-op-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
-  @media(max-width:1100px){ .ex-op-grid{ grid-template-columns:repeat(3,1fr); } }
-  @media(max-width:600px){ .ex-op-grid{ grid-template-columns:repeat(2,1fr); } }
-  .ex-op{ background:var(--surface); border:1px solid var(--border); border-radius:var(--rs); padding:14px 15px;
-    transition:box-shadow .2s; }
-  .ex-op:hover{ box-shadow:var(--shadow); }
-  .ex-op-l{ font-size:9.5px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.6px;
-    display:flex; align-items:center; gap:6px; }
-  .ex-op-l i{ width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .ex-op-v{ font-size:22px; font-weight:700; color:var(--text); margin-top:9px; line-height:1; letter-spacing:-.4px; }
-  .ex-op-s{ font-size:11px; color:var(--text3); margin-top:4px; }
+  /* ── OPERATIONAL HEALTH (ledger panel) ── */
+  .ex-op-panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+    box-shadow:var(--shadow); display:grid; grid-template-columns:1fr 1fr; overflow:hidden; }
+  @media(max-width:760px){ .ex-op-panel{ grid-template-columns:1fr; } }
+  .ex-op-col{ display:flex; flex-direction:column; }
+  .ex-op-col:first-child{ border-right:1px solid var(--border); }
+  .ex-op-row{ display:flex; align-items:center; gap:13px; padding:13px 20px; border-bottom:1px solid var(--border); }
+  .ex-op-col .ex-op-row:last-child{ border-bottom:none; }
+  .ex-op-row:hover{ background:var(--hover, rgba(0,0,0,.015)); }
+  .ex-op-tick{ width:3px; align-self:stretch; min-height:26px; border-radius:3px; background:var(--oc); flex-shrink:0; }
+  .ex-op-main{ min-width:0; }
+  .ex-op-label{ font-size:12.5px; font-weight:700; color:var(--text); white-space:nowrap; letter-spacing:-.1px; }
+  .ex-op-sub{ font-size:9.5px; color:var(--text3); margin-top:2px; text-transform:uppercase; letter-spacing:.5px; }
+  .ex-op-leader{ flex:1 1 auto; min-width:14px; height:0; border-bottom:1px dotted var(--border); }
+  .ex-op-val{ font-size:20px; font-weight:700; color:var(--text); letter-spacing:-.5px; line-height:1; white-space:nowrap; }
+  @media(max-width:760px){
+    .ex-op-col:first-child{ border-right:none; }
+    .ex-op-col:first-child .ex-op-row:last-child{ border-bottom:1px solid var(--border); }
+  }
 
   /* ── ALERTS ── */
   .ex-alert-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:13px; }
@@ -3516,23 +3523,33 @@ function renderDashboard() {
   const aiv = nInv ? invV / nInv : 0;
   const aoq = nOrders ? ordQ / nOrders : 0;
   const adq = nOrders ? dispQ / nOrders : 0;
-  const op = (c, label, val, sub) => `<div class="ex-op"><div class="ex-op-l"><i style="background:${c}"></i>${label}</div><div class="ex-op-v">${val}</div><div class="ex-op-s">${sub}</div></div>`;
+  const op = (c, label, val, sub) => `
+    <div class="ex-op-row" style="--oc:${c}">
+      <div class="ex-op-tick"></div>
+      <div class="ex-op-main"><div class="ex-op-label">${label}</div><div class="ex-op-sub">${sub}</div></div>
+      <div class="ex-op-leader"></div>
+      <div class="ex-op-val">${val}</div>
+    </div>`;
+  const opItems = [
+    op('var(--ex-blue)',   'Orders',            fmt(nOrders),          'distinct POs'),
+    op('var(--ex-green)',  'Invoices',          fmt(nInv),             'distinct invoices'),
+    op('var(--ex-purple)', 'Retailers',         fmt(retSet.size),      'active accounts'),
+    op('var(--ex-teal)',   'Products',          fmt(skuSet.size),      'SKUs ordered'),
+    op('var(--ex-gold)',   'Sales Agencies',    fmt(distSet.size),     'distributors'),
+    op('var(--ex-warm)',   'Sales Reps',        fmt(repSet.size),      'representatives'),
+    op('var(--ex-blue)',   'Avg Order Value',   fmtMoney(aov),         'per PO'),
+    op('var(--ex-acc)',    'Avg Invoice Value', fmtMoney(aiv),         'per invoice'),
+    op('var(--ex-purple)', 'Avg Order Qty',     fmt(Math.round(aoq)),  'units per PO'),
+    op('var(--ex-teal)',   'Avg Dispatch Qty',  fmt(Math.round(adq)),  'units shipped per PO'),
+  ];
   H += `
   <div class="sec-header">
     <div class="sec-title">Operational Health <span class="sec-badge ex-badge-blue">Footprint</span></div>
     <div class="ex-sub">Volume, breadth and averages across the filtered book</div>
   </div>
-  <div class="ex-op-grid">
-    ${op('var(--ex-blue)', 'Orders', fmt(nOrders), 'distinct POs')}
-    ${op('var(--ex-green)', 'Invoices', fmt(nInv), 'distinct invoices')}
-    ${op('var(--ex-purple)', 'Retailers', fmt(retSet.size), 'active accounts')}
-    ${op('var(--ex-teal)', 'Products', fmt(skuSet.size), 'SKUs ordered')}
-    ${op('var(--ex-gold)', 'Sales Agencies', fmt(distSet.size), 'distributors')}
-    ${op('var(--ex-warm)', 'Sales Reps', fmt(repSet.size), 'representatives')}
-    ${op('var(--ex-blue)', 'Avg Order Value', fmtMoney(aov), 'per PO')}
-    ${op('var(--ex-acc)', 'Avg Invoice Value', fmtMoney(aiv), 'per invoice')}
-    ${op('var(--ex-purple)', 'Avg Order Qty', fmt(Math.round(aoq)), 'units per PO')}
-    ${op('var(--ex-teal)', 'Avg Dispatch Qty', fmt(Math.round(adq)), 'units shipped per PO')}
+  <div class="ex-op-panel">
+    <div class="ex-op-col">${opItems.slice(0, 5).join('')}</div>
+    <div class="ex-op-col">${opItems.slice(5).join('')}</div>
   </div>`;
 
   // ── footer ──
