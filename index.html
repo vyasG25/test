@@ -131,6 +131,27 @@
   .header-right{display:flex;align-items:center;gap:0;}
   .hdr-actions{display:flex;align-items:center;gap:8px;}
 
+  /* ── LIVE INDICATOR ── */
+  .hdr-status{display:flex;align-items:center;gap:12px;padding-right:16px;border-right:1px solid var(--border);margin-right:12px;}
+  .live-indicator{display:flex;align-items:center;gap:8px;padding:5px 11px;background:var(--accent-light);border:1px solid var(--accent);border-radius:20px;opacity:0;transition:opacity .4s;}
+  .live-indicator.visible{opacity:1;}
+  .live-dot-wrap{position:relative;width:10px;height:10px;flex-shrink:0;}
+  .live-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);position:absolute;top:0;left:0;}
+  .live-ring{width:10px;height:10px;border-radius:50%;background:var(--accent);position:absolute;top:0;left:0;opacity:.6;animation:liveRing 2s ease-out infinite;}
+  @keyframes liveRing{0%{transform:scale(1);opacity:.6;}70%{transform:scale(2.4);opacity:0;}100%{transform:scale(2.4);opacity:0;}}
+  .live-text{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;}
+  .last-updated{font-size:11px;color:var(--text3);}
+
+  /* ── REFRESH / LOGOUT ── */
+  .refresh-btn{display:flex;align-items:center;gap:7px;padding:7px 14px;background:#e0f2f1;color:#004d40;border:1px solid #80cbc4;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .2s;white-space:nowrap;}
+  .refresh-btn:hover:not(:disabled){background:#b2dfdb;border-color:#4db6ac;}
+  .refresh-btn:disabled{opacity:.55;cursor:not-allowed;}
+  .refresh-icon{display:inline-block;transition:transform .3s;}
+  .refresh-btn.spinning .refresh-icon{animation:spin .7s linear infinite;}
+  .logout-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:none;color:var(--text2);border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .2s;white-space:nowrap;}
+  .logout-btn:hover{background:var(--red-light);color:var(--red);border-color:var(--red);}
+  .logout-btn svg{flex-shrink:0;}
+
   /* ── FILTER BAR ── */
   .filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:60px;z-index:96;box-shadow:0 2px 6px rgba(0,0,0,.05);}
   .ms-search{width:100%;padding:10px 12px;border:none;border-bottom:1px solid var(--border);font-size:13px;font-family:inherit;outline:none;background:var(--surface2);border-radius:var(--r) var(--r) 0 0;}
@@ -393,11 +414,98 @@
   #dashboardContent.visible{display:block;animation:slideUp .4s ease;}
 
   @media(max-width:768px){.top-bar{padding:0 16px;height:54px;}.filter-bar{padding:8px 16px;}.main{padding:16px;}.brand-divider,.brand-title{display:none;}}
+
+  /* ===== Split-screen login showcase ===== */
+  .lp-showcase{position:relative;flex:1 1 58%;min-width:0;height:100%;overflow:hidden;
+    background:radial-gradient(120% 90% at 8% 0%,#eef4fa 0,transparent 55%),radial-gradient(120% 100% at 100% 100%,#fdf3ea 0,transparent 50%),var(--bg);}
+  .lp-rows{position:absolute;inset:0;height:100%;display:grid;grid-template-rows:repeat(6,1fr);overflow:hidden;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 94%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 94%,transparent 100%);}
+  .lp-row{position:relative;min-height:0;overflow:hidden;display:flex;align-items:center;}
+  .lp-track{display:flex;align-items:center;width:max-content;will-change:transform;}
+  .lp-row.left  .lp-track{animation:lpLeft  var(--dur,56s) linear infinite;}
+  .lp-row.right .lp-track{animation:lpRight var(--dur,56s) linear infinite;}
+  .lp-tile{flex:0 0 auto;margin-right:14px;height:calc((100vh / 6) - 14px);height:calc((100dvh / 6) - 14px);aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:#fff;border:1px solid rgba(30,28,24,.06);box-shadow:0 6px 20px rgba(30,28,24,.08),0 1px 3px rgba(30,28,24,.05);}
+  .lp-tile img{width:100%;height:100%;object-fit:cover;display:block;}
+  @keyframes lpLeft {from{transform:translateX(0)}    to{transform:translateX(-50%)}}
+  @keyframes lpRight{from{transform:translateX(-50%)} to{transform:translateX(0)}}
+  .lp-showcase::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 62%,rgba(255,255,255,.55) 86%,#fff 100%);}
+  .lp-auth{flex:0 0 42%;max-width:560px;min-width:400px;height:100%;position:relative;overflow:hidden;z-index:2;display:flex;align-items:center;justify-content:center;padding:40px;
+    background:radial-gradient(135% 110% at 100% -10%, #34b0ef 0%, rgba(52,176,239,0) 46%),radial-gradient(120% 120% at -10% 110%, #06304e 0%, rgba(6,48,78,0) 52%),linear-gradient(155deg, #0a3a5e 0%, #12568a 48%, #1d81c4 100%);box-shadow:-22px 0 60px rgba(6,28,46,.35);}
+  .lp-auth::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(120% 90% at 50% 28%, #000 0%, transparent 78%);mask-image:radial-gradient(120% 90% at 50% 28%, #000 0%, transparent 78%);}
+  .lp-orbit{position:absolute;z-index:0;width:118%;aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;opacity:.55;filter:blur(6px);background:conic-gradient(from 0deg, rgba(126,214,255,0), rgba(126,214,255,.55), rgba(70,227,210,0) 34%, rgba(170,228,255,.5) 60%, rgba(126,214,255,0) 100%);-webkit-mask:radial-gradient(circle, transparent 39%, #000 40%, #000 60%, transparent 61%);mask:radial-gradient(circle, transparent 39%, #000 40%, #000 60%, transparent 61%);animation:lpOrbit 34s linear infinite;}
+  @keyframes lpOrbit{to{transform:translate(-50%,-50%) rotate(360deg);}}
+  .lp-aura{position:absolute;inset:-15%;pointer-events:none;z-index:0;}
+  .lp-aura span{position:absolute;display:block;border-radius:50%;filter:blur(70px);opacity:.65;will-change:transform;mix-blend-mode:screen;}
+  .lp-aura span:nth-child(1){width:48%;aspect-ratio:1;top:-8%;right:-6%;background:radial-gradient(circle at 30% 30%, #8fe0ff, #1d81c4 70%);animation:lpDrift1 18s ease-in-out infinite;}
+  .lp-aura span:nth-child(2){width:44%;aspect-ratio:1;bottom:-10%;left:-8%;background:radial-gradient(circle at 40% 40%, #46e3d2, #0d6e8a 72%);animation:lpDrift2 22s ease-in-out infinite;}
+  .lp-aura span:nth-child(3){width:40%;aspect-ratio:1;top:36%;left:28%;background:radial-gradient(circle at 50% 50%, #bfe9ff, #3a9bd6 75%);opacity:.45;animation:lpDrift3 26s ease-in-out infinite;}
+  @keyframes lpDrift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-9%,11%) scale(1.14)}}
+  @keyframes lpDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(11%,-9%) scale(1.16)}}
+  @keyframes lpDrift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(7%,-7%) scale(.9)}}
+  .lp-card{position:relative;z-index:2;width:100%;max-width:386px;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(168deg, rgba(255,255,255,.95), rgba(247,251,255,.85));-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);border:1px solid rgba(255,255,255,.9);border-radius:26px;padding:30px 36px 30px;box-shadow:0 34px 90px rgba(5,26,44,.5),0 8px 26px rgba(5,26,44,.28),inset 0 1px 0 rgba(255,255,255,.95);animation:lpRise .7s cubic-bezier(.16,1,.3,1) both;}
+  .lp-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#1d81c4,#34b0ef,#46e3d2,#1d81c4);background-size:200% 100%;animation:lpStrip 6s linear infinite;}
+  @keyframes lpStrip{to{background-position:200% 0;}}
+  .lp-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#1366a0;background:rgba(29,129,196,.1);border:1px solid rgba(29,129,196,.22);padding:5px 11px;border-radius:999px;margin:8px 0 16px;}
+  .lp-badge b{width:6px;height:6px;border-radius:50%;background:#2bb24c;box-shadow:0 0 0 3px rgba(43,178,76,.18);}
+  .lp-heading{font-size:23px;font-weight:700;color:#10324c;letter-spacing:-.3px;line-height:1.12;}
+  .lp-sub{font-size:13.5px;color:#5b748a;margin-top:6px;margin-bottom:22px;line-height:1.4;}
+  .lp-field{display:flex;flex-direction:column;gap:6px;margin-bottom:13px;}
+  .lp-field label{font-size:11px;font-weight:700;color:#1366a0;letter-spacing:.5px;text-transform:uppercase;}
+  .lp-input{position:relative;display:flex;align-items:center;}
+  .lp-input svg{position:absolute;left:13px;width:17px;height:17px;color:#7c93a6;pointer-events:none;transition:color .2s;}
+  .lp-input input{width:100%;padding:12px 14px 12px 40px;border:1.5px solid #d7e1ea;border-radius:11px;font-size:14px;font-family:inherit;outline:none;background:rgba(255,255,255,.85);color:#10324c;transition:border-color .2s, box-shadow .2s, background .2s;}
+  .lp-input input::placeholder{color:#9fb0bf;}
+  .lp-input input:focus{border-color:#1d81c4;background:#fff;box-shadow:0 0 0 4px rgba(29,129,196,.16);}
+  .lp-input:focus-within svg{color:#1d81c4;}
+  #loginError{font-size:13px;color:#b3261e;background:rgba(179,38,30,.08);border:1px solid rgba(179,38,30,.3);border-radius:10px;padding:9px 13px;text-align:center;margin-bottom:4px;}
+  .lp-btn{position:relative;overflow:hidden;margin-top:8px;padding:13px;border:none;border-radius:12px;font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;color:#fff;letter-spacing:.2px;background:linear-gradient(135deg,#1d81c4 0%,#2596d4 55%,#34b0ef 100%);box-shadow:0 10px 24px rgba(29,129,196,.4),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;}
+  .lp-btn:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(29,129,196,.5),inset 0 1px 0 rgba(255,255,255,.35);filter:brightness(1.04);}
+  .lp-btn:active{transform:translateY(0);}
+  .lp-btn:disabled{cursor:default;filter:saturate(.7) brightness(.96);transform:none;}
+  .lp-btn::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-18deg);animation:lpBtnSheen 3.6s ease-in-out infinite;}
+  @keyframes lpBtnSheen{0%{left:-130%}55%,100%{left:130%}}
+  .lp-foot{margin-top:18px;text-align:center;font-size:11.5px;color:#7c93a6;letter-spacing:.2px;}
+  @keyframes lpRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  @media (prefers-reduced-motion:reduce){.lp-track,.lp-aura span,.lp-orbit,.lp-card::before,.lp-btn::after{animation:none!important;}}
 </style>
 </head>
 <body>
 
 <!-- LOGIN OVERLAY -->
+<div id="loginOverlay" style="position:fixed;inset:0;z-index:9999;display:flex;background:var(--bg);overflow:hidden;">
+  <div class="lp-showcase" aria-hidden="true"><div class="lp-rows" id="lpRows"></div></div>
+  <div class="lp-auth">
+    <div class="lp-aura" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="lp-orbit" aria-hidden="true"></div>
+    <div class="lp-card">
+      <div class="brand-name" style="margin-bottom:2px;">
+        <img src="https://www.skillmatics.in/cdn/shop/files/Skillmatics_Logo_RGB_Skillmatics_Logo_Horizontal_NewBlue_1d81c4_1_ec4fa524-c3fc-4526-bfa2-15a59bfba561_101x.svg?v=1747739594" alt="Skillmatics" class="brand-wordmark-img" style="height:40px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+        <span class="brand-wordmark-text" style="display:none;font-size:26px;">Skillmatics</span>
+      </div>
+      <div class="lp-badge"><b></b>Skillmatics Blinkit Sales Dashboard</div>
+      <div class="lp-heading">Welcome back</div>
+      <div class="lp-sub">Sign in to access your live sales workspace.</div>
+      <div class="lp-field">
+        <label for="loginUser">Username</label>
+        <div class="lp-input">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input id="loginUser" type="text" autocomplete="username" placeholder="Enter username" onkeydown="if(event.key==='Enter') document.getElementById('loginPass').focus()">
+        </div>
+      </div>
+      <div class="lp-field">
+        <label for="loginPass">Password</label>
+        <div class="lp-input">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input id="loginPass" type="password" autocomplete="current-password" placeholder="Enter password" onkeydown="if(event.key==='Enter') attemptLogin()">
+        </div>
+      </div>
+      <div id="loginError" style="display:none;"></div>
+      <button id="loginBtn" class="lp-btn" onclick="attemptLogin()">Sign In</button>
+      <div class="lp-foot">Secure access &middot; Skillmatics</div>
+    </div>
+  </div>
+</div>
+
 <!-- LOADING OVERLAY -->
 <div id="loadingOverlay" style="position:fixed;inset:0;z-index:9998;background:var(--bg);display:none;align-items:center;justify-content:center;flex-direction:column;transition:opacity .5s ease;">
   <div class="load-bg" aria-hidden="true"><div class="load-grid"></div></div>
@@ -477,7 +585,18 @@
   </div>
   <div class="header-right">
     <div class="hdr-status">
+      <div class="live-indicator" id="liveIndicator">
+        <div class="live-dot-wrap"><div class="live-dot"></div><div class="live-ring"></div></div>
+        <span class="live-text">Live</span>
+      </div>
       <span id="fileTimestamp" style="display:none;"><span class="last-updated"><span style="font-weight:500;">Updated:</span> <span id="fileTimestampVal"></span></span></span>
+    </div>
+    <div class="hdr-actions">
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshData()"><span class="refresh-icon" id="refreshIcon">↻</span> Refresh</button>
+      <button class="logout-btn" onclick="logout()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
     </div>
   </div>
 </div>
@@ -605,9 +724,72 @@ const API_SOURCES = [
 ];
 
 // ── LOGIN ──────────────────────────────────────────────────────
+async function attemptLogin() {
+  const userInput = document.getElementById('loginUser').value.trim();
+  const passInput = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  if (!userInput || !passInput) { showLoginError('Please enter both username and password.'); return; }
+  btn.disabled = true; btn.textContent = 'Verifying…'; errEl.style.display = 'none';
+  try {
+    if (userInput === 'admin' && passInput === 'admin') {
+      sessionStorage.setItem('sk_logged_in', '1');
+      document.getElementById('loginOverlay').style.display = 'none';
+      const loadOv = document.getElementById('loadingOverlay');
+      loadOv.style.display = 'flex'; loadOv.style.opacity = '1';
+      resetLoadingVisual(); startLoadingCycle();
+      await loadDashboardData();
+      stopLoadingCycle();
+      finishLoading('success', 'Dashboard ready', 'Launching your workspace');
+      setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
+    } else {
+      showLoginError('Invalid username or password. Please try again.');
+      btn.disabled = false; btn.textContent = 'Sign In';
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    showLoginError('Could not verify credentials. Check your connection and try again.');
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+function showLoginError(msg) { const el = document.getElementById('loginError'); el.textContent = msg; el.style.display = 'block'; }
+function logout() {
+  sessionStorage.removeItem('sk_logged_in');
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Sign In';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('liveIndicator').classList.remove('visible');
+  document.getElementById('fileTimestamp').style.display = 'none';
+}
+
 // ── REFRESH ────────────────────────────────────────────────────
+function setRefreshState(loading) {
+  const btn = document.getElementById('refreshBtn');
+  const indicator = document.getElementById('liveIndicator');
+  if (loading) { btn.disabled = true; btn.classList.add('spinning'); indicator.classList.remove('visible'); }
+  else { btn.disabled = false; btn.classList.remove('spinning'); }
+}
+function showLiveIndicator() { document.getElementById('liveIndicator').classList.add('visible'); }
+async function refreshData() {
+  setRefreshState(true);
+  const loadOv = document.getElementById('loadingOverlay');
+  loadOv.style.display = 'flex'; loadOv.style.opacity = '1';
+  resetLoadingVisual(); startLoadingCycle();
+  try {
+    await loadDashboardData();
+    stopLoadingCycle();
+    finishLoading('success', 'Dashboard updated', 'Latest figures are in');
+    setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
+  } catch (e) { stopLoadingCycle(); }
+  finally { setRefreshState(false); }
+}
+
 // ── FETCH JSON (GT pipeline) ───────────────────────────────────
 async function loadDashboardData() {
+  setRefreshState(true);
   try {
     async function fetchSource(src) {
       const res = await fetch(src.url + '?_=' + Date.now());
@@ -791,8 +973,12 @@ async function loadDashboardData() {
     const activeTab = document.querySelector('.tab-btn.active');
     if (activeTab) ensureIndependentTab(activeTab.dataset.tab);
     syncFilterBarVisibility();
+
+    setRefreshState(false);
+    showLiveIndicator();
   } catch (error) {
     console.error('Dashboard Load Error:', error);
+    setRefreshState(false);
     if (error && error.kind === 'incompatible') finishLoading('error', 'Data not compatible', "We couldn't find Blinkit sales data. Please check your JSON sources.");
     else finishLoading('error', 'Something went wrong', "We couldn't load your dashboard. Please check your connection and try again.");
     setTimeout(() => { const loadOv = document.getElementById('loadingOverlay'); loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 4000);
@@ -2603,19 +2789,24 @@ function adjustStickyTops(){
 }
 async function init() {
   setup();
-  const loadOv = document.getElementById('loadingOverlay');
-  loadOv.style.display = 'flex'; loadOv.style.opacity = '1';
-  resetLoadingVisual(); startLoadingCycle();
-  try {
-    await loadDashboardData();
-    stopLoadingCycle();
-    finishLoading('success', 'Dashboard ready', 'Launching your workspace');
-    setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
-  } catch (err) {
-    console.error('Auto-load error:', err);
-    stopLoadingCycle();
-    loadOv.style.display = 'none';
-    showLoginError('Session expired or data unavailable. Please reload page.');
+  if (sessionStorage.getItem('sk_logged_in') === '1') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    const loadOv = document.getElementById('loadingOverlay');
+    loadOv.style.display = 'flex'; loadOv.style.opacity = '1';
+    resetLoadingVisual(); startLoadingCycle();
+    try {
+      await loadDashboardData();
+      stopLoadingCycle();
+      finishLoading('success', 'Dashboard ready', 'Launching your workspace');
+      setTimeout(() => { loadOv.style.opacity = '0'; setTimeout(() => { loadOv.style.display = 'none'; }, 500); }, 1200);
+    } catch (err) {
+      console.error('Auto-load error:', err);
+      stopLoadingCycle();
+      sessionStorage.removeItem('sk_logged_in');
+      loadOv.style.display = 'none';
+      document.getElementById('loginOverlay').style.display = 'flex';
+      showLoginError('Session expired or data unavailable. Please sign in again.');
+    }
   }
 }
 init();
